@@ -1,0 +1,40 @@
+test_advance_control_cannot_match_ar_directly (test_accounting_reference.AllocationTests.test_advance_control_cannot_match_ar_directly) ... ok
+test_backdated_timeline_overallocation_rejected (test_accounting_reference.AllocationTests.test_backdated_timeline_overallocation_rejected) ... ok
+test_before_receipt_date_rejected (test_accounting_reference.AllocationTests.test_before_receipt_date_rejected) ... ok
+test_cross_org_rejected_in_reference_model (test_accounting_reference.AllocationTests.test_cross_org_rejected_in_reference_model) ... ok
+test_cross_party_rejected (test_accounting_reference.AllocationTests.test_cross_party_rejected) ... ok
+test_dated_unapply (test_accounting_reference.AllocationTests.test_dated_unapply) ... ok
+test_overallocation (test_accounting_reference.AllocationTests.test_overallocation) ... ok
+test_partial_and_historical (test_accounting_reference.AllocationTests.test_partial_and_historical) ... ok
+test_reallocate_after_release_allowed (test_accounting_reference.AllocationTests.test_reallocate_after_release_allowed) ... ok
+test_amount_overflow (test_accounting_reference.ArithmeticTests.test_amount_overflow) ... ok
+test_discount_before_exclusive_tax (test_accounting_reference.ArithmeticTests.test_discount_before_exclusive_tax) ... ok
+test_discount_exceeds_base (test_accounting_reference.ArithmeticTests.test_discount_exceeds_base) ... ok
+test_exact_small_values (test_accounting_reference.ArithmeticTests.test_exact_small_values) ... ok
+test_exclusive_tax (test_accounting_reference.ArithmeticTests.test_exclusive_tax) ... ok
+test_fractional_quantity (test_accounting_reference.ArithmeticTests.test_fractional_quantity) ... ok
+test_half_up (test_accounting_reference.ArithmeticTests.test_half_up) ... ok
+test_inclusive_discount (test_accounting_reference.ArithmeticTests.test_inclusive_discount) ... ok
+test_inclusive_tax (test_accounting_reference.ArithmeticTests.test_inclusive_tax) ... ok
+test_invalid_numeric_inputs (test_accounting_reference.ArithmeticTests.test_invalid_numeric_inputs) ... ok
+test_invalid_quantity_price_rate (test_accounting_reference.ArithmeticTests.test_invalid_quantity_price_rate) ... ok
+test_line_total_consistency (test_accounting_reference.ArithmeticTests.test_line_total_consistency) ... ok
+test_advance_not_income (test_accounting_reference.LedgerTests.test_advance_not_income) ... ok
+test_balance_sheet_equation (test_accounting_reference.LedgerTests.test_balance_sheet_equation) ... ok
+test_double_sided_line_rejected (test_accounting_reference.LedgerTests.test_double_sided_line_rejected) ... ok
+test_duplicate_reversal_rejected (test_accounting_reference.LedgerTests.test_duplicate_reversal_rejected) ... ok
+test_golden_balances (test_accounting_reference.LedgerTests.test_golden_balances) ... ok
+test_golden_profit (test_accounting_reference.LedgerTests.test_golden_profit) ... ok
+test_locked_period (test_accounting_reference.LedgerTests.test_locked_period) ... ok
+test_receipt_does_not_repeat_revenue (test_accounting_reference.LedgerTests.test_receipt_does_not_repeat_revenue) ... ok
+test_reversal_preserves_historic_balance (test_accounting_reference.LedgerTests.test_reversal_preserves_historic_balance) ... ok
+test_same_source_changed_payload (test_accounting_reference.LedgerTests.test_same_source_changed_payload) ... ok
+test_same_source_idempotent (test_accounting_reference.LedgerTests.test_same_source_idempotent) ... ok
+test_transfer_with_fee (test_accounting_reference.LedgerTests.test_transfer_with_fee) ... ok
+test_trial_balance (test_accounting_reference.LedgerTests.test_trial_balance) ... ok
+test_unbalanced_rejected (test_accounting_reference.LedgerTests.test_unbalanced_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.003s
+
+OK

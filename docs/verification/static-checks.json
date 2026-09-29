@@ -1,0 +1,130 @@
+{
+  "scope": "Static artifact consistency only; no SQL parse/execute or security audit",
+  "table_count": 52,
+  "column_count": 525,
+  "screen_group_count": 54,
+  "checks_passed": 24,
+  "checks_total": 24,
+  "checks": [
+    {
+      "check": "52 unique catalog tables",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "SQL tables match the catalogue exactly",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "All column names unique within each table",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Every tenant table has org key and composite identity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Composite foreign-key fields/targets/unique keys resolve",
+      "passed": true,
+      "detail": "99 composite FKs examined; "
+    },
+    {
+      "check": "Inline financial references resolve without unpaired tenant targets",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "RLS-enable declaration exists for all 52 tables",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "No ordinary-user DML grant in SQL reference",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "No SQL creation of broad API exposure",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Three named read helper functions have restricted search path",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Read helper execute privileges revoked before explicit grant",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Explicit index names unique and within PostgreSQL identifier length",
+      "passed": true,
+      "detail": "124 indexes"
+    },
+    {
+      "check": "Reference SQL enclosed in one transaction",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Reference SQL includes decimal and one-sided line invariants",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "All 54 UI IDs sequential",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Every UI group includes route, access, structure and acceptance",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "UI Markdown includes every screen group",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Data dictionary includes every table",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "All cited source IDs resolve to S1-S15",
+      "passed": true,
+      "detail": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]"
+    },
+    {
+      "check": "Sources catalogue contains all 15 source groups",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "52 business and 20 security acceptance specifications present",
+      "passed": true,
+      "detail": "52 + 20"
+    },
+    {
+      "check": "19 functional requirement groups present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core package files all present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Untested SQL and unimplemented write-guard boundary explicit",
+      "passed": true,
+      "detail": ""
+    }
+  ]
+}

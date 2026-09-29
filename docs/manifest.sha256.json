@@ -1,0 +1,20 @@
+{
+  "01-product-requirements.md": "6ce40f668277292329f922f60b68a2281ac449233bbc222a3f2ee987c268e577",
+  "02-accounting-rules.md": "27934fc0d7ffae116f22ccb6df444c7b6d1b3a23a81dd174e49f723e4e633461",
+  "03-database-design.md": "364b011f8cce150eb8ebf39505f12862730259a78ab6bbcd75fefc45ea9fcd6f",
+  "04-data-dictionary.md": "b69fc856f07052dd755649840408c49c0ea5c58ca800db6149fa3387c390ab57",
+  "05-ui-specification.md": "a133aeddbbb6603008b70bd1d405757d4dfe9a40b5d5e3b1ae01d9887b44689b",
+  "06-api-contracts.md": "1d07c2d77fbbfad6297148a6405b26c3cd989dfd91d7385e09dcf4691eaabba3",
+  "07-acceptance-and-delivery.md": "5d61f239a10240c25dad3da0a8b5dbbcd03f9317f3c140983cadadf4c77af0e1",
+  "08-sources.md": "a81e55c0991534499648e4755f3748acd24e37f0ca038d8c4a130fffb593e739",
+  "09-verification-report.md": "f4782a33a5ac718e823bc420e3e99445fedf09fe214f53a35a8f5b81b46fdda2",
+  "README.md": "b2fa828150d3a643e17e4cf5f3c72982387cf33f6c058663cc83fdb8d3cdf8f3",
+  "reference-schema.sql": "1acca3ec69e1e1c8e933813d20e72486b386d54a262dc7d2ea2d4e2d2f658da4",
+  "schema-catalog.json": "8e587cc5ea33bcb09c307342287853960dde6bfe86c7e6995b28e07af18ae71a",
+  "tests/test_accounting_reference.py": "ea553fff55972af685b4d34a922068e1b12b02ed04ecf1d953de6401ec5ab62d",
+  "ui-screen-catalog.json": "df80c681eef6d9fd667382bd2b64378e3157d11ff4360e84fbb1a83986626752",
+  "verification/check_spec.py": "f2ae3c878a714a49c49e8686cff8a484f9a3e63480a553b0600cc52cf766906a",
+  "verification/reference-tests.txt": "67f36d48fdbb321d20b975b0b45f5af9dd3cb119344087f737a36defdfcafb37",
+  "verification/static-checks.json": "b193eebb8ab6fabf1765d8943d1f5087649fc1f6cda4a6f5fbf86f0b8f47cc1d",
+  "verification/static-checks.txt": "3bfa781ce7e9eca515afffd9fa975116fc2cfb24128a280df693c7b5f34fdc82"
+}

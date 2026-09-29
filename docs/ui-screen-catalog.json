@@ -1,0 +1,542 @@
+[
+  {
+    "id": "UI-01",
+    "title": "Public landing and pricing",
+    "routes": "/; /pricing",
+    "permission": "Public",
+    "structure": "Value proposition for company books; scope/features; illustrative product preview labeled as a demo; plan comparison; security/export explanation; contact/demo route.",
+    "actions": "Start trial, sign in, request demo.",
+    "validation": "No fabricated client logos, compliance certification, live-bank integration claims or prices. Only approved commercial values are shown.",
+    "acceptance": "Visitor understands the product records accounts, not that it operates a bank or autonomously pays suppliers."
+  },
+  {
+    "id": "UI-02",
+    "title": "Authentication, recovery and invitation",
+    "routes": "/auth/sign-in; /auth/sign-up; /auth/recover; /auth/verify; /invite/[token]",
+    "permission": "Public or invited user",
+    "structure": "One focused form per route; email/password or configured auth method; terms/privacy links; invite company and proposed role; accessible error summary.",
+    "actions": "Sign in, request reset, verify email, accept invite, resend verification with limits.",
+    "validation": "Generic account-enumeration-safe errors; expired invite state; no financial content before verified session. Invite email/identity and role must match the server record.",
+    "acceptance": "Expired or revoked invitation cannot grant membership, and switching accounts cannot accept another person's invite silently."
+  },
+  {
+    "id": "UI-03",
+    "title": "Company switcher and company list",
+    "routes": "/companies",
+    "permission": "Active membership",
+    "structure": "Company cards/table with legal/display name, membership role and onboarding/read-only status. Persistent current-company indicator after selection.",
+    "actions": "Open company, create company, leave allowed membership.",
+    "validation": "Creating a company follows entitlements; final owner cannot leave without transfer. Clear company-specific caches on switch.",
+    "acceptance": "Switching companies updates all navigation, searches, report filters and pending form context without mixing balances."
+  },
+  {
+    "id": "UI-04",
+    "title": "Company setup wizard",
+    "routes": "/onboarding/company",
+    "permission": "Company creator / owner",
+    "structure": "Steps: company identity \u2192 fiscal calendar and books start \u2192 template COA \u2192 bank/cash \u2192 tax preferences \u2192 invite team \u2192 review. Save progress between steps.",
+    "actions": "Back, continue, save draft, finish setup.",
+    "validation": "BDT-only with explicit label; fiscal range validation; required system mappings; first-post restrictions preview.",
+    "acceptance": "Finishing creates one complete tenant setup; repeated submission does not duplicate roles/accounts."
+  },
+  {
+    "id": "UI-05",
+    "title": "Opening-balance migration wizard",
+    "routes": "/o/[org]/settings/opening-balances",
+    "permission": "imports.run + accounting permission",
+    "structure": "Cutover explanation, upload, column map, trial-balance rows, AR/AP detail, advances, YTD summary, errors, tie-out and review.",
+    "actions": "Download template, validate, fix rows, preview opening journal, submit for approval, post approved opening.",
+    "validation": "Disable posting for imbalance, duplicate import key, missing original due/reference, unresolved suspense or incomplete subledger.",
+    "acceptance": "Closing opening asset/liability/control balances match approved source records; historic invoices are not recognized as fresh revenue."
+  },
+  {
+    "id": "UI-06",
+    "title": "Company dashboard",
+    "routes": "/o/[org]/dashboard",
+    "permission": "reports.read, with role-specific reduced variants",
+    "structure": "Date range and as-of label; revenue, expenses, profit, cash/bank, AR and AP cards; overdue obligations; upcoming bills; monthly trend; closing exceptions; recent authorized events.",
+    "actions": "Date filter, drilldown card, quick create invoice/bill/expense, review exceptions.",
+    "validation": "Hide unauthorized card values at API level. Empty state offers setup tasks rather than fake figures. Show unclassified cash or incomplete opening warnings.",
+    "acceptance": "Revenue is posted earned income, not collected cash; each card matches its linked report under the same filters."
+  },
+  {
+    "id": "UI-07",
+    "title": "Customer list",
+    "routes": "/o/[org]/sales/customers",
+    "permission": "sales.read; contacts.write for editing",
+    "structure": "Searchable table: name, phone/email, open receivables, overdue, available credits, advances and status. Filters for active/overdue. New-customer drawer.",
+    "actions": "Create, edit, archive, import, open profile.",
+    "validation": "Credit limit nonnegative; contact names can duplicate with warning; financial history blocks deletion.",
+    "acceptance": "A customer with an advance is not shown as having earned revenue from that advance."
+  },
+  {
+    "id": "UI-08",
+    "title": "Customer detail and statement tabs",
+    "routes": "/o/[org]/sales/customers/[id]",
+    "permission": "sales.read",
+    "structure": "Identity header; separate AR/credit/advance totals; tabs Invoices, Receipts, Credits, Advances, Statement and Activity. Statement dates clearly shown.",
+    "actions": "New invoice/receipt, apply permitted credit, export statement, edit future contact details.",
+    "validation": "Posted invoice snapshots stay unchanged after address edit. No vendor netting for dual-role contacts.",
+    "acceptance": "Opening plus dated customer movements equals closing; finance-only journal views remain hidden for billing users."
+  },
+  {
+    "id": "UI-09",
+    "title": "Vendor list",
+    "routes": "/o/[org]/purchases/vendors",
+    "permission": "purchases.read",
+    "structure": "Table: vendor, contact, outstanding AP, overdue, available vendor credits, advances, status. Search and due-date filters.",
+    "actions": "Create/edit/archive vendor, import, open profile.",
+    "validation": "No hard deletion of used vendor; isolate purchase data from sales-only users.",
+    "acceptance": "List totals bridge to AP aging and do not include customer-side balances."
+  },
+  {
+    "id": "UI-10",
+    "title": "Vendor profile",
+    "routes": "/o/[org]/purchases/vendors/[id]",
+    "permission": "purchases.read",
+    "structure": "Profile with Bills, Payments, Credits, Advances, Statement and Activity tabs; vendor invoice references prominent.",
+    "actions": "Add bill, record payment, apply advance through finance flow, export statement.",
+    "validation": "Show disputed/duplicate-reference warnings; never imply recording a payment sends funds.",
+    "acceptance": "A paid bill is not still overdue, and supplier credit/refund movements remain visible."
+  },
+  {
+    "id": "UI-11",
+    "title": "Service/non-stock catalogue",
+    "routes": "/o/[org]/catalog/items",
+    "permission": "catalog.read/write",
+    "structure": "Item/service table with SKU, name, unit, default selling price, revenue/purchase account, tax and active state; editor drawer.",
+    "actions": "Add/edit/archive, CSV import.",
+    "validation": "Explicit non-stock scope; no stock quantity or margin claims. Used historical descriptions and amounts remain snapshots.",
+    "acceptance": "Selecting an item populates defaults but server validates and snapshots the final invoice line."
+  },
+  {
+    "id": "UI-12",
+    "title": "Invoice list",
+    "routes": "/o/[org]/sales/invoices",
+    "permission": "sales.read",
+    "structure": "Tabs All/Drafts/Awaiting approval/Posted; columns number, customer, issue/due dates, total, residual, settlement badge, delivery badge, overdue marker.",
+    "actions": "Create, filter, open, duplicate into new draft, export authorized list.",
+    "validation": "Do not put Paid, Sent and Posted in one mutually exclusive state column. No bulk silent posting/deletion.",
+    "acceptance": "A posted invoice with failed email remains in posted revenue and separately shows delivery failed."
+  },
+  {
+    "id": "UI-13",
+    "title": "Invoice editor",
+    "routes": "/o/[org]/sales/invoices/new; /sales/invoices/[id]/edit",
+    "permission": "sales.write",
+    "structure": "Header fields customer, dates, recognition mode, terms; editable line grid; evidence panel; totals summary; accounting preview tab; sticky save/submit footer.",
+    "actions": "Save draft, preview PDF, submit, post when policy permits.",
+    "validation": "Inline field errors; unsaved-change guard; stale-version conflict; disabled posted editor; no future/unearned revenue default. Rounding and tax are server-derived.",
+    "acceptance": "Keyboard-only entry of multiple lines works; posting creates the reviewed amount and returns permanent source/journal IDs."
+  },
+  {
+    "id": "UI-14",
+    "title": "Invoice detail",
+    "routes": "/o/[org]/sales/invoices/[id]",
+    "permission": "sales.read",
+    "structure": "Immutable preview, source/settlement/delivery status strip, total and balance; tabs Details, Payments/Credits, Attachments, Activity, Accounting (permissioned).",
+    "actions": "Send/resend, export PDF, record collection, issue credit, request reversal.",
+    "validation": "Financial edit action absent after posting. Reverse shows affected allocations and locked-period restrictions.",
+    "acceptance": "The PDF and UI show the original issued contact/tax snapshot; all linked settlements explain residual balance."
+  },
+  {
+    "id": "UI-15",
+    "title": "Customer receipt list, editor and detail",
+    "routes": "/o/[org]/sales/receipts; /sales/receipts/new; /sales/receipts/[id]",
+    "permission": "sales.read/write; authorized receipt posting",
+    "structure": "List of receipts; editor with customer/date/account/method/reference, received amount and invoice allocation grid; detail with applied and unused trade credit.",
+    "actions": "Allocate one/many invoices, save draft, submit/post, unapply through dated correction.",
+    "validation": "Applied amount \u2264 receipt and each available invoice balance; stale balances revalidated. True advance uses the advance flow, not extra revenue.",
+    "acceptance": "A 6,000 collection on a 10,000 invoice leaves exactly 4,000 outstanding and no additional revenue."
+  },
+  {
+    "id": "UI-16",
+    "title": "Customer credit notes",
+    "routes": "/o/[org]/sales/credits; /sales/credits/new; /sales/credits/[id]",
+    "permission": "sales.read/write",
+    "structure": "Original invoice lookup, eligible lines, original tax snapshot, reason, proposed amounts and intended application; list/detail views.",
+    "actions": "Create partial/full credit, submit/post, apply or leave available, link to refund.",
+    "validation": "Cumulative credits cannot exceed eligible original basis without a separately reviewed adjustment. Account choice respects earned/deferred recognition.",
+    "acceptance": "Partial credit preserves the remaining invoice and produces the exact appropriate AR/tax reduction."
+  },
+  {
+    "id": "UI-17",
+    "title": "Customer refunds",
+    "routes": "/o/[org]/sales/refunds; /sales/refunds/new; /sales/refunds/[id]",
+    "permission": "sales.read; finance payment capability",
+    "structure": "Customer credit/advance selector, available balance, refund account/date/method/reference, accounting preview and detail history.",
+    "actions": "Save, approve, record refund.",
+    "validation": "Refund \u2264 eligible credit or unused advance; no negative invoice workaround. Display \u201cRecord refund already paid\u201d wording.",
+    "acceptance": "Cash decreases once and the relevant credit/advance residual decreases by the recorded amount."
+  },
+  {
+    "id": "UI-18",
+    "title": "Advance management and application",
+    "routes": "/o/[org]/advances; /advances/new; /advances/[id]",
+    "permission": "Finance / dues.allocate; scoped statements for billing",
+    "structure": "Separate Customer advances and Supplier advances tabs; original, applied, refunded and remaining totals; apply drawer selects compatible invoices/bills.",
+    "actions": "Record advance, apply partially, refund unused balance, inspect reclassification.",
+    "validation": "No matching across different controls without generated reclassification; same party and BDT; applications require explicit finance authorization.",
+    "acceptance": "An application creates no new bank cash movement and settles both the advance and AR/AP control pairs."
+  },
+  {
+    "id": "UI-19",
+    "title": "Supplier bill list",
+    "routes": "/o/[org]/purchases/bills",
+    "permission": "purchases.read",
+    "structure": "Number/reference, vendor, bill/accounting/due dates, amount, AP residual, approval and overdue state; duplicate warning indicator.",
+    "actions": "Create, filter, export, duplicate as draft, open.",
+    "validation": "No \u201cpaid\u201d toggle that bypasses payment/allocations; hide vendor data from billing role.",
+    "acceptance": "Outstanding list agrees with AP aging and all payments are drillable."
+  },
+  {
+    "id": "UI-20",
+    "title": "Supplier bill editor",
+    "routes": "/o/[org]/purchases/bills/new; /purchases/bills/[id]/edit",
+    "permission": "purchases.write",
+    "structure": "Vendor and original invoice reference/date; accounting/due dates; expense/asset line grid; tax recoverability; attachment; totals and journal preview.",
+    "actions": "Save, validate duplicate reference, submit/post.",
+    "validation": "Warn on missing evidence by policy; asset accounts allowed; full/no tax recovery explicit; original source total must reconcile within rounding rule.",
+    "acceptance": "A 4,000 bill raises AP and expense without reducing cash."
+  },
+  {
+    "id": "UI-21",
+    "title": "Supplier bill detail",
+    "routes": "/o/[org]/purchases/bills/[id]",
+    "permission": "purchases.read",
+    "structure": "Document snapshot with Payments/Credits, Attachments, Activity and Accounting tabs. Distinct approval and settlement state.",
+    "actions": "Record payment, issue vendor credit, export, request correction.",
+    "validation": "Posted fields read-only; show unapplied payment and reconciliation dependencies before reversal.",
+    "acceptance": "Paying the bill reduces AP without recognizing the same expense again."
+  },
+  {
+    "id": "UI-22",
+    "title": "Supplier payments",
+    "routes": "/o/[org]/purchases/payments; /purchases/payments/new; /purchases/payments/[id]",
+    "permission": "purchases.read/write + posting capability",
+    "structure": "Vendor, payment account/date/reference/amount; bill allocation grid; total applied and remaining vendor debit credit; list and immutable detail.",
+    "actions": "Prepare, approve, record payment, allocate/unapply with history.",
+    "validation": "No automatic bank payout; cannot apply to another vendor or oversettle due; recheck account/period permissions.",
+    "acceptance": "One payment can settle several bills with one cash reduction and correct residuals."
+  },
+  {
+    "id": "UI-23",
+    "title": "Vendor credits and refunds",
+    "routes": "/o/[org]/purchases/credits; /purchases/refunds; corresponding /new and /[id]",
+    "permission": "purchases.read/write + finance capability",
+    "structure": "Original bill reference, credit lines/tax recovery reversal, application plan; refund received selects available vendor credit or unused advance.",
+    "actions": "Record credit, apply, record cash refund received.",
+    "validation": "Do not use generic other income for reversing a bill credit. Refund follows eligible balance and actual cash direction.",
+    "acceptance": "Bill credit and cash refund do not reduce expense twice."
+  },
+  {
+    "id": "UI-24",
+    "title": "Paid expenses",
+    "routes": "/o/[org]/expenses; /expenses/new; /expenses/[id]",
+    "permission": "purchases.read/write",
+    "structure": "List of paid expenses; editor with expense/asset account, optional vendor, incurred/payment date, bank/cash, line taxes, cost center, memo and receipt.",
+    "actions": "Save draft, attach evidence, submit/record, view accounting.",
+    "validation": "Use a bill when unpaid or previously accrued; prevent choosing an existing bill and expensing it again. V1 does not include employee claim submission.",
+    "acceptance": "Expense approval alone does not post; recorded paid expense has one correct expense/asset debit and cash credit."
+  },
+  {
+    "id": "UI-25",
+    "title": "Cash/bank account overview",
+    "routes": "/o/[org]/banking/accounts",
+    "permission": "banking.read/write",
+    "structure": "Cards/table of named cash/bank/wallet/clearing accounts with book balances, last reconciliation and cash-equivalent classification. Setup drawer maps a GL account.",
+    "actions": "Create/archive account, open account ledger, start transfer or reconciliation.",
+    "validation": "Opening balances use opening journal, not editable balance field; no promise of bank connectivity from an institution name.",
+    "acceptance": "Displayed balances are derived from posted GL; inactive bank accounts remain in historic reports."
+  },
+  {
+    "id": "UI-26",
+    "title": "Bank-account ledger/detail",
+    "routes": "/o/[org]/banking/accounts/[id]",
+    "permission": "banking.read",
+    "structure": "Opening/closing balance, transaction-date range, debit/credit/running balance, reference, source link, match status; tabs Ledger/Statements/Reconciliations.",
+    "actions": "Open source, filter unmatched, export cashbook.",
+    "validation": "Running balance uses deterministic ordering; current/book balance labels differ from statement balance.",
+    "acceptance": "Opening + money in \u2212 money out equals closing under the selected filters."
+  },
+  {
+    "id": "UI-27",
+    "title": "Transfers",
+    "routes": "/o/[org]/banking/transfers; /transfers/new; /transfers/[id]",
+    "permission": "banking.read/write",
+    "structure": "From/to accounts, principal, optional fee and fee account, date/reference, preview of both legs.",
+    "actions": "Save, approve, post transfer.",
+    "validation": "Same account prohibited; prevent insufficient physical cash where configured; classify non-equivalent destinations correctly.",
+    "acceptance": "Either all legs/fee post or none do; no fake income is created."
+  },
+  {
+    "id": "UI-28",
+    "title": "Bank statement import wizard",
+    "routes": "/o/[org]/banking/import",
+    "permission": "banking.write",
+    "structure": "Choose account \u2192 upload CSV/XLSX \u2192 map date/description/debit/credit or signed amount \u2192 preview rows \u2192 warnings \u2192 confirm.",
+    "actions": "Save mapping, validate, import, go to reconciliation.",
+    "validation": "Exact file/provider IDs de-duplicate; fingerprint collisions prompt review; row numbers and raw values retained.",
+    "acceptance": "Importing a statement alone creates no GL journal and cannot inflate cash."
+  },
+  {
+    "id": "UI-29",
+    "title": "Reconciliation workspace",
+    "routes": "/o/[org]/banking/reconciliations; /reconciliations/[id]",
+    "permission": "banking.read/write; separate finalization capability",
+    "structure": "Statement balance header; left bank rows, right book entries; selected match amount and remaining capacities; suggestions; outstanding items; closing difference panel.",
+    "actions": "Match/unmatch in draft, split match, create reviewed missing fee/receipt, finalize, reopen with reason.",
+    "validation": "Zero unexplained difference; same account/direction; no reused capacity; finalized sessions immutable without audited reopen.",
+    "acceptance": "A matching action never duplicates an existing posting and cannot force zero by hiding unexplained bank movements."
+  },
+  {
+    "id": "UI-30",
+    "title": "Approval inbox and review",
+    "routes": "/o/[org]/approvals; /approvals/[id]",
+    "permission": "approvals.read/decide",
+    "structure": "Pending/approved/rejected tabs; request amount, creator and policy; full versioned document, evidence, journal preview and prior decisions.",
+    "actions": "Approve, reject with reason, open source.",
+    "validation": "No self approval in maker-checker; stale digest invalidates; server enforces eligible role and approval count.",
+    "acceptance": "Changing the document after approval requires a new review and cannot reuse the old decision."
+  },
+  {
+    "id": "UI-31",
+    "title": "Chart of accounts",
+    "routes": "/o/[org]/accounting/accounts",
+    "permission": "accounting.read; controlled account management",
+    "structure": "Tree/table toggles; account code, name, type, normal side, report group, control marker, active state; account detail ledger link.",
+    "actions": "Create child/account, edit allowed metadata, archive, manage mappings.",
+    "validation": "No post to group accounts; prevent cycles or used classification changes; no deleting ledger-linked accounts.",
+    "acceptance": "Accounts reconcile to reports and system controls cannot be remapped to incompatible types."
+  },
+  {
+    "id": "UI-32",
+    "title": "Journal register",
+    "routes": "/o/[org]/accounting/journals",
+    "permission": "ledger.read",
+    "structure": "Date, journal/source number, type, memo, debit/credit total, creator, posted/reversal label; filters by account/source/period.",
+    "actions": "Create manual journal, view, export, request reversal.",
+    "validation": "Journal list contains posted history; transaction-local building states never appear as successful records.",
+    "acceptance": "Original and reversal both remain available, with date-specific effects."
+  },
+  {
+    "id": "UI-33",
+    "title": "Manual journal editor and detail",
+    "routes": "/o/[org]/accounting/journals/new; /journals/[id]",
+    "permission": "journal.write/post; ledger.read",
+    "structure": "Date/memo/evidence; line grid account, party where controlled, cost center, debit, credit; live difference and cash classification; immutable detail after post.",
+    "actions": "Add/remove draft rows, save, submit/post, reverse.",
+    "validation": "Difference must equal 0.00; one side per line; forbid unmanaged control accounts; recent permission/period check.",
+    "acceptance": "The API rejects an unbalanced journal even when the UI checks are bypassed."
+  },
+  {
+    "id": "UI-34",
+    "title": "General ledger",
+    "routes": "/o/[org]/accounting/general-ledger",
+    "permission": "ledger.read",
+    "structure": "Account/date/cost-center filters; opening balance, dated rows, debit/credit, running balance, source links; totals footer.",
+    "actions": "Drilldown, change account, export.",
+    "validation": "Use stable ordering and consistent snapshot; no cross-company cached report.",
+    "acceptance": "Selected balance matches TB and source journal lines under the same cutoff."
+  },
+  {
+    "id": "UI-35",
+    "title": "Trial balance",
+    "routes": "/o/[org]/reports/trial-balance",
+    "permission": "reports.read",
+    "structure": "As-of date and optional movement range; code/name, opening, movement debit/credit, closing debit/credit; total difference.",
+    "actions": "Expand account, open ledger, export.",
+    "validation": "Nonzero total difference is a blocking exception, not hidden rounding. Show inclusion policy for opening/closing entries.",
+    "acceptance": "Total debits equal credits and each account is traceable to GL."
+  },
+  {
+    "id": "UI-36",
+    "title": "Report hub",
+    "routes": "/o/[org]/reports",
+    "permission": "reports.read with report-specific capabilities",
+    "structure": "Grouped Financial statements, Dues, Banking, Activity; descriptions, date semantics and provisional labels; recent export jobs.",
+    "actions": "Open report, choose date range/as-of, view export history.",
+    "validation": "Hide reports lacking capability; no unsupported future-report placeholders that appear functional.",
+    "acceptance": "User can identify P&L period reports versus balance-sheet as-of reports."
+  },
+  {
+    "id": "UI-37",
+    "title": "Profit and loss",
+    "routes": "/o/[org]/reports/profit-loss",
+    "permission": "reports.read",
+    "structure": "Range, comparison and optional cost center; revenue, direct costs, gross profit where mapped, operating costs, other items, net profit; drilldown.",
+    "actions": "Compare periods, expand accounts, export.",
+    "validation": "Exclude tax collections/capital/loan receipts; handle imported YTD and year-close mechanics exactly once.",
+    "acceptance": "A collection of an already-recorded invoice changes cash, not this report's revenue."
+  },
+  {
+    "id": "UI-38",
+    "title": "Balance sheet",
+    "routes": "/o/[org]/reports/balance-sheet",
+    "permission": "reports.read",
+    "structure": "As-of selector; assets, liabilities, equity with contra accounts; untransferred earnings separately labeled; balance check.",
+    "actions": "Drill down, compare dates, export.",
+    "validation": "No balancing plug; do not add closed-year profit twice. Management/statutory presentation distinction visible.",
+    "acceptance": "Assets equal liabilities + equity including only earnings not already transferred."
+  },
+  {
+    "id": "UI-39",
+    "title": "Cash-flow management report",
+    "routes": "/o/[org]/reports/cash-flow",
+    "permission": "reports.read",
+    "structure": "Range; opening cash equivalents; operating/investing/financing groups; internal transfer bridge; unclassified exceptions; closing cash reconciliation.",
+    "actions": "Inspect classification, export provisional, finalize when complete.",
+    "validation": "Unclassified cash blocks finalized label. Non-cash journals and opening migration mechanics are not current-period cash flows.",
+    "acceptance": "Classified net flow reconciles opening to closing cash; capital contributions are not operating revenue."
+  },
+  {
+    "id": "UI-40",
+    "title": "AR/AP aging",
+    "routes": "/o/[org]/reports/receivables; /reports/payables",
+    "permission": "dues.read or scoped sales/purchase read",
+    "structure": "As-of date; party/reference/due date; not due, 1\u201330, 31\u201360, 61\u201390, 91+; unallocated credits and control bridge.",
+    "actions": "Expand party, open item/source, export, start appropriate collection/payment draft.",
+    "validation": "Use dated allocations/reversals and ledger cutoff; do not apply future receipts to historic aging.",
+    "acceptance": "The test invoice is 10,000 before the receipt date and 4,000 afterward, not always its current balance."
+  },
+  {
+    "id": "UI-41",
+    "title": "Customer/vendor statement report",
+    "routes": "/o/[org]/reports/statements",
+    "permission": "Scoped party financial read",
+    "structure": "Party selector and AR/AP side; date range, opening, invoice/bill, receipts/payments, credits, allocations, closing; letter/PDF preview.",
+    "actions": "Export/send statement after explicit recipient review.",
+    "validation": "No accidental cross-party aggregation; statement sending is an external action with visible destination.",
+    "acceptance": "Opening plus movements equals closing and displayed allocations explain remaining items."
+  },
+  {
+    "id": "UI-42",
+    "title": "Period close workspace",
+    "routes": "/o/[org]/accounting/periods; /periods/[id]",
+    "permission": "periods.lock/reopen",
+    "structure": "Period calendar, open/locked status, checklist with TB/control/bank/tax/cash exceptions, pending approvals and report snapshots; lock history.",
+    "actions": "Run checks, resolve exceptions, lock, reopen with reason/reauthentication.",
+    "validation": "Posting-versus-lock race handled in DB; unresolved hard checks disable close; no invisible administrator bypass.",
+    "acceptance": "A locked month rejects backdated journal, allocation and allocation reversal through every entry path."
+  },
+  {
+    "id": "UI-43",
+    "title": "Year-end close",
+    "routes": "/o/[org]/accounting/year-close",
+    "permission": "Privileged close capability",
+    "structure": "Fiscal year selector; nominal balance preview; retained earnings transfer; prior close runs, snapshot evidence and reopen consequences.",
+    "actions": "Preview, approve, post close, request reopen/reclose.",
+    "validation": "One live close only; no double transfer; prior snapshots retained.",
+    "acceptance": "Historical P&L remains meaningful while balance-sheet retained earnings is updated once."
+  },
+  {
+    "id": "UI-44",
+    "title": "Evidence/document library",
+    "routes": "/o/[org]/documents",
+    "permission": "Authorized source-document access",
+    "structure": "Search linked attachments by filename/source/date/uploader; source links, scan state, preview and file metadata.",
+    "actions": "Upload to an eligible draft, preview, download authorized clean file, link evidence.",
+    "validation": "No public URLs; infected/pending files not downloadable as trusted evidence; prevent other module/company visibility.",
+    "acceptance": "Billing user cannot download supplier bill evidence by guessing an attachment ID."
+  },
+  {
+    "id": "UI-45",
+    "title": "Audit trail",
+    "routes": "/o/[org]/audit",
+    "permission": "audit.read or narrowly scoped admin audit",
+    "structure": "Time, actor, action, source/entity, request ID, reason; filters; detail drawer with redacted before/after financial changes and links.",
+    "actions": "Search, filter, export permitted history.",
+    "validation": "No edit/delete controls; redact secrets and unnecessary PII; support events distinguish platform actor.",
+    "acceptance": "Every post, reversal, close/reopen and privilege change has a traceable audit entry."
+  },
+  {
+    "id": "UI-46",
+    "title": "Imports and export jobs",
+    "routes": "/o/[org]/imports; /imports/[id]; /exports",
+    "permission": "imports.read/run; exports.read",
+    "structure": "Job list with type, state, row counts, errors, created by, timestamps; mapping/error grid; export filter/snapshot summary and expiry.",
+    "actions": "Upload/validate/retry safe rows, download row errors, request report export, download authorized completed file.",
+    "validation": "Opening financial batch is all-or-nothing; master-data import can use explicitly reported row-level progress. Download rechecks current permission.",
+    "acceptance": "Retry cannot duplicate imports and expired/revoked exports do not leak private data."
+  },
+  {
+    "id": "UI-47",
+    "title": "Company settings",
+    "routes": "/o/[org]/settings/company",
+    "permission": "company.read/update",
+    "structure": "Legal/display identity, address, timezone, fiscal setup, books-start restrictions, invoice appearance/logo and contact details.",
+    "actions": "Edit permitted settings, upload logo, review historic restrictions.",
+    "validation": "Core accounting calendar/currency changes after posting require controlled process; logo/name updates do not silently replace issued PDFs.",
+    "acceptance": "User sees a clear explanation when a historic setting is locked rather than an unexplained disabled field."
+  },
+  {
+    "id": "UI-48",
+    "title": "Users, roles and invitations",
+    "routes": "/o/[org]/settings/users; /settings/roles",
+    "permission": "users.read/manage",
+    "structure": "Members with roles/status; invitation status/expiry; permission matrix editor; ownership transfer flow.",
+    "actions": "Invite, deactivate, revoke invite, assign role, transfer ownership.",
+    "validation": "No self-escalation through client payload; final owner protected; authority to grant permission is checked; admin does not automatically get financial read.",
+    "acceptance": "Removing access blocks the next protected request even with an otherwise unexpired token."
+  },
+  {
+    "id": "UI-49",
+    "title": "Tax, numbering, mappings and approval settings",
+    "routes": "/o/[org]/settings/taxes; /settings/numbering; /settings/mappings; /settings/approvals",
+    "permission": "Separate tax/accounting/approval administration permissions",
+    "structure": "Effective-dated tax codes, sample tax calculation; document prefix/counter preview; required GL mappings; threshold/role/approval-count policies.",
+    "actions": "Create new tax version, archive, change permitted prefixes, configure policy.",
+    "validation": "Do not alter a used tax snapshot, reset a used number or remove required controls. Warn that generic tax settings are not filing certification.",
+    "acceptance": "Changing a tax rate affects new drafts only and approval changes do not rewrite prior policy evidence."
+  },
+  {
+    "id": "UI-50",
+    "title": "SaaS subscription and billing",
+    "routes": "/o/[org]/settings/subscription",
+    "permission": "subscription.read/manage",
+    "structure": "Current plan/period/state, entitlement usage, billing history/provider links, upgrade/downgrade effect, grace and export policy.",
+    "actions": "Choose approved plan, manage provider billing, cancel under policy, export own data.",
+    "validation": "Browser success redirect does not establish payment; only verified provider event changes entitlements. Do not confuse SaaS charges with the tenant's own sales ledger.",
+    "acceptance": "Downgrade or expiry never deletes books and cannot create an unbalanced posting."
+  },
+  {
+    "id": "UI-51",
+    "title": "Personal profile and security",
+    "routes": "/settings/profile; /settings/security",
+    "permission": "Signed-in user",
+    "structure": "Display name/locale/timezone, password/auth settings, MFA/session management supported by chosen provider.",
+    "actions": "Update profile, change credential, enroll MFA, revoke sessions.",
+    "validation": "Profile settings cannot assign roles; financial actor snapshots remain stable after display-name change.",
+    "acceptance": "Security changes do not affect another user and sensitive operations require the configured recent authentication."
+  },
+  {
+    "id": "UI-52",
+    "title": "Notification center",
+    "routes": "/o/[org]/notifications",
+    "permission": "Authenticated authorized member",
+    "structure": "Actionable approvals, due items, failed delivery/export and closing exceptions with source links; read/unread state may be implemented as user-level preference later.",
+    "actions": "Open authorized source, retry permitted failed delivery, dismiss presentation notice.",
+    "validation": "No confidential amounts in unauthenticated push/email previews; delivery failure never changes posting state.",
+    "acceptance": "A failed invoice email can be retried without posting the invoice again."
+  },
+  {
+    "id": "UI-53",
+    "title": "Error, empty, offline and read-only states",
+    "routes": "/not-found; /error; shared page states",
+    "permission": "Context-dependent",
+    "structure": "Permission-safe not found; error request ID/retry; empty next step; company-read-only banner; offline indicator; session expiry redirect with safe draft recovery.",
+    "actions": "Retry safe read/command with same key, reauthenticate, return to authorized company, export where policy permits.",
+    "validation": "Never show zero as a loading/error placeholder for financial totals; do not queue offline financial posting. No tenant existence leak in errors.",
+    "acceptance": "User can distinguish no transactions from failed loading and cannot accidentally double-submit after an uncertain response."
+  },
+  {
+    "id": "UI-54",
+    "title": "Platform operations console",
+    "routes": "/platform (separate privileged surface)",
+    "permission": "Platform operator; not tenant owner role",
+    "structure": "Tenant service state, plan/usage, job failures, health and support-access approvals; redacted operational metadata only by default.",
+    "actions": "Investigate queues, grant audited time-limited approved support session, manage service state via audited actions.",
+    "validation": "No universal tenant-ledger browser for routine support; strong MFA, separate authorization, no shared credentials.",
+    "acceptance": "Platform support cannot view financial details without a recorded approved access path."
+  }
+]
