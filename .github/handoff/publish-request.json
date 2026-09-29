@@ -1,0 +1,6 @@
+{
+  "repository": "wdmahbubur/accounts-management-solution",
+  "source_sha256": "74cbabbc4988e4ce5a2840e3d94284f7bbbee5c872e4c09c6b0a74bf73e31501",
+  "request_id": "ams-spec-v1-backlog-1",
+  "purpose": "Publish original docs and 100 linked implementation/discovery stories; no app deployment or database mutation"
+}
