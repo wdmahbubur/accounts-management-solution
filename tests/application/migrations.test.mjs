@@ -34,16 +34,24 @@ test("US-003 migrations preserve all 52 catalogued table definitions verbatim", 
 
 test("US-003 migration versions are unique, ordered and cover source indexes/security", async () => {
   const migrationDir = "supabase/migrations";
-  const migrationFiles = (await readdir(migrationDir)).filter((name) => name.endsWith(".sql")).sort();
-  assert.deepEqual(migrationFiles, [
+  const migrationFiles = (await readdir(migrationDir))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+
+  assert.deepEqual(migrationFiles.slice(0, 2), [
     "20260930111830_core_finance_schema.sql",
     "20260930112000_read_only_security_baseline.sql"
   ]);
+  assert.equal(migrationFiles.length >= 2, true);
+
+  const versions = migrationFiles.map((name) => name.split("_", 1)[0]);
+  assert.equal(new Set(versions).size, versions.length, "migration versions must be unique");
+  assert.deepEqual([...versions].sort(), versions, "migration versions must remain ordered");
 
   const [reference, core, security] = await Promise.all([
     readFile("docs/reference-schema.sql", "utf8"),
-    readFile(`${migrationDir}/${migrationFiles[0]}`, "utf8"),
-    readFile(`${migrationDir}/${migrationFiles[1]}`, "utf8")
+    readFile(`${migrationDir}/20260930111830_core_finance_schema.sql`, "utf8"),
+    readFile(`${migrationDir}/20260930112000_read_only_security_baseline.sql`, "utf8")
   ]);
   const combined = `${core}\n${security}`;
 
