@@ -1,7 +1,13 @@
-import { headers as nextHeaders } from "next/headers";
-
-import type { CommandExecutionDependencies, OrganizationCommandDefinition } from "./types.ts";
+import type {
+  CommandExecutionDependencies,
+  OrganizationCommandDefinition
+} from "./types.ts";
 import { executeOrganizationCommand } from "./execute.ts";
+
+async function defaultHeadersProvider(): Promise<Headers> {
+  const { headers } = await import("next/headers");
+  return new Headers(await headers());
+}
 
 export function createOrganizationServerAction<Input, Output>(input: {
   definition: OrganizationCommandDefinition<Input, Output>;
@@ -12,14 +18,11 @@ export function createOrganizationServerAction<Input, Output>(input: {
     organizationId: string,
     rawInput: unknown
   ) {
-    const headersProvider =
-      input.headersProvider ?? (async () => new Headers(await nextHeaders()));
-
     const result = await executeOrganizationCommand({
       definition: input.definition,
       organizationId,
       rawInput,
-      headers: await headersProvider(),
+      headers: await (input.headersProvider ?? defaultHeadersProvider)(),
       dependencies: input.dependencies
     });
 
