@@ -4,9 +4,11 @@ test("auth routes expose focused enumeration-safe forms", async ({ page }) => {
   await page.goto("/auth/sign-in?error=invalid_credentials&next=https://evil.example/path");
 
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText(
-    "Email or password is incorrect, or the account is not verified."
-  );
+  await expect(
+    page.getByRole("alert").filter({
+      hasText: "Email or password is incorrect, or the account is not verified."
+    })
+  ).toBeVisible();
   await expect(page.locator('input[name="next"]')).toHaveValue("/");
 
   await page.goto("/auth/sign-up?status=verification_requested");
