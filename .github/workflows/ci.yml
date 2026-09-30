@@ -77,8 +77,8 @@ jobs:
           supabase db reset --help
           supabase test db --help
 
-      - name: Start isolated Supabase PostgreSQL
-        run: bash scripts/start-test-db.sh
+      - name: Start isolated Supabase stack
+        run: bash scripts/start-test-stack.sh
 
       - name: Verify clean migration replay
         run: supabase db reset
@@ -122,7 +122,7 @@ jobs:
         run: npm ci
 
       - name: Start local Auth stack
-        run: bash scripts/start-test-db.sh
+        run: bash scripts/start-test-stack.sh
 
       - name: Export local public Supabase environment
         run: node scripts/export-local-supabase-env.mjs >> "$GITHUB_ENV"

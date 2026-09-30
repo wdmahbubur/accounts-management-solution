@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
 
 const raw = execFileSync("supabase", ["status", "-o", "json"], {
-  encoding: "utf8"
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "inherit"]
 });
 const status = JSON.parse(raw);
 
@@ -11,7 +12,9 @@ const pick = (...keys) => {
       return status[key];
     }
   }
-  throw new Error(`Missing Supabase status key: ${keys.join("/")}`);
+  throw new Error(
+    `Missing Supabase status key: ${keys.join("/")}; available keys: ${Object.keys(status).join(", ")}`
+  );
 };
 
 const url = pick("API_URL", "api_url", "PROJECT_URL", "project_url");

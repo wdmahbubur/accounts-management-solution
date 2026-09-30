@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(9);
 
 select has_function('public', 'get_own_profile', ARRAY[]::text[], 'own profile read RPC exists');
 select has_function('public', 'update_own_profile', ARRAY['text','text','text'], 'own profile update RPC exists');
