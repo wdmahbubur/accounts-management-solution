@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
@@ -37,15 +37,26 @@ test("provider and toolchain dependencies are exact and lockfile-backed", async 
   assert.equal(root.packageManager, "npm@11.19.0");
   assert.equal(lock.lockfileVersion, 3);
   assert.equal(lock.packages[""].engines.node, "24.21.0");
+  assert.deepEqual(lock.packages[""].devDependencies, root.devDependencies);
+  assert.deepEqual(lock.packages["apps/web"].dependencies, web.dependencies);
 });
 
-test("environment example contains only public non-secret bootstrap settings", async () => {
+test("environment and local setup are documented without secrets", async () => {
   const env = await readFile(".env.example", "utf8");
+  const readme = await readFile("README.md", "utf8");
+  const root = await readJson("package.json");
 
   assert.match(env, /NEXT_PUBLIC_APP_URL=/);
   assert.match(env, /NEXT_PUBLIC_SUPABASE_URL=/);
   assert.match(env, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=/);
   assert.doesNotMatch(env, /SERVICE_ROLE|SECRET_KEY|PASSWORD=/i);
+
+  for (const script of ["lint", "typecheck", "test", "build"]) {
+    assert.ok(root.scripts[script], `missing ${script} script`);
+    assert.ok(readme.includes(`npm run ${script}`) || (script === "test" && readme.includes("npm test")));
+  }
+  assert.match(readme, /npm ci/);
+  assert.match(readme, /npm run dev/);
 });
 
 test("CI is review-gated quality verification and contains no deployment step", async () => {
@@ -64,5 +75,6 @@ test("CI is review-gated quality verification and contains no deployment step", 
   assert.match(workflow, /pull_request:/);
   assert.match(workflow, /push:/);
   assert.match(workflow, /branches:\s*\[master\]/);
+  assert.match(workflow, /contents:\s*read/);
   assert.doesNotMatch(workflow, /\bdeploy\b|vercel|production/i);
 });
