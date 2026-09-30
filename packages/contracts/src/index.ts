@@ -1,3 +1,5 @@
+export * from "./command";
+
 export const contractsModule = {
   name: "contracts",
   responsibility:
