@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Use pinned Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Verify toolchain
+        run: |
+          node --version
+          npm --version
+          test "$(node --version)" = "v24.21.0"
+          test "$(npm --version)" = "11.19.0"
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test scaffold acceptance
+        run: npm test
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Run source reference checks
+        run: |
+          cd docs
+          python -m unittest discover -s tests -v
+          python verification/check_spec.py
