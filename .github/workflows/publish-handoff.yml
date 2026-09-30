@@ -41,6 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python -m unittest discover -s .github/handoff -p 'test_*.py' -v
           python .github/handoff/publish.py
       - name: Report publication status
         if: always()

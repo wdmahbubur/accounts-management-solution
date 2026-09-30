@@ -194,6 +194,28 @@ def identity(issue: dict) -> dict:
     return {'number': issue['number'], 'url': issue['html_url'], 'state': issue['state']}
 
 
+def reconcile_issues(gh: GitHub, mapping: dict, expected_keys: set) -> dict:
+    """Verify durable identities without trusting immediate list visibility.
+
+    The list endpoint can lag just-completed creates. Use the issue number
+    returned by the original write for a read-only fallback, never another POST.
+    Keep rejecting duplicate markers, changed identities and missing records.
+    """
+    actual = managed_issues(gh.pages('issues', state=True))
+    for key in sorted(expected_keys):
+        known = mapping[key]
+        if key not in actual:
+            issue = gh.call('GET', f'issues/{known["number"]}')
+            found = managed_issues([issue])
+            if set(found) != {key}:
+                raise ValueError(f'Published issue marker mismatch: {key} #{known["number"]}')
+            actual[key] = found[key]
+        issue = actual[key]
+        if issue['number'] != known['number'] or issue['html_url'] != known['url']:
+            raise ValueError(f'Published issue identity changed: {key}')
+    return actual
+
+
 def create_labels_and_milestones(gh: GitHub) -> dict:
     colors = {'type:story': '1D76DB', 'type:epic': '5319E7', 'type:roadmap': '0052CC',
               'priority:P0': 'B60205', 'priority:P1': 'FBCA04', 'priority:P2': 'C2E0C6',
@@ -271,11 +293,9 @@ def publish_issues(gh: GitHub, stories: list, order: list, refs: dict) -> tuple[
                 raise RuntimeError(f'{key} has modified content without all required child links; reconcile rather than overwrite it')
     ensure('ROADMAP', '[ROADMAP] V1 implementation, AI handoff and release gates', master_body(mapping),
            ['type:roadmap', 'priority:P0', 'phase:v1'], 6)
-    actual = managed_issues(gh.pages('issues', state=True))
     expected_keys = set(render.EPICS)
     expected_keys = {'E'+e for e in expected_keys} | {s['id'] for s in stories} | {'ROADMAP'}
-    if not expected_keys <= set(actual):
-        raise ValueError('Some published issue identities were not returned by GitHub')
+    actual = reconcile_issues(gh, mapping, expected_keys)
     if len({actual[k]['number'] for k in expected_keys}) != 115:
         raise ValueError('Expected 115 distinct managed issues')
     for s in stories:
