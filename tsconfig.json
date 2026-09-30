@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -15,16 +19,29 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@ams/accounting": ["packages/accounting/src/index.ts"],
-      "@ams/contracts": ["packages/contracts/src/index.ts"],
-      "@ams/permissions": ["packages/permissions/src/index.ts"],
-      "@ams/reporting": ["packages/reporting/src/index.ts"]
-    }
+      "@ams/accounting": [
+        "packages/accounting/src/index.ts"
+      ],
+      "@ams/contracts": [
+        "packages/contracts/src/index.ts"
+      ],
+      "@ams/permissions": [
+        "packages/permissions/src/index.ts"
+      ],
+      "@ams/reporting": [
+        "packages/reporting/src/index.ts"
+      ]
+    },
+    "allowImportingTsExtensions": true
   },
   "include": [
     "apps/web/**/*.ts",
     "apps/web/**/*.tsx",
-    "packages/**/*.ts"
+    "packages/**/*.ts",
+    "tests/**/*.ts"
   ],
-  "exclude": ["node_modules", "**/.next/**"]
+  "exclude": [
+    "node_modules",
+    "**/.next/**"
+  ]
 }
