@@ -84,7 +84,7 @@ jobs:
         run: supabase db reset
 
       - name: Run pgTAP database acceptance tests
-        run: supabase test db supabase/tests/database
+        run: supabase test db
 
       - name: Verify independent multi-connection race harness
         run: bash scripts/test-race-harness.sh
