@@ -92,7 +92,12 @@ export function parseUuid(value: unknown, field = "id"): Uuid {
 }
 
 export function parseOrganizationId(value: unknown): OrganizationId {
-  return parseUuid(value, "organization_id") as OrganizationId;
+  if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
+    throw new ContractValidationError("Request validation failed.", {
+      organization_id: "Expected a UUID string."
+    });
+  }
+  return value as OrganizationId;
 }
 
 export function parseMoneyString(value: unknown, field = "amount"): MoneyString {
