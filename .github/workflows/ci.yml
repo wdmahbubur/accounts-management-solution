@@ -44,7 +44,7 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test scaffold acceptance
+      - name: Test repository acceptance
         run: npm test
 
       - name: Build Next.js
@@ -55,3 +55,36 @@ jobs:
           cd docs
           python -m unittest discover -s tests -v
           python verification/check_spec.py
+
+  database:
+    name: Supabase migration verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Verify and discover database commands
+        run: |
+          test "$(supabase --version)" = "2.118.0"
+          supabase db start --help
+          supabase db reset --help
+          supabase test db --help
+
+      - name: Start isolated Supabase PostgreSQL
+        run: supabase db start
+
+      - name: Verify clean migration replay
+        run: supabase db reset
+
+      - name: Run pgTAP database acceptance tests
+        run: supabase test db
+
+      - name: Verify staged upgrade path
+        run: bash scripts/test-migration-upgrade.sh
