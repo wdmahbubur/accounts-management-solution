@@ -2,7 +2,7 @@ import { globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypeScript from "eslint-config-next/typescript";
 
-export default [
+const eslintConfig = [
   ...nextVitals,
   ...nextTypeScript,
   globalIgnores([
@@ -12,3 +12,5 @@ export default [
     ".github/handoff/**"
   ])
 ];
+
+export default eslintConfig;
