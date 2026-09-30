@@ -218,3 +218,55 @@ test("documented stale-version, period-lock and idempotency conflicts map to 409
     assert.equal(CommandError.conflict(code).status, 409);
   }
 });
+
+
+test("S-05 server action direct invocation cannot bypass capability checks", async () => {
+  const calls = { count: 0 };
+  const action = createOrganizationServerAction({
+    definition: command(calls),
+    dependencies: dependencies({ capabilities: [] }),
+    headersProvider: async () => new Headers(idempotencyHeaders)
+  });
+
+  const result = await action(ORG_A, validPayload);
+  assert.equal("error" in result, true);
+  if ("error" in result) {
+    assert.equal(result.error.code, "FORBIDDEN");
+  }
+  assert.equal(calls.count, 0);
+});
+
+test("material command requires a strong idempotency key before domain execution", async () => {
+  const calls = { count: 0 };
+  const action = createOrganizationServerAction({
+    definition: command(calls),
+    dependencies: dependencies(),
+    headersProvider: async () => new Headers({ "content-type": "application/json" })
+  });
+
+  const result = await action(ORG_A, validPayload);
+  assert.equal("error" in result, true);
+  if ("error" in result) {
+    assert.equal(result.error.code, "VALIDATION_FAILED");
+    assert.equal(result.error.fields?.idempotency_key.includes("128"), true);
+  }
+  assert.equal(calls.count, 0);
+});
+
+test("validated client correlation ID is preserved on a successful command", async () => {
+  const calls = { count: 0 };
+  const action = createOrganizationServerAction({
+    definition: command(calls),
+    dependencies: dependencies(),
+    headersProvider: async () =>
+      new Headers({
+        ...idempotencyHeaders,
+        "x-request-id": "client-correlation-123"
+      })
+  });
+
+  const result = await action(ORG_A, validPayload);
+  assert.equal("data" in result, true);
+  assert.equal(result.meta.request_id, "client-correlation-123");
+  assert.equal(calls.count, 1);
+});
