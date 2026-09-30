@@ -9,21 +9,21 @@ import {
   parseOrganizationId,
   type RequestId,
   type Uuid
-} from "../packages/contracts/src/index.ts";
-import { capability } from "../packages/permissions/src/index.ts";
+} from "../../packages/contracts/src/index.ts";
+import { capability } from "../../packages/permissions/src/index.ts";
 import {
   createOrganizationRouteHandler
-} from "../apps/web/server/commands/route-adapter.ts";
+} from "../../apps/web/server/commands/route-adapter.ts";
 import {
   createOrganizationServerAction
-} from "../apps/web/server/commands/action-adapter.ts";
+} from "../../apps/web/server/commands/action-adapter.ts";
 import {
   CommandError
-} from "../apps/web/server/commands/errors.ts";
+} from "../../apps/web/server/commands/errors.ts";
 import type {
   CommandExecutionDependencies,
   OrganizationCommandDefinition
-} from "../apps/web/server/commands/types.ts";
+} from "../../apps/web/server/commands/types.ts";
 
 const ORG_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const USER_A = "11111111-1111-4111-8111-111111111111";
