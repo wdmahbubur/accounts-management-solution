@@ -28,23 +28,29 @@ npm run dev
 The environment example contains browser-safe placeholders only. Never commit
 Supabase service-role keys, provider secrets or real customer data.
 
-## Quality commands
+## Quality and test commands
 
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm test                 # real application/service tests
 npm run build
 npm run check
 ```
 
-Retained source-reference checks:
+The test layers are intentionally separate:
 
 ```bash
-cd docs
-python -m unittest discover -s tests -v
-python verification/check_spec.py
+npm run test:application
+npm run test:reference   # retained Python reference model; not app evidence
+npm run test:spec        # static source/spec checks; not app evidence
+npm run test:database    # requires local Supabase DB
+npm run test:race        # requires local Supabase DB
+npm run test:browser     # Playwright Chromium harness
 ```
+
+See [US-005 test harness](docs/16-test-harness.md) and
+[acceptance traceability](tests/acceptance-matrix.json).
 
 ## Local database migrations
 

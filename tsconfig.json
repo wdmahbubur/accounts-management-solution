@@ -30,6 +30,9 @@
       ],
       "@ams/reporting": [
         "packages/reporting/src/index.ts"
+      ],
+      "@ams/test-fixtures": [
+        "packages/test-fixtures/src/index.ts"
       ]
     },
     "allowImportingTsExtensions": true

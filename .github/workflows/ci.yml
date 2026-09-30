@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Lint, typecheck, test, build
+    name: Lint, typecheck, application tests, build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -44,20 +44,20 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test repository acceptance
+      - name: Test real application/service layer
         run: npm test
 
       - name: Build Next.js
         run: npm run build
 
-      - name: Run source reference checks
-        run: |
-          cd docs
-          python -m unittest discover -s tests -v
-          python verification/check_spec.py
+      - name: Run reference model separately
+        run: npm run test:reference
+
+      - name: Run static specification checks separately
+        run: npm run test:spec
 
   database:
-    name: Supabase migration verification
+    name: Supabase database and race harness
     runs-on: ubuntu-24.04
     timeout-minutes: 25
 
@@ -70,7 +70,7 @@ jobs:
         with:
           version: 2.118.0
 
-      - name: Verify and discover database commands
+      - name: Verify database commands
         run: |
           test "$(supabase --version)" = "2.118.0"
           supabase db start --help
@@ -78,7 +78,7 @@ jobs:
           supabase test db --help
 
       - name: Start isolated Supabase PostgreSQL
-        run: supabase db start
+        run: bash scripts/start-test-db.sh
 
       - name: Verify clean migration replay
         run: supabase db reset
@@ -86,5 +86,32 @@ jobs:
       - name: Run pgTAP database acceptance tests
         run: supabase test db
 
-      - name: Verify staged upgrade path
+      - name: Verify independent multi-connection race harness
+        run: bash scripts/test-race-harness.sh
+
+      - name: Verify staged migration upgrade path
         run: bash scripts/test-migration-upgrade.sh
+
+  browser:
+    name: Playwright browser harness
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use pinned Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install pinned Chromium runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser harness
+        run: npm run test:browser
