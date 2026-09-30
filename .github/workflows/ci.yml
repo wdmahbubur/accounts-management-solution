@@ -78,7 +78,7 @@ jobs:
           supabase test db --help
 
       - name: Start isolated Supabase PostgreSQL
-        run: supabase db start
+        run: bash scripts/start-test-db.sh
 
       - name: Verify clean migration replay
         run: supabase db reset
