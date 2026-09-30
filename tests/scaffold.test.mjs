@@ -35,6 +35,7 @@ test("provider and toolchain dependencies are exact and lockfile-backed", async 
 
   assert.equal(root.engines.node, "24.21.0");
   assert.equal(root.packageManager, "npm@11.19.0");
+  assert.equal(root.devDependencies.eslint, "10.11.0");
   assert.equal(lock.lockfileVersion, 3);
   assert.equal(lock.packages[""].engines.node, "24.21.0");
   assert.deepEqual(lock.packages[""].devDependencies, root.devDependencies);
@@ -61,6 +62,7 @@ test("environment and local setup are documented without secrets", async () => {
 
 test("CI is review-gated quality verification and contains no deployment step", async () => {
   const workflow = await readFile(".github/workflows/ci.yml", "utf8");
+  const eslintConfig = await readFile("eslint.config.mjs", "utf8");
 
   for (const command of [
     "npm ci",
@@ -76,5 +78,7 @@ test("CI is review-gated quality verification and contains no deployment step", 
   assert.match(workflow, /push:/);
   assert.match(workflow, /branches:\s*\[master\]/);
   assert.match(workflow, /contents:\s*read/);
+  assert.match(workflow, /runs-on:\s*ubuntu-24\.04/);
+  assert.match(eslintConfig, /rootDir:\s*"apps\/web\/"/);
   assert.doesNotMatch(workflow, /\bdeploy\b|vercel|production/i);
 });
