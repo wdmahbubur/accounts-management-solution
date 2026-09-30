@@ -369,11 +369,12 @@
   {
     "id": "S-01",
     "kind": "security_concurrency",
-    "status": "covered",
+    "status": "partial",
     "evidence": [
-      "supabase/tests/database/01_tenant_isolation.test.sql"
+      "supabase/tests/database/01_tenant_isolation.test.sql",
+      "tests/application/commands.test.ts"
     ],
-    "note": "Covered by real PostgreSQL/RLS/composite-FK acceptance tests."
+    "note": "Real DB tenant isolation and inaccessible-organization masking exist, but the full guessed source/account/file UUID application path is not implemented yet; do not count as passed."
   },
   {
     "id": "S-02",

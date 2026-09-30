@@ -52,7 +52,8 @@ existing security tests.
 `tests/acceptance-matrix.json` contains every source case T-01..T-52 and
 S-01..S-20. Allowed statuses are:
 
-- `covered` — real implementation evidence exists;
+- `covered` — the full source acceptance case has real implementation evidence;
+- `partial` — meaningful real evidence exists, but the full source case is not yet proven and is not counted as a pass;
 - `fixture_ready` — deterministic fixture/harness exists but the application case is not proven;
 - `pending` — no implementation evidence yet.
 
@@ -61,7 +62,8 @@ no evidence. Pending and fixture-ready cases are never counted as passes.
 
 Current coverage at US-005:
 
-- covered: S-01, S-02, S-05, S-06;
+- covered: S-02, S-05, S-06;
+- partial: S-01;
 - fixture-ready: T-47;
 - pending: all remaining cases.
 
