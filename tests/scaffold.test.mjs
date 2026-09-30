@@ -35,7 +35,7 @@ test("provider and toolchain dependencies are exact and lockfile-backed", async 
 
   assert.equal(root.engines.node, "24.21.0");
   assert.equal(root.packageManager, "npm@11.19.0");
-  assert.equal(root.devDependencies.eslint, "10.11.0");
+  assert.equal(root.devDependencies.eslint, "9.39.5");
   assert.equal(lock.lockfileVersion, 3);
   assert.equal(lock.packages[""].engines.node, "24.21.0");
   assert.deepEqual(lock.packages[""].devDependencies, root.devDependencies);
