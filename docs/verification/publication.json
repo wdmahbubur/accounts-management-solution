@@ -1,0 +1,33 @@
+{
+  "mode": "live GitHub API publication",
+  "source_archive_sha256": "74cbabbc4988e4ce5a2840e3d94284f7bbbee5c872e4c09c6b0a74bf73e31501",
+  "original_files": 20,
+  "original_markdown_files": 11,
+  "original_files_preserved": true,
+  "story_count": 100,
+  "v1_story_count": 88,
+  "post_v1_discovery_count": 12,
+  "epic_count": 14,
+  "master_tracker_count": 1,
+  "distinct_managed_issues": 115,
+  "milestone_count": 8,
+  "dependency_graph_acyclic": true,
+  "all_source_references_resolved": true,
+  "coverage_counts": {
+    "fr": 19,
+    "guards": 18,
+    "tests": 72,
+    "ui": 54
+  },
+  "reference_checks": {
+    "scope": "Reference model and static artifacts only; no application, SQL execution, RLS, races, browser, billing or restore testing",
+    "reference_tests_passed": 35,
+    "reference_tests_total": 35,
+    "static_checks_passed": 24,
+    "static_checks_total": 24
+  },
+  "source_commit": "8fc2242cba5f28b2f7c1848dcedb4b1769c27ee0",
+  "workflow_run": "https://github.com/wdmahbubur/accounts-management-solution/actions/runs/36686228550",
+  "application_implemented": false,
+  "production_or_supabase_changed": false
+}

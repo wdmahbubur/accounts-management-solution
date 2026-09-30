@@ -1,0 +1,5896 @@
+{
+  "schema_version": 1,
+  "source_version": "1.0 (29 September 2026)",
+  "repository": "wdmahbubur/accounts-management-solution",
+  "scope": "Initial publication snapshot; subsequent progress lives in GitHub and merged code",
+  "stories": [
+    {
+      "id": "US-001",
+      "epic": "E00",
+      "milestone": 0,
+      "depends_on": [],
+      "fr": [
+        "FR-01",
+        "FR-02",
+        "FR-03",
+        "FR-04",
+        "FR-16",
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "T-17",
+        "T-38",
+        "T-39",
+        "T-50"
+      ],
+      "persona": "product owner and accounting reviewer",
+      "title": "Approve V1 scope, accounting policies and launch assumptions",
+      "goal": "freeze a reviewable accounting contract before production financial behavior is enabled",
+      "acceptance": [
+        "Record Bangladesh service/non-stock scope, accrual BDT books and excluded features in a decision register",
+        "Approve COA/report mappings, recognition and cutover policies with reviewer identity and date",
+        "Treat 10% tax examples as illustrative and block unsupported compliance claims or invented tax rates",
+        "Record unresolved pricing, billing provider, retention and pilot-data decisions without pretending approval"
+      ],
+      "tables": "organizations,accounts,account_mappings,tax_codes",
+      "api": "No runtime endpoint; reviewed architecture decision record",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": true,
+      "issue": {
+        "number": 15,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/15",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-002",
+      "epic": "E00",
+      "milestone": 1,
+      "depends_on": [],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "maintainer",
+      "title": "Bootstrap the modular monolith, pinned toolchain and CI",
+      "goal": "give each AI a reproducible repository and test entry point",
+      "acceptance": [
+        "Create Next.js TypeScript modular boundaries for accounting, reporting, contracts and permissions",
+        "Pin compatible provider/package versions and lockfiles after checking official docs",
+        "Provide environment examples without secrets and local setup, lint, typecheck, build and test commands",
+        "CI fails on type/lint/test failures and never deploys production from an unreviewed story"
+      ],
+      "tables": "none",
+      "api": "Repository and CI configuration only",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 16,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/16",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-003",
+      "epic": "E00",
+      "milestone": 1,
+      "depends_on": [
+        "US-002"
+      ],
+      "fr": [
+        "FR-01",
+        "FR-02"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G05",
+        "DB-G17"
+      ],
+      "tests": [
+        "S-01",
+        "S-02"
+      ],
+      "persona": "database engineer",
+      "title": "Convert the 52-table reference into reviewed versioned migrations",
+      "goal": "obtain a reproducible schema rather than assume reference SQL is deployable",
+      "acceptance": [
+        "Preserve all 52 catalogued entities and document deliberate field/constraint changes",
+        "Test clean install and upgrade path in isolated PostgreSQL/Supabase-compatible databases",
+        "Verify composite tenant keys, decimal types, indexes and least-privilege roles",
+        "List cross-row guards still unimplemented and keep financial writes disabled until engine gate"
+      ],
+      "tables": "all 52 tables in schema-catalog.json",
+      "api": "Database migration commands; no public ledger CRUD",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 17,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/17",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-004",
+      "epic": "E00",
+      "milestone": 1,
+      "depends_on": [
+        "US-002",
+        "US-003"
+      ],
+      "fr": [
+        "FR-01",
+        "FR-06",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G14",
+        "DB-G17"
+      ],
+      "tests": [
+        "S-05",
+        "S-06"
+      ],
+      "persona": "API implementer",
+      "title": "Establish typed commands, authorization boundaries and error contracts",
+      "goal": "make every mutation use one validated service path",
+      "acceptance": [
+        "Define money-as-string DTOs, organization context, expected_version and idempotency headers",
+        "Map validation, forbidden/not-found, stale version, period lock and conflict failures to documented errors",
+        "Server Actions and route handlers call shared domain commands rather than duplicate posting logic",
+        "Validate actor server-side and never trust actor IDs or editable user metadata from input"
+      ],
+      "tables": "business_documents,idempotency_requests,organization_members",
+      "api": "/api/v1/organizations/[organizationId] command boundary from docs/06",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 18,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/18",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-005",
+      "epic": "E00",
+      "milestone": 1,
+      "depends_on": [
+        "US-002",
+        "US-003"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [
+        "DB-G01",
+        "DB-G02"
+      ],
+      "tests": [
+        "T-47",
+        "S-01",
+        "S-02"
+      ],
+      "persona": "test engineer",
+      "title": "Build deterministic fixtures and separate reference tests from application tests",
+      "goal": "make accounting correctness measurable from the first commit",
+      "acceptance": [
+        "Run the provided Python reference and static suites with their limitations visible",
+        "Create isolated two-company, dual-membership and role fixtures with fixed dates and deterministic decimal expectations",
+        "Provide real PostgreSQL and service/browser test harnesses plus independent multi-connection race helpers",
+        "Track source T-01..T-52 and S-01..S-20 to real tests without counting skipped cases as passes"
+      ],
+      "tables": "organizations,accounts,business_documents,journal_entries,journal_lines",
+      "api": "Test infrastructure only",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 19,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/19",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-006",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-002",
+        "US-004"
+      ],
+      "fr": [
+        "FR-01"
+      ],
+      "ui": [
+        "UI-02",
+        "UI-51"
+      ],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "S-04",
+        "S-05",
+        "S-07"
+      ],
+      "persona": "company user",
+      "title": "Implement verified authentication, recovery and account security",
+      "goal": "enter the correct company securely and recover access",
+      "acceptance": [
+        "Implement sign-up, sign-in, verification, recovery and profile/security routes with safe redirects",
+        "Use enumeration-safe messages and rate-limited resend/reset actions",
+        "Require recent authentication for sensitive owner, close/reopen and support grants",
+        "Test expired links, session revocation, unverified accounts and auth errors without leaking credentials"
+      ],
+      "tables": "profiles,organization_members",
+      "api": "Authentication routes and profile/security actions",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 20,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/20",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-007",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-003",
+        "US-006"
+      ],
+      "fr": [
+        "FR-02"
+      ],
+      "ui": [
+        "UI-04"
+      ],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "S-01",
+        "S-02",
+        "S-13"
+      ],
+      "persona": "company owner",
+      "title": "Create a company with atomic onboarding defaults",
+      "goal": "start with a complete isolated set of books",
+      "acceptance": [
+        "One transaction creates organization, owner membership, roles, approved default COA, mappings and periods",
+        "Collect company name, country, BDT currency, timezone, fiscal start and books-start date",
+        "Retry onboarding without duplicate companies or partially seeded accounting configuration",
+        "Reject unsupported currency and roll back all defaults on failure"
+      ],
+      "tables": "organizations,organization_members,roles,accounts,account_mappings,fiscal_years,accounting_periods",
+      "api": "Company creation/onboarding command",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 21,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/21",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-008",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-007"
+      ],
+      "fr": [
+        "FR-01",
+        "FR-02"
+      ],
+      "ui": [
+        "UI-03"
+      ],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "S-01",
+        "S-02",
+        "S-15"
+      ],
+      "persona": "multi-company user",
+      "title": "Build company selection and tenant-safe switching",
+      "goal": "work in separate company books without cached data leakage",
+      "acceptance": [
+        "List only active memberships and preserve the user's valid company context",
+        "Scope database requests, server caches, query keys and download jobs by organization",
+        "Switching invalidates prior-company financial views and rejects stale cross-company submissions",
+        "A user belonging to both companies still cannot link A documents to B accounts"
+      ],
+      "tables": "organizations,organization_members",
+      "api": "Company list and switch actions",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 22,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/22",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-009",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-004",
+        "US-007"
+      ],
+      "fr": [
+        "FR-01"
+      ],
+      "ui": [
+        "UI-48"
+      ],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "S-03",
+        "S-04",
+        "S-05",
+        "S-13"
+      ],
+      "persona": "company owner",
+      "title": "Implement capability-based roles and last-owner protection",
+      "goal": "delegate work without exposing unrelated financial information",
+      "acceptance": [
+        "Seed Owner/Admin/Finance/Accountant/Billing/Auditor capabilities and support bounded custom roles",
+        "Enforce read and mutation capabilities on API and DB-access paths, not only navigation",
+        "Reject unauthorized privilege escalation and concurrently removing the last active owner",
+        "Separate approval, posting, report, bank balance and export permissions"
+      ],
+      "tables": "permissions,roles,role_permissions,member_roles,organization_members",
+      "api": "Users/roles and permission-management commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 23,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/23",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-010",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-006",
+        "US-009"
+      ],
+      "fr": [
+        "FR-01"
+      ],
+      "ui": [
+        "UI-02",
+        "UI-48"
+      ],
+      "guards": [
+        "DB-G17"
+      ],
+      "tests": [
+        "S-07",
+        "S-13",
+        "S-14"
+      ],
+      "persona": "company administrator",
+      "title": "Implement expiring invitations and immediate membership revocation",
+      "goal": "add colleagues safely and stop access when they leave",
+      "acceptance": [
+        "Invite a verified recipient into an explicit organization and role with expiring single-use token",
+        "Accept/reject/resend without duplicate membership or unauthorized role grant",
+        "Check live membership on sensitive commands even when an old JWT remains valid",
+        "Revocation denies new evidence/export downloads and preserves audit history"
+      ],
+      "tables": "invitations,organization_members,member_roles",
+      "api": "Invitation acceptance and membership revocation commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 24,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/24",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-011",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-003",
+        "US-009"
+      ],
+      "fr": [
+        "FR-01",
+        "FR-18"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G05",
+        "DB-G17",
+        "DB-G18"
+      ],
+      "tests": [
+        "S-01",
+        "S-02",
+        "S-03",
+        "S-04",
+        "S-05",
+        "S-06",
+        "S-07"
+      ],
+      "persona": "security engineer",
+      "title": "Enforce RLS, private schemas and scoped database routines",
+      "goal": "prevent tenant and module-level bypass through direct APIs",
+      "acceptance": [
+        "Enable reviewed tenant/module RLS and restrict grants on every exposed table/view/routine",
+        "Use server-derived actor identity, restricted search_path and explicit execute grants where privileged routines are justified",
+        "Test ordinary authenticated, anonymous, billing, auditor and worker identities rather than only service_role",
+        "Views, caches, downloads and direct RPCs must not bypass capability or cross-tenant checks"
+      ],
+      "tables": "all protected tables and views",
+      "api": "Database policies, RPC execution grants and scoped read model",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 25,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/25",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-012",
+      "epic": "E01",
+      "milestone": 1,
+      "depends_on": [
+        "US-007",
+        "US-009"
+      ],
+      "fr": [
+        "FR-02",
+        "FR-17"
+      ],
+      "ui": [
+        "UI-47"
+      ],
+      "guards": [
+        "DB-G04",
+        "DB-G17"
+      ],
+      "tests": [
+        "T-34",
+        "T-50"
+      ],
+      "persona": "company owner",
+      "title": "Manage company settings and protect accounting configuration",
+      "goal": "change company details without rewriting historical books",
+      "acceptance": [
+        "Implement legal profile, timezone, fiscal year and books-start configuration with validation",
+        "Lock currency and foundational date policy after financial activity unless a reviewed migration path exists",
+        "Record material configuration changes with actor, reason and timestamp",
+        "Prevent overlapping fiscal periods and invalid books-start/cutover combinations"
+      ],
+      "tables": "organizations,fiscal_years,accounting_periods",
+      "api": "Company settings commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 26,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/26",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-013",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-002",
+        "US-005"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-09",
+        "FR-10"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G12"
+      ],
+      "tests": [
+        "T-17",
+        "T-18",
+        "T-19",
+        "T-50"
+      ],
+      "persona": "accountant",
+      "title": "Implement exact decimal, discount and rounding calculations",
+      "goal": "get identical totals in previews, posting and exports",
+      "acceptance": [
+        "Use canonical decimal strings and exact arithmetic with documented half-up and line-total rules",
+        "Support six-decimal quantity/unit price and two-decimal monetary storage without JavaScript float authority",
+        "Validate negative/zero rules, excess scale, NaN, infinity and overflow at boundaries",
+        "Golden inclusive/exclusive illustrative tax and fractional quantity cases agree across service and database"
+      ],
+      "tables": "document_lines,trade_documents,journal_lines",
+      "api": "Shared calculation library and posting-preview contract",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 29,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/29",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-014",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-007",
+        "US-011"
+      ],
+      "fr": [
+        "FR-04"
+      ],
+      "ui": [
+        "UI-31",
+        "UI-49"
+      ],
+      "guards": [
+        "DB-G05"
+      ],
+      "tests": [
+        "T-48",
+        "S-02"
+      ],
+      "persona": "accountant",
+      "title": "Implement chart of accounts and posting mappings",
+      "goal": "maintain a stable, valid accounting structure",
+      "acceptance": [
+        "Create/edit/archive account trees without cycles or posting into group/inactive accounts",
+        "Configure AR/AP, advance, cash, tax, rounding and retained earnings mappings with correct account types",
+        "Protect historical classification and prevent deleting used accounts",
+        "Show mapping errors before posting rather than silently using suspense"
+      ],
+      "tables": "accounts,account_mappings",
+      "api": "Chart-of-accounts and account-mapping commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 30,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/30",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-015",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-001",
+        "US-013",
+        "US-014"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-09",
+        "FR-10"
+      ],
+      "ui": [
+        "UI-49"
+      ],
+      "guards": [
+        "DB-G12"
+      ],
+      "tests": [
+        "T-16",
+        "T-17",
+        "T-49"
+      ],
+      "persona": "accountant",
+      "title": "Configure versioned tax rules and recovery treatment",
+      "goal": "calculate approved tax consistently while preserving issued documents",
+      "acceptance": [
+        "Configure inclusive/exclusive tax and recoverable/nonrecoverable purchase treatment",
+        "Snapshot tax rate, basis and version into document lines before posting",
+        "Changes affect new drafts only and never mutate historical credit or invoice snapshots",
+        "Do not ship statutory filing, hardcoded Bangladesh legal rates or compliance certification"
+      ],
+      "tables": "tax_codes,document_lines,account_mappings",
+      "api": "Tax-code configuration and calculator integration",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 31,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/31",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-016",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-007",
+        "US-011"
+      ],
+      "fr": [
+        "FR-17"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G04"
+      ],
+      "tests": [
+        "T-34",
+        "T-35",
+        "S-10"
+      ],
+      "persona": "accountant",
+      "title": "Implement accounting dates, fiscal periods and shared lock protocol",
+      "goal": "stop backdated activity from bypassing closed books",
+      "acceptance": [
+        "Resolve accounting date to a valid fiscal period and enforce books-start boundaries",
+        "All posting, settlement, unapply, import and reversal commands share a transaction-safe period lock protocol",
+        "Concurrent close either follows a committed financial operation or blocks it cleanly",
+        "Keep close/reopen events append-only and require reason plus elevated recent-auth permission"
+      ],
+      "tables": "fiscal_years,accounting_periods,period_events",
+      "api": "Period guard service used by all financial commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 32,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/32",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-017",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-004",
+        "US-013",
+        "US-014",
+        "US-015"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-09",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G02",
+        "DB-G03",
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-01",
+        "T-36",
+        "T-49"
+      ],
+      "persona": "finance user",
+      "title": "Implement typed source documents, draft versions and state transitions",
+      "goal": "edit drafts safely without creating ledger effects",
+      "acceptance": [
+        "Create typed source headers and matching trade/money/transfer/journal children",
+        "Keep accounting, settlement and delivery states separate",
+        "Draft edit uses expected_version, server totals and material snapshot digest",
+        "Posted financial fields become immutable and stale edits return a visible conflict"
+      ],
+      "tables": "business_documents,trade_documents,document_lines,money_movements,transfers,manual_journal_rows",
+      "api": "Document create/update/get, allocation-plan and preview-posting",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 33,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/33",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-018",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-011",
+        "US-013",
+        "US-014",
+        "US-016",
+        "US-017",
+        "US-019",
+        "US-020",
+        "US-022",
+        "US-064"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-07",
+        "FR-09",
+        "FR-10",
+        "FR-12",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G03",
+        "DB-G05",
+        "DB-G06",
+        "DB-G14",
+        "DB-G15"
+      ],
+      "tests": [
+        "T-02",
+        "T-03",
+        "T-04",
+        "T-05",
+        "T-20",
+        "T-21",
+        "T-22",
+        "T-50",
+        "S-02",
+        "S-06",
+        "S-09",
+        "S-17",
+        "S-18"
+      ],
+      "persona": "accountant",
+      "title": "Implement atomic posting and database-enforced ledger invariants",
+      "goal": "trust that each source has exactly one balanced financial effect",
+      "acceptance": [
+        "Commit source state, at least two one-sided positive journal lines, control items, audit and outbox atomically",
+        "Reject unbalanced journals, source mismatch, wrong tenant/account/date/currency and incomplete building journals at commit",
+        "Block update/delete/truncate of posted financial facts through all runtime roles and alternate paths",
+        "Crash-after-commit and bounded whole-transaction retry return one existing source/journal rather than duplicate money"
+      ],
+      "tables": "business_documents,journal_entries,journal_lines,open_items,audit_events,outbox_events",
+      "api": "Document post command and internal posting routine",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 42,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/42",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-019",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-016",
+        "US-017"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G14"
+      ],
+      "tests": [
+        "T-03",
+        "T-04",
+        "T-05",
+        "S-09",
+        "S-17",
+        "S-18"
+      ],
+      "persona": "finance user",
+      "title": "Implement permanent document numbering and idempotent commands",
+      "goal": "retry safely without duplicate vouchers or journals",
+      "acceptance": [
+        "Allocate unique company/type/fiscal numbering inside the financial transaction",
+        "Same key plus same request returns original result and changed payload returns conflict",
+        "Different keys racing on the same source still produce at most one journal",
+        "Handle transient deadlocks with bounded whole-transaction retry and preserve permanent numbers after reversal"
+      ],
+      "tables": "document_sequences,idempotency_requests,business_documents",
+      "api": "Idempotency middleware and permanent-number allocator",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 34,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/34",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-020",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-011",
+        "US-017"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G15"
+      ],
+      "tests": [
+        "T-22",
+        "T-43",
+        "S-18"
+      ],
+      "persona": "auditor",
+      "title": "Persist append-only financial audit events and transactional outbox",
+      "goal": "trace committed changes and reliably deliver follow-up work",
+      "acceptance": [
+        "Write actor, organization, source version, action, reason and safe before/after metadata with the mutation",
+        "Outbox event creation is in the same transaction as posting with stable event IDs",
+        "Do not log passwords, tokens, full sensitive attachments or unrelated-company data",
+        "Audit records cannot be edited/deleted by ordinary users or silently replaced by delivery retries"
+      ],
+      "tables": "audit_events,outbox_events,business_documents",
+      "api": "Internal audit append and outbox enqueue interfaces",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 35,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/35",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-021",
+      "epic": "E02",
+      "milestone": 2,
+      "depends_on": [
+        "US-018",
+        "US-022",
+        "US-023",
+        "US-024",
+        "US-037"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-07",
+        "FR-14",
+        "FR-16"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G03",
+        "DB-G06",
+        "DB-G07",
+        "DB-G08",
+        "DB-G09"
+      ],
+      "tests": [
+        "T-01",
+        "T-02",
+        "T-03",
+        "T-06",
+        "T-22",
+        "T-23",
+        "T-24",
+        "T-47",
+        "S-09",
+        "S-18"
+      ],
+      "persona": "implementation reviewer",
+      "title": "Prove the first invoice-to-ledger vertical slice before feature expansion",
+      "goal": "verify core accounting using executable integration evidence",
+      "acceptance": [
+        "Create an isolated company, capital entry, earned invoice, partial receipt, ledger query and dated reversal through real commands",
+        "Match the golden no-tax scenario and reconcile AR/AP/control balances without dashboard shortcuts",
+        "Run PostgreSQL constraints and direct-routine permission tests under runtime roles",
+        "Attach commands, commit SHA and test results and keep the engine milestone blocked when required cases fail"
+      ],
+      "tables": "business_documents,journal_entries,journal_lines,open_items,settlement_allocations",
+      "api": "Service/DB vertical slice; full reporting UI delivered in M4",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 44,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/44",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-022",
+      "epic": "E03",
+      "milestone": 2,
+      "depends_on": [
+        "US-014",
+        "US-017"
+      ],
+      "fr": [
+        "FR-07",
+        "FR-11",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G06"
+      ],
+      "tests": [
+        "T-02",
+        "T-09",
+        "T-21",
+        "S-02"
+      ],
+      "persona": "accountant",
+      "title": "Implement open-item control subledger primitives",
+      "goal": "explain every AR/AP/advance control balance by party and source",
+      "acceptance": [
+        "Each posted control line creates exactly one matching same-tenant party/currency/control open item",
+        "Non-control lines cannot create unexplained items and ordinary manual control postings are rejected",
+        "Store immutable original amount, direction and effective accounting date",
+        "Provide available-balance primitives without maintaining a divergent editable balance table"
+      ],
+      "tables": "open_items,journal_lines,accounts,contacts",
+      "api": "Internal control-item builder and scoped open-item reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 36,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/36",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-023",
+      "epic": "E03",
+      "milestone": 2,
+      "depends_on": [
+        "US-016",
+        "US-019",
+        "US-022"
+      ],
+      "fr": [
+        "FR-07",
+        "FR-11"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G07"
+      ],
+      "tests": [
+        "T-06",
+        "T-07",
+        "T-08",
+        "T-26",
+        "T-27",
+        "T-51",
+        "S-08",
+        "S-10",
+        "S-17"
+      ],
+      "persona": "accountant",
+      "title": "Allocate opposite open items with historical and concurrent capacity checks",
+      "goal": "settle invoices without overusing receipts or rewriting past balances",
+      "acceptance": [
+        "Validate same organization, party, currency, control and opposite direction",
+        "Lock affected item IDs in a deterministic order and enforce capacity at every effective-date boundary",
+        "Support partial and many-document allocation with no second income/expense journal",
+        "Reject backdated credit reuse that over-allocates any historical period and prove two-connection races safe"
+      ],
+      "tables": "open_items,settlement_allocations",
+      "api": "POST allocations and as-of residual calculator",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 37,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/37",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-024",
+      "epic": "E03",
+      "milestone": 2,
+      "depends_on": [
+        "US-023"
+      ],
+      "fr": [
+        "FR-07",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G08"
+      ],
+      "tests": [
+        "T-26",
+        "T-34",
+        "T-51",
+        "S-08",
+        "S-10"
+      ],
+      "persona": "accountant",
+      "title": "Unapply settlements using dated append-only reversals",
+      "goal": "correct allocation mistakes while retaining historical statements",
+      "acceptance": [
+        "Reverse each allocation at most once without modifying original allocation facts",
+        "Require effective reversal date on/after allocation and in an open period",
+        "Historical residual before reversal remains unchanged and later capacity becomes available correctly",
+        "Audit reason and block attempts to bypass period lock or historical capacity checks"
+      ],
+      "tables": "allocation_reversals,settlement_allocations,open_items",
+      "api": "POST allocations/[id]/reverse",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 38,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/38",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-025",
+      "epic": "E03",
+      "milestone": 2,
+      "depends_on": [
+        "US-017",
+        "US-023"
+      ],
+      "fr": [
+        "FR-07",
+        "FR-11",
+        "FR-15"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G07",
+        "DB-G10"
+      ],
+      "tests": [
+        "T-07",
+        "T-36",
+        "T-51"
+      ],
+      "persona": "finance user",
+      "title": "Save and approve versioned draft allocation plans",
+      "goal": "review exactly which invoices a receipt will settle",
+      "acceptance": [
+        "Persist draft allocation targets, amounts and effective date under source version",
+        "Material changes invalidate approval and stale post attempts conflict",
+        "Validate live capacity again during posting rather than trusting a previous preview",
+        "Post source plus its approved allocations atomically with safe retries"
+      ],
+      "tables": "document_allocation_plans,business_documents,settlement_allocations",
+      "api": "Document allocation-plan and preview-posting commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 39,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/39",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-026",
+      "epic": "E03",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-023",
+        "US-064"
+      ],
+      "fr": [
+        "FR-08",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G01",
+        "DB-G06",
+        "DB-G07",
+        "DB-G10"
+      ],
+      "tests": [
+        "T-21",
+        "T-27",
+        "T-36"
+      ],
+      "persona": "authorized accountant",
+      "title": "Implement controlled subledger adjustments and write-offs",
+      "goal": "correct receivables/payables without unexplained control balances",
+      "acceptance": [
+        "Require party, control account, source evidence, adjustment reason and appropriate capability",
+        "Post balanced approved adjustment plus control item and settle explicitly",
+        "No unauthorized AR/AP netting for dual-role contacts or generic journal bypass",
+        "Show audit and ledger drilldown and test full reversal/correction path"
+      ],
+      "tables": "business_documents,manual_journal_rows,open_items,settlement_allocations",
+      "api": "Controlled adjustment command using posting and allocation engines",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 46,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/46",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-027",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-008",
+        "US-011",
+        "US-017",
+        "US-021",
+        "US-023",
+        "US-082"
+      ],
+      "fr": [
+        "FR-05"
+      ],
+      "ui": [
+        "UI-07",
+        "UI-08"
+      ],
+      "guards": [
+        "DB-G05",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-27",
+        "T-49",
+        "S-01",
+        "S-03"
+      ],
+      "persona": "billing user",
+      "title": "Build customer directory and customer financial profile",
+      "goal": "find customer invoices, collections and separate receivable balance",
+      "acceptance": [
+        "Implement search/filter/pagination, validated create/edit/archive and contact snapshots",
+        "Show permission-scoped invoice, receipt, credit, advance and statement tabs",
+        "Keep customer and vendor controls separate for a shared contact",
+        "Opening balance edits route to cutover workflow rather than silently changing current balances"
+      ],
+      "tables": "contacts,business_documents,open_items",
+      "api": "GET/POST/PATCH contacts and scoped customer profile reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 47,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/47",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-028",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-008",
+        "US-011",
+        "US-017",
+        "US-021",
+        "US-023",
+        "US-082"
+      ],
+      "fr": [
+        "FR-05"
+      ],
+      "ui": [
+        "UI-09",
+        "UI-10"
+      ],
+      "guards": [
+        "DB-G05",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-27",
+        "T-49",
+        "S-01",
+        "S-03"
+      ],
+      "persona": "purchasing accountant",
+      "title": "Build vendor directory and payable profile",
+      "goal": "understand each supplier balance without exposing it to billing-only staff",
+      "acceptance": [
+        "Implement vendor search/filter/create/edit/archive with duplicate warnings",
+        "Show bills, payments, credits, advances and statement tabs under purchase permissions",
+        "Do not net shared customer/vendor balances or overwrite issued document identity",
+        "Reject guessed vendor IDs and cross-organization references"
+      ],
+      "tables": "contacts,business_documents,open_items",
+      "api": "GET/POST/PATCH contacts and scoped vendor profile reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 48,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/48",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-029",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-014",
+        "US-015",
+        "US-021",
+        "US-082"
+      ],
+      "fr": [
+        "FR-05"
+      ],
+      "ui": [
+        "UI-11"
+      ],
+      "guards": [
+        "DB-G05",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-48",
+        "T-49"
+      ],
+      "persona": "accountant",
+      "title": "Manage service/non-stock catalogue and cost-center tags",
+      "goal": "reuse accurate line defaults without pretending to track inventory",
+      "acceptance": [
+        "Create/edit/archive service or non-stock items with units, default rate, posting account and tax",
+        "Allow validated cost-center tags with same-company constraints",
+        "Copy defaults as editable draft snapshots and preserve posted line history",
+        "Exclude quantity-on-hand, COGS costing and stock valuation from V1"
+      ],
+      "tables": "items,cost_centers,tax_codes,accounts",
+      "api": "Item and cost-center master-data commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 49,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/49",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-030",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-017",
+        "US-021",
+        "US-027",
+        "US-029",
+        "US-082"
+      ],
+      "fr": [
+        "FR-06"
+      ],
+      "ui": [
+        "UI-12",
+        "UI-13"
+      ],
+      "guards": [
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-01",
+        "T-18",
+        "T-19",
+        "T-36",
+        "T-49"
+      ],
+      "persona": "billing user",
+      "title": "Build invoice register and versioned draft editor",
+      "goal": "prepare correct invoices with a clear accounting preview",
+      "acceptance": [
+        "Implement invoice filters and line editor with customer, dates, terms, quantities, discounts, tax, notes and evidence",
+        "Show exact server-calculated totals and earned/deferred recognition selection",
+        "Save draft without GL impact and surface field errors plus stale-version conflicts",
+        "Submit/post buttons respect distinct permissions and never conflate email-sent with posted"
+      ],
+      "tables": "business_documents,trade_documents,document_lines",
+      "api": "Invoice create/edit/list and preview-posting",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 50,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/50",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-031",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-030",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-06"
+      ],
+      "ui": [
+        "UI-14"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G06",
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-02",
+        "T-36",
+        "T-49"
+      ],
+      "persona": "accountant",
+      "title": "Post earned/deferred invoices and show immutable detail",
+      "goal": "recognize revenue only under the approved policy",
+      "acceptance": [
+        "Earned invoice debits AR and credits earned revenue plus applicable approved tax",
+        "Future-service/deferred invoice uses configured liability treatment instead of premature revenue",
+        "Posted detail shows source journal, approval, residual, correction links and independent delivery state",
+        "Reject unauthorized, stale, closed-period or incomplete recognition inputs"
+      ],
+      "tables": "business_documents,trade_documents,journal_entries,journal_lines,open_items",
+      "api": "Invoice submit/post/get detail",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 51,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/51",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-032",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-025",
+        "US-027",
+        "US-031",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-07"
+      ],
+      "ui": [
+        "UI-15"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G06",
+        "DB-G07",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-06",
+        "T-07",
+        "T-08",
+        "T-36",
+        "S-08"
+      ],
+      "persona": "finance user",
+      "title": "Record customer receipts and allocate partial or excess payments",
+      "goal": "collect dues without recording revenue twice",
+      "acceptance": [
+        "Record external payment evidence, cash account, date, reference and gross amount",
+        "Allocate across eligible invoices with partial amounts and show remaining trade credit",
+        "A 6000 receipt on a 10000 invoice leaves 4000 AR and no new revenue",
+        "Disallow payment execution, over-allocation and unapproved changed allocation targets"
+      ],
+      "tables": "money_movements,open_items,settlement_allocations,cash_accounts",
+      "api": "Receipt document create/preview/post and allocation commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 57,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/57",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-033",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-017",
+        "US-021",
+        "US-028",
+        "US-029",
+        "US-082"
+      ],
+      "fr": [
+        "FR-09"
+      ],
+      "ui": [
+        "UI-19",
+        "UI-20"
+      ],
+      "guards": [
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-01",
+        "T-16",
+        "T-18",
+        "T-49"
+      ],
+      "persona": "purchasing user",
+      "title": "Build supplier bill register and draft editor",
+      "goal": "capture purchase liabilities with accurate coding and evidence",
+      "acceptance": [
+        "Capture vendor invoice reference, accounting/due dates, line expense-or-asset account, tax and receipt evidence",
+        "Warn about duplicate vendor references without deleting legitimate bills",
+        "Draft does not affect GL and server recalculates all totals",
+        "Preserve original vendor and tax snapshots and reject wrong-tenant items"
+      ],
+      "tables": "business_documents,trade_documents,document_lines",
+      "api": "Bill list/create/update and preview-posting",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 52,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/52",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-034",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-033",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-09"
+      ],
+      "ui": [
+        "UI-21"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G06",
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-14",
+        "T-15",
+        "T-16"
+      ],
+      "persona": "accountant",
+      "title": "Post supplier bills and expose payable detail",
+      "goal": "recognize expenses/assets once and track vendor debt",
+      "acceptance": [
+        "Debit approved expense/asset and recoverable input-tax accounts and credit AP",
+        "Handle nonrecoverable tax in the cost basis according to approved policy",
+        "Show immutable lines, journal, outstanding amount, approval and correction history",
+        "Prevent repeated posting or a payment from recognizing the expense a second time"
+      ],
+      "tables": "trade_documents,journal_entries,journal_lines,open_items",
+      "api": "Bill submit/post/get detail",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 53,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/53",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-035",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-025",
+        "US-028",
+        "US-034",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-10"
+      ],
+      "ui": [
+        "UI-22"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G06",
+        "DB-G07",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-14",
+        "T-36",
+        "S-08",
+        "S-11"
+      ],
+      "persona": "finance user",
+      "title": "Record supplier payments with bill allocations",
+      "goal": "reduce payable balances with clear cash evidence",
+      "acceptance": [
+        "Capture paid-from account, external reference, amount and date without sending money",
+        "Debit AP and credit cash/bank once with partial/multiple bill allocations",
+        "Show unallocated trade debit separately from true supplier advances",
+        "Revalidate approved plan and cash/period/capacity constraints atomically"
+      ],
+      "tables": "money_movements,cash_accounts,open_items,settlement_allocations",
+      "api": "Supplier payment create/preview/post",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 58,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/58",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-036",
+      "epic": "E04",
+      "milestone": 3,
+      "depends_on": [
+        "US-015",
+        "US-018",
+        "US-021",
+        "US-028",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-10"
+      ],
+      "ui": [
+        "UI-24"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G10",
+        "DB-G11",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-15",
+        "T-16",
+        "T-18",
+        "S-11"
+      ],
+      "persona": "employee and accountant",
+      "title": "Record paid expenses with correct asset and tax treatment",
+      "goal": "capture already-paid purchases without misclassifying equipment",
+      "acceptance": [
+        "Implement amount/vendor/date/paid-from/coding/tax/notes/attachment entry and register",
+        "Allow equipment and prepaid purchases to debit assets rather than force every purchase to expense",
+        "Apply approved recoverability rules and maker-checker policy",
+        "Post one balanced cash event and preserve audit/correction links"
+      ],
+      "tables": "business_documents,document_lines,money_movements,cash_accounts",
+      "api": "Paid-expense create/preview/submit/post",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 59,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/59",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-037",
+      "epic": "E05",
+      "milestone": 2,
+      "depends_on": [
+        "US-018",
+        "US-024"
+      ],
+      "fr": [
+        "FR-08",
+        "FR-14"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G03",
+        "DB-G04",
+        "DB-G08",
+        "DB-G09"
+      ],
+      "tests": [
+        "T-22",
+        "T-23",
+        "T-24",
+        "T-25",
+        "T-34"
+      ],
+      "persona": "accountant",
+      "title": "Implement dated source reversals and dependency safeguards",
+      "goal": "correct posted mistakes without deleting accounting history",
+      "acceptance": [
+        "Create a new exact opposite journal linked to the original source and preserve both entries",
+        "Allow one effective reversal with authorized reason in an open period",
+        "Require settlement unapply and authorized reconciliation reopen where dependencies exist",
+        "Reject partial arbitrary source rewrites, second reversals and original-date substitution in locked books"
+      ],
+      "tables": "business_documents,journal_entries,journal_lines,allocation_reversals",
+      "api": "POST documents/[id]/reverse",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 43,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/43",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-038",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-031",
+        "US-037",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-08"
+      ],
+      "ui": [
+        "UI-16"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G09",
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-12",
+        "T-49",
+        "T-52"
+      ],
+      "persona": "billing accountant",
+      "title": "Issue customer credit notes against original invoice lines",
+      "goal": "reduce earned/deferred revenue and tax by only the approved eligible amount",
+      "acceptance": [
+        "Reference the correct original invoice and line, preserving its tax and recognition snapshots",
+        "Enforce cumulative credit quantity/value limits including previous credits",
+        "Post appropriate opposite revenue/deferred/tax components and a credit open item",
+        "Show draft/approved/posted detail and allocate credit without creating cash movement"
+      ],
+      "tables": "trade_documents,document_lines,open_items,settlement_allocations",
+      "api": "Customer credit-note create/preview/post and allocation",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 54,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/54",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-039",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-032",
+        "US-038",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-08"
+      ],
+      "ui": [
+        "UI-17"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-13",
+        "S-08",
+        "S-11"
+      ],
+      "persona": "finance user",
+      "title": "Record customer refunds limited to eligible credit",
+      "goal": "return recorded money without creating unexplained receivable balances",
+      "acceptance": [
+        "Select eligible unallocated customer credit and refund cash/bank account",
+        "Reject amounts exceeding eligible credit or physical-cash capacity",
+        "Post refund and consume credit atomically with date, evidence and approval",
+        "This records an external refund and must not initiate a bank transfer"
+      ],
+      "tables": "money_movements,open_items,settlement_allocations,cash_accounts",
+      "api": "Customer refund create/preview/post",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 60,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/60",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-040",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-034",
+        "US-035",
+        "US-037",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-09"
+      ],
+      "ui": [
+        "UI-23"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G09",
+        "DB-G10",
+        "DB-G12"
+      ],
+      "tests": [
+        "T-11",
+        "T-14",
+        "T-16",
+        "T-52"
+      ],
+      "persona": "purchasing accountant",
+      "title": "Record vendor credits and supplier refunds",
+      "goal": "correct purchases while keeping AP, input tax and cash reconciled",
+      "acceptance": [
+        "Vendor credit references eligible original bill lines and original recoverability snapshots",
+        "Apply cumulative original-line limits and correct expense/asset/input-tax reversals",
+        "Record supplier refund only against eligible trade debit with separate cash evidence",
+        "Expose allocation, approval and reversal history and reject cross-vendor credits"
+      ],
+      "tables": "trade_documents,document_lines,money_movements,open_items,settlement_allocations",
+      "api": "Vendor credit and supplier refund commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 61,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/61",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-041",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-027",
+        "US-028",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-11"
+      ],
+      "ui": [
+        "UI-18"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-09",
+        "T-11"
+      ],
+      "persona": "finance user",
+      "title": "Record true customer and supplier advances",
+      "goal": "distinguish prepayments from revenue, expense and ordinary trade credit",
+      "acceptance": [
+        "Customer advance debits bank and credits customer-advance liability",
+        "Supplier advance debits supplier-advance asset and credits bank",
+        "Create party/control open items and show unapplied advance balances separately",
+        "Require amount/date/account/evidence and do not treat advance cash as earned revenue or incurred expense"
+      ],
+      "tables": "money_movements,open_items,accounts,cash_accounts",
+      "api": "Advance receipt/payment create/preview/post",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 62,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/62",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-042",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-025",
+        "US-031",
+        "US-034",
+        "US-041",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-11"
+      ],
+      "ui": [
+        "UI-18"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G06",
+        "DB-G07",
+        "DB-G10"
+      ],
+      "tests": [
+        "T-10",
+        "T-11",
+        "T-36",
+        "S-08"
+      ],
+      "persona": "accountant",
+      "title": "Apply advances through reclassification and paired allocations",
+      "goal": "settle trade balances without counting cash twice",
+      "acceptance": [
+        "Customer application debits advance liability and credits AR; supplier application debits AP and credits advance asset",
+        "Create the required control items and two matching allocation sets in one transaction",
+        "No second bank movement, income or expense is created by application",
+        "Revalidate approved allocation plan, party/control identity, effective dates and historic capacity"
+      ],
+      "tables": "business_documents,journal_entries,open_items,settlement_allocations",
+      "api": "POST advances/[id]/apply",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 63,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/63",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-043",
+      "epic": "E05",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-041",
+        "US-042",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-11"
+      ],
+      "ui": [
+        "UI-18"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-11",
+        "T-13",
+        "S-08"
+      ],
+      "persona": "finance user",
+      "title": "Refund unused advances and expose full lifecycle",
+      "goal": "return only the remaining prepayment and preserve applied history",
+      "acceptance": [
+        "Select unapplied advance balance and record external refund to/from the correct bank",
+        "Reject refunds exceeding remaining eligible advance after existing applications",
+        "Post the correct advance-control and cash legs with linked settlement",
+        "Show original advance, applications, refunds, unapply/reversal links and residual without netting trade credit"
+      ],
+      "tables": "money_movements,open_items,settlement_allocations",
+      "api": "Unused-advance refund and lifecycle reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 64,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/64",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-044",
+      "epic": "E06",
+      "milestone": 3,
+      "depends_on": [
+        "US-014",
+        "US-018",
+        "US-021",
+        "US-082"
+      ],
+      "fr": [
+        "FR-12"
+      ],
+      "ui": [
+        "UI-25"
+      ],
+      "guards": [
+        "DB-G05",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-48",
+        "S-03"
+      ],
+      "persona": "accountant",
+      "title": "Configure cash, bank and wallet ledger accounts",
+      "goal": "maintain separate money accounts with valid posting mappings",
+      "acceptance": [
+        "Create cash/bank/wallet metadata mapped to one appropriate same-company GL account",
+        "Show balances from posted ledger and carry no independent editable current-balance field",
+        "Protect used mappings and allow archive rather than destructive deletion",
+        "Wallet entries record balances only and do not claim bKash/Nagad API integration"
+      ],
+      "tables": "cash_accounts,accounts,journal_lines",
+      "api": "Cash-account configuration and overview reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 55,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/55",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-045",
+      "epic": "E06",
+      "milestone": 3,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-044",
+        "US-082"
+      ],
+      "fr": [
+        "FR-12",
+        "FR-16"
+      ],
+      "ui": [
+        "UI-26"
+      ],
+      "guards": [
+        "DB-G11"
+      ],
+      "tests": [
+        "T-28",
+        "T-47",
+        "S-03",
+        "S-11"
+      ],
+      "persona": "accountant",
+      "title": "Build bank/cash ledger and physical-cash balance guard",
+      "goal": "see real money movements and prevent unsupported cash spending",
+      "acceptance": [
+        "Provide opening, inflow, outflow, running/closing balance and source drilldown by date",
+        "Restrict bank-balance visibility separately from billing access",
+        "Enforce configured physical-cash nonnegative policy with transaction-safe account locking",
+        "Test concurrent spends and show any permitted overdraft policy explicitly for bank accounts"
+      ],
+      "tables": "cash_accounts,journal_lines,business_documents",
+      "api": "Cashbook/bank-ledger query and cash-balance guard",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 56,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/56",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-046",
+      "epic": "E06",
+      "milestone": 3,
+      "depends_on": [
+        "US-016",
+        "US-018",
+        "US-021",
+        "US-044",
+        "US-045",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-12"
+      ],
+      "ui": [
+        "UI-27"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G04",
+        "DB-G10",
+        "DB-G11"
+      ],
+      "tests": [
+        "T-28",
+        "S-11",
+        "S-17"
+      ],
+      "persona": "finance user",
+      "title": "Post atomic bank transfers with explicit fees",
+      "goal": "move recorded money without inflating revenue or cash flow",
+      "acceptance": [
+        "Require distinct eligible source/destination accounts, amount, accounting date and reference",
+        "Post both principal legs and any separately coded fee atomically",
+        "Internal cash-equivalent principal is excluded from external cash-flow totals while fees remain classified",
+        "Retry safely and reject insufficient physical cash, wrong tenant, same account and locked period"
+      ],
+      "tables": "transfers,journal_entries,journal_lines,cash_accounts",
+      "api": "Transfer create/preview/submit/post",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 65,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/65",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-047",
+      "epic": "E06",
+      "milestone": 3,
+      "depends_on": [
+        "US-014",
+        "US-018",
+        "US-021",
+        "US-037",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-14"
+      ],
+      "ui": [
+        "UI-32",
+        "UI-33"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G03",
+        "DB-G06",
+        "DB-G09",
+        "DB-G10"
+      ],
+      "tests": [
+        "T-20",
+        "T-21",
+        "T-22",
+        "T-23"
+      ],
+      "persona": "authorized accountant",
+      "title": "Build journal register and controlled manual journal editor",
+      "goal": "record legitimate adjustments without bypassing control subledgers",
+      "acceptance": [
+        "Provide account/debit/credit line editor, balanced preview, date, description and evidence",
+        "Reject one-line, unbalanced, double-sided or ordinary direct AR/AP/advance entries",
+        "Require approval and a valid accounting period before posting",
+        "Register/detail expose immutable lines, source links and dated reversal history"
+      ],
+      "tables": "manual_journal_rows,business_documents,journal_entries,journal_lines",
+      "api": "Manual journal create/preview/submit/post/reverse",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 66,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/66",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-048",
+      "epic": "E06",
+      "milestone": 3,
+      "depends_on": [
+        "US-011",
+        "US-018",
+        "US-021",
+        "US-037",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-34",
+        "UI-35"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G03"
+      ],
+      "tests": [
+        "T-22",
+        "T-23",
+        "T-47",
+        "S-03"
+      ],
+      "persona": "accountant and auditor",
+      "title": "Implement General Ledger and Trial Balance drilldowns",
+      "goal": "reconcile all account activity directly to posted journals",
+      "acceptance": [
+        "Ledger supports account/date/source filters, opening and running balances with stable pagination",
+        "Trial Balance sums posted debit/credit and reports imbalance rather than manufacturing a balancing plug",
+        "Each total drills down to journal then source under the viewer's permissions",
+        "Include reversals by effective date and reconcile the golden business fixture"
+      ],
+      "tables": "journal_entries,journal_lines,accounts,business_documents",
+      "api": "GET reports/general-ledger and reports/trial-balance",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 67,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/67",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-049",
+      "epic": "E07",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-044",
+        "US-068",
+        "US-070",
+        "US-082"
+      ],
+      "fr": [
+        "FR-13"
+      ],
+      "ui": [
+        "UI-28"
+      ],
+      "guards": [
+        "DB-G13",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-29",
+        "T-30",
+        "T-31",
+        "S-16"
+      ],
+      "persona": "accountant",
+      "title": "Import bank statements with safe mapping and deduplication",
+      "goal": "bring statement observations into reconciliation without posting money",
+      "acceptance": [
+        "Support staged CSV/XLSX account/date/amount/reference mapping with preview and row errors",
+        "Exact file/provider transaction keys are idempotent and ambiguous equal-value fingerprints require review",
+        "Normalize signs, dates and BDT values without silently dropping legitimate equal transactions",
+        "Importing observations creates no GL entries and unsafe files are rejected/quarantined"
+      ],
+      "tables": "bank_imports,statement_lines,attachments",
+      "api": "Bank-import upload/map/validate/commit",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 74,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/74",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-050",
+      "epic": "E07",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-045",
+        "US-049",
+        "US-082"
+      ],
+      "fr": [
+        "FR-13"
+      ],
+      "ui": [
+        "UI-29"
+      ],
+      "guards": [
+        "DB-G13"
+      ],
+      "tests": [
+        "T-32",
+        "S-12"
+      ],
+      "persona": "accountant",
+      "title": "Build partial and many-to-one reconciliation matching",
+      "goal": "match bank observations to existing ledger cash lines",
+      "acceptance": [
+        "Workspace shows statement and book sides with dates, references, residual amounts and match suggestions",
+        "Allow partial and many-to-one matches only for compatible account/currency/direction",
+        "Lock capacity on both sides so concurrent matches cannot overconsume",
+        "Matching is evidence association only and never creates a duplicate journal"
+      ],
+      "tables": "reconciliations,reconciliation_matches,statement_lines,journal_lines",
+      "api": "Reconciliation create/read and match/unmatch commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 75,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/75",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-051",
+      "epic": "E07",
+      "milestone": 4,
+      "depends_on": [
+        "US-016",
+        "US-021",
+        "US-037",
+        "US-050",
+        "US-082"
+      ],
+      "fr": [
+        "FR-13",
+        "FR-17"
+      ],
+      "ui": [
+        "UI-29"
+      ],
+      "guards": [
+        "DB-G04",
+        "DB-G09",
+        "DB-G13"
+      ],
+      "tests": [
+        "T-25",
+        "T-33",
+        "T-35",
+        "S-12"
+      ],
+      "persona": "finance manager",
+      "title": "Finalize and reopen reconciliations with immutable evidence",
+      "goal": "close only fully explained statement differences",
+      "acceptance": [
+        "Require reconciled opening/closing balances and zero unexplained difference before finalize",
+        "Protect finalized match sets and overlapping reconciliation coverage",
+        "Reopen requires reason, elevated capability and audit while retaining previous evidence",
+        "A reconciled payment cannot be reversed until the authorized dependency-resolution path completes"
+      ],
+      "tables": "reconciliations,reconciliation_matches,period_events,audit_events",
+      "api": "Reconciliation finalize/reopen commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 76,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/76",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-052",
+      "epic": "E07",
+      "milestone": 4,
+      "depends_on": [
+        "US-011",
+        "US-018",
+        "US-021",
+        "US-068",
+        "US-070",
+        "US-082"
+      ],
+      "fr": [
+        "FR-03",
+        "FR-18"
+      ],
+      "ui": [
+        "UI-46"
+      ],
+      "guards": [
+        "DB-G04",
+        "DB-G14",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-34",
+        "T-38",
+        "S-01",
+        "S-14",
+        "S-16",
+        "S-17"
+      ],
+      "persona": "accountant",
+      "title": "Implement staged structured data imports and resumable error handling",
+      "goal": "migrate validated records without bypassing accounting commands",
+      "acceptance": [
+        "Separate upload, mapping, validation, preview and explicit commit with row-level errors",
+        "Declare atomic batch scope and retry keys so rerun never duplicates posted records",
+        "Route financial rows through the same period/approval/posting guards as interactive commands",
+        "Restrict job access and retain sanitized error reports and import provenance"
+      ],
+      "tables": "import_jobs,import_rows,business_documents,attachments",
+      "api": "Import-job validate/commit/status commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 77,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/77",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-053",
+      "epic": "E07",
+      "milestone": 4,
+      "depends_on": [
+        "US-012",
+        "US-021",
+        "US-022",
+        "US-023",
+        "US-048",
+        "US-052",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-03"
+      ],
+      "ui": [
+        "UI-05"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G04",
+        "DB-G06",
+        "DB-G07",
+        "DB-G10"
+      ],
+      "tests": [
+        "T-38",
+        "T-39",
+        "T-47"
+      ],
+      "persona": "accountant",
+      "title": "Implement opening-balance and mid-year cutover wizard",
+      "goal": "start new books with reconciled balances and historical YTD once",
+      "acceptance": [
+        "Require cutover date, prior trial balance and detailed AR/AP/advance open items",
+        "Tie each control total to detail and block approval/commit while suspense is nonzero",
+        "Post approved opening balance without fabricating historical sales and label summarized YTD properly",
+        "Annual P&L includes pre-cutover summary once and subsequent detail once with evidence export"
+      ],
+      "tables": "import_jobs,import_rows,business_documents,journal_entries,open_items,report_snapshots",
+      "api": "Opening migration validate/preview/approve/commit",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 78,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/78",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-054",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-011",
+        "US-021",
+        "US-048",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-36"
+      ],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-44",
+        "T-47",
+        "S-03",
+        "S-15"
+      ],
+      "persona": "finance manager",
+      "title": "Create report hub with consistent cutoff, filters and snapshot contract",
+      "goal": "compare financial reports using the same source-of-truth context",
+      "acceptance": [
+        "Expose approved report directory and standard date/as-of/account/cost-center filters",
+        "Use posted ledger and effective-date subledgers with consistent database read boundaries",
+        "Capture company, timezone, cutoff, filters, generation time and draft/provisional labels",
+        "Drilldown and export authorization match the report rather than tenant membership alone"
+      ],
+      "tables": "journal_entries,journal_lines,report_snapshots",
+      "api": "GET reports/[type] and report snapshot interface",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 79,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/79",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-055",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-053",
+        "US-054",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-37"
+      ],
+      "guards": [
+        "DB-G16"
+      ],
+      "tests": [
+        "T-39",
+        "T-40",
+        "T-47"
+      ],
+      "persona": "finance manager",
+      "title": "Implement accrual Profit and Loss with correct cutover and close behavior",
+      "goal": "understand earned performance without cash or year-close distortions",
+      "acceptance": [
+        "Revenue and expenses derive from classified posted nominal accounts by period",
+        "Exclude year-close transfer mechanics from historical performance calculations",
+        "Include mid-year opening YTD summary exactly once and show comparison/drilldown",
+        "Golden fixture returns revenue 10000, expense 5000 and profit 5000"
+      ],
+      "tables": "journal_entries,journal_lines,accounts,year_close_runs",
+      "api": "GET reports/profit-and-loss",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 80,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/80",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-056",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-054",
+        "US-055",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-38"
+      ],
+      "guards": [
+        "DB-G16"
+      ],
+      "tests": [
+        "T-40",
+        "T-41",
+        "T-47"
+      ],
+      "persona": "accountant",
+      "title": "Implement Balance Sheet without retained-profit double counting",
+      "goal": "reconcile assets, liabilities and equity at any cutoff",
+      "acceptance": [
+        "Group classified assets, liabilities and equity with source drilldown",
+        "Add only untransferred earnings not already moved to retained earnings by active close",
+        "Reversal/reclose preserves correct historical and current statements",
+        "Golden fixture reconciles assets 106000 to liabilities 1000 plus capital 100000 plus profit 5000 without plugs"
+      ],
+      "tables": "journal_entries,journal_lines,accounts,year_close_runs",
+      "api": "GET reports/balance-sheet",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 81,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/81",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-057",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-024",
+        "US-054",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-40"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G08"
+      ],
+      "tests": [
+        "T-26",
+        "T-27",
+        "T-51"
+      ],
+      "persona": "finance manager",
+      "title": "Implement historical AR/AP aging and credit presentation",
+      "goal": "see what was actually due on a selected date",
+      "acceptance": [
+        "Compute residual from item, allocation and unapply effective dates instead of today's balances",
+        "Age invoice/bill debt using documented due-date buckets and show unapplied credits separately",
+        "Keep AR/AP and true advances distinct even for dual-role contacts",
+        "Historical backdated-credit fixtures and control tie-outs pass with permitted source drilldown"
+      ],
+      "tables": "open_items,settlement_allocations,allocation_reversals,contacts",
+      "api": "GET reports/receivable-aging and payable-aging",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 82,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/82",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-058",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-023",
+        "US-027",
+        "US-028",
+        "US-054",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-41"
+      ],
+      "guards": [
+        "DB-G06",
+        "DB-G07",
+        "DB-G08"
+      ],
+      "tests": [
+        "T-26",
+        "T-27",
+        "T-44"
+      ],
+      "persona": "accountant",
+      "title": "Build customer and vendor statements with allocation history",
+      "goal": "explain each party's opening balance, movements and closing due",
+      "acceptance": [
+        "Filter party and date range with opening/running/closing balances derived as of dates",
+        "Show invoices/bills, money, credits, advances and allocation references distinctly",
+        "Do not net customer and vendor positions or expose unrelated party information",
+        "Printable/export-ready statement totals reconcile to controls and preserve generation context"
+      ],
+      "tables": "contacts,open_items,settlement_allocations,allocation_reversals",
+      "api": "GET reports/customer-statement and vendor-statement",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 83,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/83",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-059",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-045",
+        "US-046",
+        "US-053",
+        "US-054",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-39"
+      ],
+      "guards": [
+        "DB-G11",
+        "DB-G16"
+      ],
+      "tests": [
+        "T-28",
+        "T-39",
+        "T-42",
+        "T-47"
+      ],
+      "persona": "finance manager",
+      "title": "Implement classified management cash-flow report",
+      "goal": "distinguish operating, investing and financing cash movements",
+      "acceptance": [
+        "Classify cash-equivalent line movements using approved mapping and exclude noncash transactions",
+        "Eliminate internal cash-equivalent principal transfers and classify fees explicitly",
+        "Reconcile opening cash plus net movement to closing cash and flag missing classifications",
+        "Unclassified movement makes the report provisional and blocks finalization; golden fixture shows financing 100000 and operating 2000"
+      ],
+      "tables": "cash_accounts,journal_lines,accounts,report_snapshots",
+      "api": "GET reports/cash-flow",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 84,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/84",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-060",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-016",
+        "US-021",
+        "US-048",
+        "US-051",
+        "US-053",
+        "US-055",
+        "US-056",
+        "US-057",
+        "US-059",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-17"
+      ],
+      "ui": [
+        "UI-42"
+      ],
+      "guards": [
+        "DB-G04",
+        "DB-G10",
+        "DB-G13"
+      ],
+      "tests": [
+        "T-34",
+        "T-35",
+        "T-42",
+        "S-10"
+      ],
+      "persona": "finance manager",
+      "title": "Implement month/period close checklist and controlled reopen",
+      "goal": "lock only reconciled books and preserve closing evidence",
+      "acceptance": [
+        "Show unresolved approvals, control tie-outs, bank differences, suspense and classification exceptions",
+        "Require successful close checks and authorized recent-auth action with immutable snapshot",
+        "Enforce lock on all financial posting/allocation/unapply/import paths under races",
+        "Reopen retains prior snapshots, records reason and requires explicit reclose review"
+      ],
+      "tables": "accounting_periods,period_events,report_snapshots,approval_requests",
+      "api": "POST periods/[id]/lock and reopen",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 85,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/85",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-061",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-037",
+        "US-055",
+        "US-056",
+        "US-060",
+        "US-082"
+      ],
+      "fr": [
+        "FR-17"
+      ],
+      "ui": [
+        "UI-43"
+      ],
+      "guards": [
+        "DB-G04",
+        "DB-G09",
+        "DB-G16"
+      ],
+      "tests": [
+        "T-40",
+        "T-41"
+      ],
+      "persona": "accountant",
+      "title": "Implement fiscal-year close, retained earnings and reclose history",
+      "goal": "transfer profit once without destroying performance reports",
+      "acceptance": [
+        "Require prerequisite period/reconciliation/control checks and approved close mappings",
+        "Post classified year-close transfer with exactly one active close run per fiscal year",
+        "Reopen/reclose reverses prior mechanics safely and preserves run/snapshot history",
+        "Historical P&L excludes mechanical closing lines while Balance Sheet never adds transferred profit twice"
+      ],
+      "tables": "year_close_runs,fiscal_years,journal_entries,report_snapshots",
+      "api": "POST fiscal-years/[id]/close and controlled reopen",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 86,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/86",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-062",
+      "epic": "E08",
+      "milestone": 4,
+      "depends_on": [
+        "US-021",
+        "US-055",
+        "US-056",
+        "US-057",
+        "US-059",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16"
+      ],
+      "ui": [
+        "UI-06"
+      ],
+      "guards": [
+        "DB-G18"
+      ],
+      "tests": [
+        "T-47",
+        "S-03",
+        "S-15"
+      ],
+      "persona": "company owner",
+      "title": "Build ledger-driven finance dashboard with safe drilldowns",
+      "goal": "review revenue, profit, liquidity and dues in one coherent view",
+      "acceptance": [
+        "Show earned revenue, expenses, net profit, cash/bank, AR/AP and overdue items with date context",
+        "Charts and KPI totals use shared report queries rather than separate transaction arithmetic",
+        "Differentiate cash movement from accrual performance and label provisional/empty states",
+        "Capability-restricted roles do not receive hidden profit/bank data in page payload or cache"
+      ],
+      "tables": "report queries,report_snapshots",
+      "api": "Dashboard summary backed by report service",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 87,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/87",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-063",
+      "epic": "E09",
+      "milestone": 2,
+      "depends_on": [
+        "US-009",
+        "US-017"
+      ],
+      "fr": [
+        "FR-15"
+      ],
+      "ui": [
+        "UI-49"
+      ],
+      "guards": [
+        "DB-G10",
+        "DB-G17"
+      ],
+      "tests": [
+        "T-36",
+        "T-37",
+        "S-13"
+      ],
+      "persona": "company owner",
+      "title": "Configure approval policies and explicit sole-operator exceptions",
+      "goal": "enforce the right maker-checker controls per document",
+      "acceptance": [
+        "Configure versioned policy, thresholds, approver capability and submission requirements",
+        "Prevent unauthorized weakening of policy or self-granting approval roles",
+        "Sole-operator exception requires explicit configuration and audit rather than silent bypass",
+        "Snapshot the applicable policy when a document is submitted"
+      ],
+      "tables": "approval_policies,roles,role_permissions,audit_events",
+      "api": "Approval-policy configuration commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 40,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/40",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-064",
+      "epic": "E09",
+      "milestone": 2,
+      "depends_on": [
+        "US-017",
+        "US-025",
+        "US-063"
+      ],
+      "fr": [
+        "FR-15"
+      ],
+      "ui": [
+        "UI-30"
+      ],
+      "guards": [
+        "DB-G10"
+      ],
+      "tests": [
+        "T-36",
+        "T-37",
+        "S-05"
+      ],
+      "persona": "finance manager",
+      "title": "Implement version-bound submit, approve, reject and posting checks",
+      "goal": "approve exactly the financial effect that will be posted",
+      "acceptance": [
+        "Submission stores source version, material digest, allocation targets and policy snapshot",
+        "Separate submit, approve and post permissions and reject maker self-approval unless explicit policy permits",
+        "Any material edit invalidates approval and requires resubmission",
+        "Posting rechecks current authorization, approved version/digest and live allocation capacity atomically"
+      ],
+      "tables": "approval_requests,approval_decisions,approval_policies,business_documents",
+      "api": "Document submit and approval-requests/[id]/decision",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 41,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/41",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-065",
+      "epic": "E09",
+      "milestone": 3,
+      "depends_on": [
+        "US-008",
+        "US-021",
+        "US-064",
+        "US-082"
+      ],
+      "fr": [
+        "FR-15"
+      ],
+      "ui": [
+        "UI-30"
+      ],
+      "guards": [
+        "DB-G10"
+      ],
+      "tests": [
+        "T-36",
+        "T-37",
+        "S-03"
+      ],
+      "persona": "approver",
+      "title": "Build approval inbox and evidence-based review workspace",
+      "goal": "review pending financial changes without editing their facts",
+      "acceptance": [
+        "List only reviewable requests with type, maker, amount, age and policy",
+        "Show source lines, attachments, posting preview, previous decisions and changed-version warning",
+        "Approve/reject requires reason where policy demands and protects against stale review",
+        "Reviewer cannot silently modify submitted amounts or gain posting permission"
+      ],
+      "tables": "approval_requests,approval_decisions,business_documents",
+      "api": "Approval inbox/read/decision UI",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 68,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/68",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-066",
+      "epic": "E09",
+      "milestone": 3,
+      "depends_on": [
+        "US-011",
+        "US-020",
+        "US-021",
+        "US-082"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [
+        "UI-45"
+      ],
+      "guards": [
+        "DB-G15",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-22",
+        "S-01",
+        "S-03"
+      ],
+      "persona": "auditor",
+      "title": "Build scoped audit search and readable change history",
+      "goal": "trace financial decisions without exposing private secrets",
+      "acceptance": [
+        "Filter actor/date/entity/action with stable pagination and source links",
+        "Show immutable creation, submission, approval, posting, correction and close events",
+        "Redact forbidden fields and respect module/tenant capabilities in search and detail",
+        "Read-only auditors cannot mutate records through hidden controls or direct calls"
+      ],
+      "tables": "audit_events,business_documents",
+      "api": "Audit event search and entity timeline reads",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 69,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/69",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-067",
+      "epic": "E09",
+      "milestone": 3,
+      "depends_on": [
+        "US-011",
+        "US-017",
+        "US-021",
+        "US-068",
+        "US-082"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [
+        "UI-44"
+      ],
+      "guards": [
+        "DB-G03",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-49",
+        "S-01",
+        "S-03",
+        "S-14"
+      ],
+      "persona": "accountant",
+      "title": "Build private evidence library and immutable document linking",
+      "goal": "find supporting receipts and bank slips without public storage exposure",
+      "acceptance": [
+        "List only permitted attachments with source/category/upload status and safe metadata",
+        "Link validated evidence to drafts and preserve posted-evidence history on correction",
+        "Download requires current organization and source-module permission with short-lived URLs",
+        "No public bucket, guessed-object access or silent replacement of an issued snapshot"
+      ],
+      "tables": "attachments,attachment_links,business_documents",
+      "api": "Attachment list/link/download actions",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 70,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/70",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-068",
+      "epic": "E09",
+      "milestone": 1,
+      "depends_on": [
+        "US-007",
+        "US-011"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [
+        "UI-44"
+      ],
+      "guards": [
+        "DB-G18"
+      ],
+      "tests": [
+        "S-01",
+        "S-03",
+        "S-14",
+        "S-16"
+      ],
+      "persona": "security engineer",
+      "title": "Implement private upload, quarantine and authorized downloads",
+      "goal": "keep financial evidence isolated and safe throughout its lifecycle",
+      "acceptance": [
+        "Create upload intents with generated company-scoped object keys, bounded size/type and expiring permission",
+        "Verify actual content, scan/quarantine policy and completion ownership before linking",
+        "Use current authorization for downloads and document the bounded lifetime of previously issued signed links",
+        "Reject path traversal, forged MIME, unsafe filename and cross-tenant worker/object access"
+      ],
+      "tables": "attachments,attachment_links",
+      "api": "Attachment upload-intent/complete/download and storage policies",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 27,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/27",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-069",
+      "epic": "E10",
+      "milestone": 2,
+      "depends_on": [
+        "US-011",
+        "US-020"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G15",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-43",
+        "S-18",
+        "S-19"
+      ],
+      "persona": "operations engineer",
+      "title": "Implement leased outbox workers and idempotent retry delivery",
+      "goal": "recover email/export failures without reposting financial events",
+      "acceptance": [
+        "Claim jobs with bounded leases, retry/backoff and dead-letter visibility",
+        "Use stable event IDs and provider idempotency where available for at-least-once work",
+        "Worker crash or renderer failure never reverses/reposts the committed journal",
+        "Restrict worker data access to the event organization and record safe failure metadata"
+      ],
+      "tables": "outbox_events,notification_deliveries",
+      "api": "Worker claim/ack/fail internal contracts",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 45,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/45",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-070",
+      "epic": "E10",
+      "milestone": 3,
+      "depends_on": [
+        "US-011",
+        "US-021",
+        "US-068",
+        "US-069",
+        "US-082"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [
+        "UI-46"
+      ],
+      "guards": [
+        "DB-G14",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-44",
+        "S-14",
+        "S-16",
+        "S-19"
+      ],
+      "persona": "finance user",
+      "title": "Implement scoped import/export job orchestration",
+      "goal": "track long-running work without leaking financial files",
+      "acceptance": [
+        "Persist requested org/user/filter/cutoff and immutable job parameters with safe status transitions",
+        "Prevent access to another user's/company's job and recheck authorization at download",
+        "Make retries idempotent, store bounded-lifetime output privately and clean failed temporary objects",
+        "Expose progress, cancellation where safe and actionable row/render errors"
+      ],
+      "tables": "import_jobs,export_jobs,attachments,report_snapshots",
+      "api": "Import/export job create/status/download",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 71,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/71",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-071",
+      "epic": "E10",
+      "milestone": 5,
+      "depends_on": [
+        "US-010",
+        "US-021",
+        "US-031",
+        "US-068",
+        "US-069",
+        "US-082"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-18"
+      ],
+      "ui": [
+        "UI-14"
+      ],
+      "guards": [
+        "DB-G03",
+        "DB-G15",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-43",
+        "T-49",
+        "S-14"
+      ],
+      "persona": "billing user",
+      "title": "Generate Unicode invoice PDFs and deliver versioned emails",
+      "goal": "send professional documents without changing accounting status",
+      "acceptance": [
+        "Render issued customer/tax/line snapshots with BDT and Bangla/English Unicode text",
+        "Record immutable PDF version and recipient/delivery result separately from settlement/posting",
+        "Queue email with retry and prevent duplicate sends from repeated request handling",
+        "Delivery failure preserves the journal and allows authorized resend without reissuing revenue"
+      ],
+      "tables": "attachments,notification_deliveries,outbox_events,trade_documents",
+      "api": "POST documents/[id]/send and PDF retrieval",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 88,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/88",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-072",
+      "epic": "E10",
+      "milestone": 5,
+      "depends_on": [
+        "US-021",
+        "US-054",
+        "US-068",
+        "US-070",
+        "US-082"
+      ],
+      "fr": [
+        "FR-16",
+        "FR-18"
+      ],
+      "ui": [
+        "UI-46"
+      ],
+      "guards": [
+        "DB-G18"
+      ],
+      "tests": [
+        "T-44",
+        "S-14",
+        "S-16"
+      ],
+      "persona": "accountant",
+      "title": "Export filtered reports and statements to safe PDF/CSV/XLSX",
+      "goal": "share numbers that match the reviewed report snapshot",
+      "acceptance": [
+        "Generate output from the same permitted report/cutoff/filter context as the screen",
+        "Include company, period, currency, generation time and provisional labels",
+        "Escape spreadsheet formulas and preserve decimal/Unicode formatting",
+        "Recheck permission before issuing download and document short signed-link lifetime"
+      ],
+      "tables": "export_jobs,report_snapshots,attachments",
+      "api": "POST exports and GET exports/[id]/download",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 89,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/89",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-073",
+      "epic": "E10",
+      "milestone": 5,
+      "depends_on": [
+        "US-021",
+        "US-031",
+        "US-034",
+        "US-065",
+        "US-069",
+        "US-082"
+      ],
+      "fr": [
+        "FR-18"
+      ],
+      "ui": [
+        "UI-52"
+      ],
+      "guards": [
+        "DB-G15",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-43",
+        "S-03",
+        "S-19"
+      ],
+      "persona": "finance user",
+      "title": "Build notifications and preference-aware financial reminders",
+      "goal": "notice approvals, overdue invoices and due bills without duplicate noise",
+      "acceptance": [
+        "Provide scoped in-app unread/read notifications and permitted source links",
+        "Configure supported email preferences and deduplicate scheduled reminder events",
+        "Do not include unauthorized bank/profit data in previews, email or logs",
+        "Retry delivery only and never let a notification create an accounting entry"
+      ],
+      "tables": "notification_deliveries,outbox_events",
+      "api": "Notification list/preferences/read and reminder worker",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 90,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/90",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-074",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-009",
+        "US-018",
+        "US-021",
+        "US-082"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [
+        "UI-50",
+        "UI-53"
+      ],
+      "guards": [
+        "DB-G14",
+        "DB-G17"
+      ],
+      "tests": [
+        "T-46",
+        "S-13"
+      ],
+      "persona": "company owner",
+      "title": "Enforce subscription plans, seats and safe read-only states",
+      "goal": "use commercial plans without risking accounting integrity",
+      "acceptance": [
+        "Define approved plan entitlements and validate seats/features on the server",
+        "Concurrency cannot bypass seat limits and expiry cannot interrupt a financial transaction halfway",
+        "Expired/downgraded companies retain records and policy-based read/export access",
+        "Tenant isolation, corrections, balanced books and period protection are not premium-only safeguards"
+      ],
+      "tables": "plans,subscriptions,organization_members",
+      "api": "Subscription/entitlement reads and plan checks",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 91,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/91",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-075",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-021",
+        "US-069",
+        "US-074",
+        "US-082"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [
+        "UI-50"
+      ],
+      "guards": [
+        "DB-G14",
+        "DB-G15"
+      ],
+      "tests": [
+        "T-45",
+        "T-46",
+        "S-18"
+      ],
+      "persona": "SaaS operator",
+      "title": "Integrate verified billing checkout and idempotent webhooks",
+      "goal": "activate paid access only from trustworthy provider events",
+      "acceptance": [
+        "Implement the explicitly selected provider adapter and sandbox checkout without inventing live credentials",
+        "Verify raw-body signatures, event identity, tenant binding and out-of-order lifecycle changes",
+        "Duplicate webhooks produce one entitlement result and failed processing safely retries",
+        "Platform subscription events do not post into customer-company GL"
+      ],
+      "tables": "plans,subscriptions,billing_events",
+      "api": "Checkout and /api/v1/webhooks/billing/[provider]",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": true,
+      "issue": {
+        "number": 92,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/92",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-076",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-012",
+        "US-021",
+        "US-074",
+        "US-082"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [
+        "UI-01"
+      ],
+      "guards": [],
+      "tests": [
+        "T-46"
+      ],
+      "persona": "prospective customer",
+      "title": "Build truthful landing, pricing and trial entry pages",
+      "goal": "understand the product and choose an approved plan",
+      "acceptance": [
+        "Show actual implemented scope, plan differences and authorized trial/contact path",
+        "Use only owner-approved prices, client claims, testimonials and commercial terms",
+        "Label demo financial values and clearly distinguish bookkeeping from bank/payment operation",
+        "Link security, export and privacy information and keep accessibility/responsive behavior usable"
+      ],
+      "tables": "plans",
+      "api": "Public / and /pricing with approved content",
+      "phase": "v1",
+      "priority": "P1",
+      "human_review": true,
+      "issue": {
+        "number": 93,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/93",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-077",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-006",
+        "US-011",
+        "US-020",
+        "US-021",
+        "US-074",
+        "US-082"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [
+        "UI-54"
+      ],
+      "guards": [
+        "DB-G17",
+        "DB-G18"
+      ],
+      "tests": [
+        "S-20",
+        "S-03"
+      ],
+      "persona": "support operator",
+      "title": "Build consented and time-bounded support operations console",
+      "goal": "diagnose SaaS issues without silent access to client books",
+      "acceptance": [
+        "Default support view contains operational metadata only, not tenant ledger/evidence",
+        "Exceptional access requires explicit company consent, approved purpose, duration and recent authentication",
+        "Log each privileged access and revoke on expiry or owner withdrawal",
+        "Test support access without consent, guessed org IDs and excess module scope"
+      ],
+      "tables": "audit_events,subscriptions,organization_members",
+      "api": "Restricted platform-operations and support-grant commands",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 94,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/94",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-078",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-018",
+        "US-021",
+        "US-069",
+        "US-074"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G14",
+        "DB-G15",
+        "DB-G18"
+      ],
+      "tests": [
+        "S-16",
+        "S-17",
+        "S-18",
+        "S-19"
+      ],
+      "persona": "operations engineer",
+      "title": "Add privacy-safe observability, alerts and abuse limits",
+      "goal": "detect failures without exporting customers' financial data into logs",
+      "acceptance": [
+        "Emit request IDs, safe command error codes, queue age, backup age and authorization failure metrics",
+        "Redact tokens, passwords, full invoices and unrelated company identifiers from telemetry",
+        "Configure actionable posting/worker/billing alert thresholds and rate limits",
+        "Run controlled failures to demonstrate incident signals and preserve financial transaction invariants"
+      ],
+      "tables": "audit_events,outbox_events,billing_events",
+      "api": "Operational instrumentation and rate-limit middleware",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 95,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/95",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-079",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-003",
+        "US-021",
+        "US-068",
+        "US-070"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G18"
+      ],
+      "tests": [
+        "S-14",
+        "S-19"
+      ],
+      "persona": "operations owner",
+      "title": "Rehearse database and object-storage recovery separately",
+      "goal": "restore complete books with their supporting evidence",
+      "acceptance": [
+        "Select funded backup/PITR, object version/backup and retention policies explicitly",
+        "Restore into a clean isolated environment and reconcile journals, open items, artifacts and access controls",
+        "Measure achieved RPO/RTO against proposed targets instead of claiming provider defaults guarantee them",
+        "Record recovery commands, incident ownership, missing-object checks and evidence"
+      ],
+      "tables": "all financial tables and private object storage",
+      "api": "Backup/restore runbook and isolated recovery tests",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 96,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/96",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-080",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-002",
+        "US-021",
+        "US-075",
+        "US-078",
+        "US-079"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G14",
+        "DB-G15"
+      ],
+      "tests": [
+        "S-17",
+        "S-18",
+        "S-19"
+      ],
+      "persona": "release engineer",
+      "title": "Document and verify environment deployment and safe rollback",
+      "goal": "release changes without undoing customer accounting history",
+      "acceptance": [
+        "Separate development, staging and production secrets/data and pin deployment dependencies",
+        "Run migration compatibility checks and keep queued-event consumers compatible with released schemas",
+        "Document application rollback that does not restore old DB backups over committed books",
+        "Verify staging smoke tests, health checks and operator escalation before paid release"
+      ],
+      "tables": "migrations,outbox_events,billing_events",
+      "api": "Deployment/rollback pipeline and runbook; production requires explicit authorization",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 97,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/97",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-081",
+      "epic": "E11",
+      "milestone": 5,
+      "depends_on": [
+        "US-021",
+        "US-072",
+        "US-074",
+        "US-079"
+      ],
+      "fr": [
+        "FR-18",
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G18"
+      ],
+      "tests": [
+        "T-46",
+        "S-14"
+      ],
+      "persona": "product owner and privacy reviewer",
+      "title": "Approve retention, export and account-termination policy",
+      "goal": "honor data access and retention obligations without accidental destruction",
+      "acceptance": [
+        "Record jurisdiction/business-specific retention, residency and deletion decisions with reviewer evidence",
+        "Specify export ownership, billing expiry versus deletion, backups and signed-link residual access",
+        "Never invent a statutory retention period or auto-delete books when a subscription ends",
+        "Rehearse the approved non-destructive termination/export path in isolated fixtures"
+      ],
+      "tables": "subscriptions,export_jobs,attachments,audit_events",
+      "api": "Reviewed retention/termination policy and permitted account lifecycle",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": true,
+      "issue": {
+        "number": 98,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/98",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-082",
+      "epic": "E12",
+      "milestone": 1,
+      "depends_on": [
+        "US-002",
+        "US-006",
+        "US-008"
+      ],
+      "fr": [
+        "FR-01"
+      ],
+      "ui": [
+        "UI-53"
+      ],
+      "guards": [],
+      "tests": [
+        "S-05",
+        "S-15"
+      ],
+      "persona": "company user",
+      "title": "Build accessible application shell and reusable finance UI components",
+      "goal": "navigate consistently across company finance workflows",
+      "acceptance": [
+        "Implement org-scoped navigation, breadcrumbs, session state and responsive layout",
+        "Provide MoneyInput, account/party pickers, line grid, posting preview, audit drawer and confirmation patterns",
+        "Use keyboard navigation, visible focus, labeled errors and Unicode-safe formatting",
+        "Components do not compute authoritative balances or expose hidden unauthorized data"
+      ],
+      "tables": "UI only; consume scoped contracts",
+      "api": "Shared layout and component library; no financial posting implementation",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 28,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/28",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-083",
+      "epic": "E12",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-027",
+        "US-028",
+        "US-030",
+        "US-082"
+      ],
+      "fr": [
+        "FR-05",
+        "FR-06"
+      ],
+      "ui": [
+        "UI-07",
+        "UI-09",
+        "UI-12"
+      ],
+      "guards": [],
+      "tests": [
+        "S-01",
+        "S-15"
+      ],
+      "persona": "finance user",
+      "title": "Add stable list search, saved filters and keyboard efficiency",
+      "goal": "find daily records quickly without unsafe client-side data dumps",
+      "acceptance": [
+        "Persist permitted filters in URL/user scope and use stable server pagination",
+        "Search only allowed customer/vendor/invoice fields with bounded query size",
+        "Keyboard shortcuts respect focused inputs and unsaved-change prompts",
+        "Changing company invalidates saved selections that reference another tenant"
+      ],
+      "tables": "contacts,business_documents",
+      "api": "Scoped list/search queries and filter preferences",
+      "phase": "v1",
+      "priority": "P1",
+      "human_review": false,
+      "issue": {
+        "number": 72,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/72",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-084",
+      "epic": "E12",
+      "milestone": 3,
+      "depends_on": [
+        "US-021",
+        "US-030",
+        "US-036",
+        "US-082"
+      ],
+      "fr": [
+        "FR-06",
+        "FR-10",
+        "FR-19"
+      ],
+      "ui": [
+        "UI-53"
+      ],
+      "guards": [],
+      "tests": [
+        "T-46",
+        "S-05"
+      ],
+      "persona": "finance user",
+      "title": "Finish accessible loading, conflict, empty, offline and read-only states",
+      "goal": "understand failure states without accidentally resubmitting money",
+      "acceptance": [
+        "Implement loading/empty/forbidden/expired-session/locked-period/conflict states with recovery actions",
+        "Disable financial submission offline and never queue offline posting as if accepted",
+        "Read-only subscription state permits approved access but no hidden write path",
+        "Verify keyboard focus, error summaries, narrow-screen tables and retry-with-idempotency UX"
+      ],
+      "tables": "UI state only; existing source/job contracts",
+      "api": "Shared error and read-only boundaries",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 73,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/73",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-085",
+      "epic": "E12",
+      "milestone": 6,
+      "depends_on": [
+        "US-001",
+        "US-002",
+        "US-003",
+        "US-004",
+        "US-005",
+        "US-006",
+        "US-007",
+        "US-008",
+        "US-009",
+        "US-010",
+        "US-011",
+        "US-012",
+        "US-013",
+        "US-014",
+        "US-015",
+        "US-016",
+        "US-017",
+        "US-018",
+        "US-019",
+        "US-020",
+        "US-021",
+        "US-022",
+        "US-023",
+        "US-024",
+        "US-025",
+        "US-026",
+        "US-027",
+        "US-028",
+        "US-029",
+        "US-030",
+        "US-031",
+        "US-032",
+        "US-033",
+        "US-034",
+        "US-035",
+        "US-036",
+        "US-037",
+        "US-038",
+        "US-039",
+        "US-040",
+        "US-041",
+        "US-042",
+        "US-043",
+        "US-044",
+        "US-045",
+        "US-046",
+        "US-047",
+        "US-048",
+        "US-049",
+        "US-050",
+        "US-051",
+        "US-052",
+        "US-053",
+        "US-054",
+        "US-055",
+        "US-056",
+        "US-057",
+        "US-058",
+        "US-059",
+        "US-060",
+        "US-061",
+        "US-062",
+        "US-063",
+        "US-064",
+        "US-065",
+        "US-066",
+        "US-067",
+        "US-068",
+        "US-069",
+        "US-070",
+        "US-071",
+        "US-072",
+        "US-073",
+        "US-074",
+        "US-075",
+        "US-076",
+        "US-077",
+        "US-078",
+        "US-079",
+        "US-080",
+        "US-081",
+        "US-082",
+        "US-083",
+        "US-084"
+      ],
+      "fr": [
+        "FR-01",
+        "FR-03",
+        "FR-06",
+        "FR-07",
+        "FR-08",
+        "FR-09",
+        "FR-10",
+        "FR-11",
+        "FR-12",
+        "FR-13",
+        "FR-14",
+        "FR-15",
+        "FR-16",
+        "FR-17",
+        "FR-18",
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [
+        "DB-G01",
+        "DB-G02",
+        "DB-G03",
+        "DB-G04",
+        "DB-G05",
+        "DB-G06",
+        "DB-G07",
+        "DB-G08",
+        "DB-G09",
+        "DB-G10",
+        "DB-G11",
+        "DB-G12",
+        "DB-G13",
+        "DB-G14",
+        "DB-G15",
+        "DB-G16",
+        "DB-G17",
+        "DB-G18"
+      ],
+      "tests": [
+        "T-01",
+        "T-02",
+        "T-03",
+        "T-04",
+        "T-05",
+        "T-06",
+        "T-07",
+        "T-08",
+        "T-09",
+        "T-10",
+        "T-11",
+        "T-12",
+        "T-13",
+        "T-14",
+        "T-15",
+        "T-16",
+        "T-17",
+        "T-18",
+        "T-19",
+        "T-20",
+        "T-21",
+        "T-22",
+        "T-23",
+        "T-24",
+        "T-25",
+        "T-26",
+        "T-27",
+        "T-28",
+        "T-29",
+        "T-30",
+        "T-31",
+        "T-32",
+        "T-33",
+        "T-34",
+        "T-35",
+        "T-36",
+        "T-37",
+        "T-38",
+        "T-39",
+        "T-40",
+        "T-41",
+        "T-42",
+        "T-43",
+        "T-44",
+        "T-45",
+        "T-46",
+        "T-47",
+        "T-48",
+        "T-49",
+        "T-50",
+        "T-51",
+        "T-52",
+        "S-01",
+        "S-02",
+        "S-03",
+        "S-04",
+        "S-05",
+        "S-06",
+        "S-07",
+        "S-08",
+        "S-09",
+        "S-10",
+        "S-11",
+        "S-12",
+        "S-13",
+        "S-14",
+        "S-15",
+        "S-16",
+        "S-17",
+        "S-18",
+        "S-19",
+        "S-20"
+      ],
+      "persona": "QA and security reviewer",
+      "title": "Execute all 52 business and 20 security/concurrency acceptance cases",
+      "goal": "prove the complete application meets its financial and isolation contract",
+      "acceptance": [
+        "Map all T-01..T-52 and S-01..S-20 to executable DB/service/browser tests with evidence",
+        "Use anonymous, ordinary member, role-template and worker identities plus genuine multi-connection race tests",
+        "Run golden books, cutover, period/year close, billing replay, signed-download and crash-recovery scenarios",
+        "Resolve critical/high money/access/recovery defects and report skips or unavailable external tests honestly"
+      ],
+      "tables": "all implemented modules",
+      "api": "Full integration/E2E/security test suite and coverage report",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 99,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/99",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-086",
+      "epic": "E12",
+      "milestone": 6,
+      "depends_on": [
+        "US-021",
+        "US-078",
+        "US-085"
+      ],
+      "fr": [
+        "FR-16",
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [],
+      "tests": [
+        "T-47",
+        "S-15"
+      ],
+      "persona": "engineering reviewer",
+      "title": "Benchmark the declared pilot load and fix measured bottlenecks",
+      "goal": "know whether the application supports the proposed operating envelope",
+      "acceptance": [
+        "Declare test hardware/database/network, concurrency and dataset before benchmarking",
+        "Exercise 100 companies, up to 20 members/company and 100k ledger lines/company without cross-tenant leaks",
+        "Measure p95 reads under 500ms, posting up to 100 lines under 1s and typical reports under 3s as targets, not guarantees",
+        "Attach reproducible load scripts, query plans and measured outcomes; optimize without weakening accounting guards"
+      ],
+      "tables": "journal_entries,journal_lines,open_items,query indexes",
+      "api": "Performance test harness and reviewed query optimization",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": false,
+      "issue": {
+        "number": 100,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/100",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-087",
+      "epic": "E12",
+      "milestone": 6,
+      "depends_on": [
+        "US-021",
+        "US-081",
+        "US-082",
+        "US-085",
+        "US-086"
+      ],
+      "fr": [
+        "FR-03",
+        "FR-16",
+        "FR-17",
+        "FR-19"
+      ],
+      "ui": [
+        "UI-42",
+        "UI-43"
+      ],
+      "guards": [],
+      "tests": [
+        "T-38",
+        "T-39",
+        "T-40",
+        "T-41",
+        "T-47"
+      ],
+      "persona": "independent accountant and pilot owner",
+      "title": "Run three restricted pilots and record independent sign-off",
+      "goal": "validate real closing workflows before general release",
+      "acceptance": [
+        "Obtain permission and safe data policy for at least three pilot organizations",
+        "Each pilot completes a reconciled period with bank/control/report tie-outs and correction/reopen exercise",
+        "An independent accounting reviewer and security reviewer record findings and approval, not AI-generated sign-off",
+        "Track usability and critical defects to resolution with actual evidence"
+      ],
+      "tables": "pilot organizations and review evidence",
+      "api": "Restricted pilot operations; human review gate",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": true,
+      "issue": {
+        "number": 101,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/101",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-088",
+      "epic": "E12",
+      "milestone": 6,
+      "depends_on": [
+        "US-021",
+        "US-080",
+        "US-081",
+        "US-087"
+      ],
+      "fr": [
+        "FR-19"
+      ],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "product owner",
+      "title": "Make the documented release decision and operator handoff",
+      "goal": "launch only after verified accounting and operational gates pass",
+      "acceptance": [
+        "Publish actual supported scope, limitations, training and support escalation documentation",
+        "Confirm reviewer sign-offs, restore evidence, billing sandbox verification and unresolved-defect register",
+        "Record release artifact/commit, deployment approval and rollback/operator ownership",
+        "No production launch or payment execution occurs merely because this planning issue exists"
+      ],
+      "tables": "release metadata only",
+      "api": "Release checklist and explicitly authorized deployment handoff",
+      "phase": "v1",
+      "priority": "P0",
+      "human_review": true,
+      "issue": {
+        "number": 102,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/102",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-089",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "product owner",
+      "title": "Discover recurring transaction drafts and scheduling policy",
+      "goal": "reduce repeated data entry without hidden automatic posting",
+      "acceptance": [
+        "Write a separate PRD covering recurrence dates, timezone, retries, duplicate prevention and stop/resume",
+        "Default generated transactions to reviewable drafts with current permission/period checks",
+        "Specify future schema, UI and acceptance-test impact",
+        "No production recurring/autopost behavior ships under this discovery issue"
+      ],
+      "tables": "future schema proposal",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 103,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/103",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-090",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "finance manager",
+      "title": "Discover budgets, project profitability and cost allocation",
+      "goal": "plan spend and assess projects using reconciled accounting data",
+      "acceptance": [
+        "Define budget versions, project/cost-center hierarchy and actual-versus-budget formula",
+        "Resolve allocation, refunds, shared overhead and period comparison policy with accounting reviewer",
+        "Propose drilldowns, permissions and schema without inventing current profitability data",
+        "Create separately approved implementation stories after discovery"
+      ],
+      "tables": "future project/budget model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 104,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/104",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-091",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "accountant",
+      "title": "Discover receipt AI extraction and draft categorization",
+      "goal": "save entry effort while retaining human control of books",
+      "acceptance": [
+        "Specify extraction confidence, evidence citations, privacy/provider boundaries and editable drafts",
+        "AI output cannot autonomously post, pay, approve or override accounting guards",
+        "Define evaluation set including Bangla/English receipts, tax ambiguity and duplicate scans",
+        "Propose model adapter, costs, consent and failure handling with human approval gate"
+      ],
+      "tables": "future AI draft/evidence model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 105,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/105",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-092",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "accountant",
+      "title": "Discover multi-currency and realized/unrealized FX accounting",
+      "goal": "expand beyond BDT without silently corrupting historic balances",
+      "acceptance": [
+        "Define functional/document/settlement currencies, rate sources and immutable rate snapshots",
+        "Resolve realized/unrealized gains, rounding, credit/refund and closing rules with reviewer",
+        "Design migration and report reconciliation tests preserving V1 BDT history",
+        "Do not enable foreign-currency posting until the separate PRD is approved"
+      ],
+      "tables": "future currency/rate/FX model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 106,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/106",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-093",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "inventory accountant",
+      "title": "Discover inventory quantity, valuation and cost-of-goods integration",
+      "goal": "connect stock movements to accounting under an explicit costing method",
+      "acceptance": [
+        "Choose costing and negative-stock policy with purchase/sale/return/cutover examples",
+        "Specify atomic stock-to-ledger events, units, valuation and race controls",
+        "Document migration from non-stock V1 without retrospectively fabricating stock",
+        "Produce reviewed tests and separately scoped implementation backlog"
+      ],
+      "tables": "future stock/cost-layer model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 107,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/107",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-094",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "payroll administrator",
+      "title": "Discover payroll runs and restricted salary accounting",
+      "goal": "record approved payroll without exposing employee pay",
+      "acceptance": [
+        "Define compensation inputs, salary payable, advances, deductions and payment reconciliation",
+        "Require jurisdiction-specific payroll/tax review rather than invented legal formulas",
+        "Specify sensitive-data roles, approved runs, corrections and payslip privacy",
+        "No payroll or bank execution is enabled during discovery"
+      ],
+      "tables": "future payroll model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 108,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/108",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-095",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "fixed-asset accountant",
+      "title": "Discover asset register and depreciation lifecycle",
+      "goal": "track assets with approved periodic accounting",
+      "acceptance": [
+        "Define asset acquisition, capitalization, depreciation method, useful life, disposal and impairment boundaries",
+        "Specify approved schedules, period lock, reversals and change-of-estimate handling",
+        "Reconcile asset register to existing GL without duplicating already-booked acquisitions",
+        "Deliver separate reviewed schema/UI/tests before implementation"
+      ],
+      "tables": "future fixed-asset model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 109,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/109",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-096",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "tax reviewer",
+      "title": "Discover reviewed Bangladesh VAT, withholding and statutory outputs",
+      "goal": "produce local records only when actual obligations are verified",
+      "acceptance": [
+        "Identify applicable business regime and current authoritative requirements with reviewer citations",
+        "Specify rate/version changes, withholding events, Mushak or other required records and filing boundaries",
+        "Do not equate configurable tax totals with certified statutory compliance",
+        "Create reviewed sample outputs and separate implementation acceptance cases"
+      ],
+      "tables": "future compliance model",
+      "api": "Discovery document only; human tax review required",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": true,
+      "issue": {
+        "number": 110,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/110",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-097",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "accountant",
+      "title": "Discover live bank-feed adapters and reconciliation sync",
+      "goal": "receive trustworthy statement data without duplicate observations",
+      "acceptance": [
+        "Assess approved providers, consent, connection scopes, polling/webhooks and revoked-access behavior",
+        "Specify provider transaction keys, pending/final changes, replay, dedup and reconciliation linkage",
+        "Keep statement ingestion separate from ledger posting and payment execution",
+        "Document sandbox verification, cost and adapter-specific acceptance cases"
+      ],
+      "tables": "future bank-connection model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 111,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/111",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-098",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "finance manager",
+      "title": "Discover authorized payment execution and fraud controls",
+      "goal": "assess money-movement functionality separately from bookkeeping",
+      "acceptance": [
+        "Choose approved provider and legally supported operation before implementation",
+        "Specify explicit user authorization, maker-checker, amount/payee binding, limits and recent authentication",
+        "Design idempotency, provider status reconciliation, failures/refunds and incident response",
+        "No real transfer, credential sharing or autonomous AI payment is authorized by this issue"
+      ],
+      "tables": "future payment-intent/provider model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 112,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/112",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-099",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "sales and purchasing manager",
+      "title": "Discover estimates, customer portal and purchase-order workflows",
+      "goal": "extend commercial collaboration without premature accounting entries",
+      "acceptance": [
+        "Define estimate-to-invoice and PO-to-bill boundaries with explicit non-posting states",
+        "Assess portal identity, permitted document visibility and customer/vendor actions",
+        "Specify change/version approval and optional matching policy without forcing enterprise scope into V1",
+        "Split approved workflows into new implementation stories and testable UI contracts"
+      ],
+      "tables": "future commercial-document model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 113,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/113",
+        "state": "open"
+      }
+    },
+    {
+      "id": "US-100",
+      "epic": "E13",
+      "milestone": 7,
+      "depends_on": [
+        "US-088"
+      ],
+      "fr": [],
+      "ui": [],
+      "guards": [],
+      "tests": [],
+      "persona": "enterprise product owner",
+      "title": "Discover partner access, enterprise SSO and consolidation boundaries",
+      "goal": "assess enterprise requirements without weakening separate company books",
+      "acceptance": [
+        "Separate discovery tracks for accountant partner access, SSO lifecycle and group reporting",
+        "Consolidation track must resolve intercompany elimination, currency and ownership policy with reviewer",
+        "Document cross-organization authorization and migration/security test requirements",
+        "Prioritize tracks and create separate approved PRDs rather than implementing an undefined enterprise bundle"
+      ],
+      "tables": "future enterprise access/group model",
+      "api": "Discovery document only",
+      "phase": "post-v1",
+      "priority": "P2",
+      "human_review": false,
+      "issue": {
+        "number": 114,
+        "url": "https://github.com/wdmahbubur/accounts-management-solution/issues/114",
+        "state": "open"
+      }
+    }
+  ],
+  "topological_order": [
+    "US-001",
+    "US-002",
+    "US-003",
+    "US-004",
+    "US-005",
+    "US-006",
+    "US-007",
+    "US-008",
+    "US-009",
+    "US-010",
+    "US-011",
+    "US-012",
+    "US-068",
+    "US-082",
+    "US-013",
+    "US-014",
+    "US-015",
+    "US-016",
+    "US-017",
+    "US-019",
+    "US-020",
+    "US-022",
+    "US-023",
+    "US-024",
+    "US-025",
+    "US-063",
+    "US-064",
+    "US-018",
+    "US-037",
+    "US-021",
+    "US-069",
+    "US-026",
+    "US-027",
+    "US-028",
+    "US-029",
+    "US-030",
+    "US-031",
+    "US-033",
+    "US-034",
+    "US-038",
+    "US-044",
+    "US-045",
+    "US-032",
+    "US-035",
+    "US-036",
+    "US-039",
+    "US-040",
+    "US-041",
+    "US-042",
+    "US-043",
+    "US-046",
+    "US-047",
+    "US-048",
+    "US-065",
+    "US-066",
+    "US-067",
+    "US-070",
+    "US-083",
+    "US-084",
+    "US-049",
+    "US-050",
+    "US-051",
+    "US-052",
+    "US-053",
+    "US-054",
+    "US-055",
+    "US-056",
+    "US-057",
+    "US-058",
+    "US-059",
+    "US-060",
+    "US-061",
+    "US-062",
+    "US-071",
+    "US-072",
+    "US-073",
+    "US-074",
+    "US-075",
+    "US-076",
+    "US-077",
+    "US-078",
+    "US-079",
+    "US-080",
+    "US-081",
+    "US-085",
+    "US-086",
+    "US-087",
+    "US-088",
+    "US-089",
+    "US-090",
+    "US-091",
+    "US-092",
+    "US-093",
+    "US-094",
+    "US-095",
+    "US-096",
+    "US-097",
+    "US-098",
+    "US-099",
+    "US-100"
+  ],
+  "epics": {
+    "00": "Foundation and implementation contracts",
+    "01": "Tenant isolation, identity and permissions",
+    "02": "Ledger core and posting correctness",
+    "03": "Control subledgers and settlement",
+    "04": "Sales, purchases and daily expenses",
+    "05": "Corrections, refunds and advances",
+    "06": "Banking, journals and ledger foundations",
+    "07": "Migration and bank reconciliation",
+    "08": "Financial statements and period/year close",
+    "09": "Evidence, approval and audit",
+    "10": "Jobs, document delivery and exports",
+    "11": "SaaS billing, security operations and recovery",
+    "12": "Product usability, quality and release gates",
+    "13": "Post-V1 discovery; not approved implementation"
+  },
+  "milestones": {
+    "0": [
+      "M0 — Policy and scope approval",
+      "Approve the product and accounting assumptions. No AI may fabricate professional sign-off."
+    ],
+    "1": [
+      "M1 — Secure foundation",
+      "Reproducible toolchain, migrations, authentication, tenancy, permissions and private evidence primitives."
+    ],
+    "2": [
+      "M2 — Tested accounting engine",
+      "Exact decimal rules, source lifecycle, transactional ledger, approvals, allocations and correction primitives; pass the first real-DB vertical slice."
+    ],
+    "3": [
+      "M3 — Daily finance workflows",
+      "Implement the daily finance screens against proven commands. Cash controls, correction paths and representative end-to-end examples must reconcile."
+    ],
+    "4": [
+      "M4 — Reports, reconciliation and close",
+      "Reconcile imports, statements, historical subledgers, month close and year closing. Complete feature-specific DB guards and tests."
+    ],
+    "5": [
+      "M5 — Commercial operations and recovery",
+      "Approved billing provider sandbox, delivery/export jobs, support controls, observability, restore evidence and commercial/privacy decisions."
+    ],
+    "6": [
+      "M6 — Independent pilot and release gates",
+      "All application tests, measured performance, three authorized restricted pilots, independent review and an explicit release decision."
+    ],
+    "7": [
+      "M7 — Post-V1 discovery only",
+      "Separate PRDs and reviewed acceptance criteria. These stories do not authorize implementation, compliance claims, real payments or scope expansion."
+    ]
+  },
+  "coverage": {
+    "fr": {
+      "FR-01": [
+        "US-001",
+        "US-003",
+        "US-004",
+        "US-006",
+        "US-008",
+        "US-009",
+        "US-010",
+        "US-011",
+        "US-082",
+        "US-085"
+      ],
+      "FR-02": [
+        "US-001",
+        "US-003",
+        "US-007",
+        "US-008",
+        "US-012"
+      ],
+      "FR-03": [
+        "US-001",
+        "US-052",
+        "US-053",
+        "US-085",
+        "US-087"
+      ],
+      "FR-04": [
+        "US-001",
+        "US-014"
+      ],
+      "FR-05": [
+        "US-027",
+        "US-028",
+        "US-029",
+        "US-083"
+      ],
+      "FR-06": [
+        "US-004",
+        "US-013",
+        "US-015",
+        "US-017",
+        "US-018",
+        "US-019",
+        "US-021",
+        "US-030",
+        "US-031",
+        "US-071",
+        "US-083",
+        "US-084",
+        "US-085"
+      ],
+      "FR-07": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-023",
+        "US-024",
+        "US-025",
+        "US-032",
+        "US-085"
+      ],
+      "FR-08": [
+        "US-026",
+        "US-037",
+        "US-038",
+        "US-039",
+        "US-085"
+      ],
+      "FR-09": [
+        "US-013",
+        "US-015",
+        "US-017",
+        "US-018",
+        "US-033",
+        "US-034",
+        "US-040",
+        "US-085"
+      ],
+      "FR-10": [
+        "US-013",
+        "US-015",
+        "US-018",
+        "US-035",
+        "US-036",
+        "US-084",
+        "US-085"
+      ],
+      "FR-11": [
+        "US-022",
+        "US-023",
+        "US-025",
+        "US-041",
+        "US-042",
+        "US-043",
+        "US-085"
+      ],
+      "FR-12": [
+        "US-018",
+        "US-044",
+        "US-045",
+        "US-046",
+        "US-085"
+      ],
+      "FR-13": [
+        "US-049",
+        "US-050",
+        "US-051",
+        "US-085"
+      ],
+      "FR-14": [
+        "US-004",
+        "US-017",
+        "US-018",
+        "US-019",
+        "US-021",
+        "US-022",
+        "US-024",
+        "US-026",
+        "US-037",
+        "US-047",
+        "US-085"
+      ],
+      "FR-15": [
+        "US-025",
+        "US-063",
+        "US-064",
+        "US-065",
+        "US-085"
+      ],
+      "FR-16": [
+        "US-001",
+        "US-021",
+        "US-045",
+        "US-048",
+        "US-054",
+        "US-055",
+        "US-056",
+        "US-057",
+        "US-058",
+        "US-059",
+        "US-062",
+        "US-072",
+        "US-085",
+        "US-086",
+        "US-087"
+      ],
+      "FR-17": [
+        "US-012",
+        "US-016",
+        "US-051",
+        "US-060",
+        "US-061",
+        "US-085",
+        "US-087"
+      ],
+      "FR-18": [
+        "US-011",
+        "US-020",
+        "US-052",
+        "US-066",
+        "US-067",
+        "US-068",
+        "US-069",
+        "US-070",
+        "US-071",
+        "US-072",
+        "US-073",
+        "US-081",
+        "US-085"
+      ],
+      "FR-19": [
+        "US-001",
+        "US-074",
+        "US-075",
+        "US-076",
+        "US-077",
+        "US-078",
+        "US-079",
+        "US-080",
+        "US-081",
+        "US-084",
+        "US-085",
+        "US-086",
+        "US-087",
+        "US-088"
+      ]
+    },
+    "guards": {
+      "DB-G01": [
+        "US-005",
+        "US-018",
+        "US-021",
+        "US-026",
+        "US-031",
+        "US-032",
+        "US-034",
+        "US-035",
+        "US-036",
+        "US-042",
+        "US-046",
+        "US-047",
+        "US-048",
+        "US-053",
+        "US-054",
+        "US-085"
+      ],
+      "DB-G02": [
+        "US-005",
+        "US-017",
+        "US-018",
+        "US-021",
+        "US-031",
+        "US-034",
+        "US-048",
+        "US-054",
+        "US-085"
+      ],
+      "DB-G03": [
+        "US-017",
+        "US-018",
+        "US-021",
+        "US-037",
+        "US-047",
+        "US-048",
+        "US-067",
+        "US-071",
+        "US-085"
+      ],
+      "DB-G04": [
+        "US-012",
+        "US-016",
+        "US-037",
+        "US-046",
+        "US-051",
+        "US-052",
+        "US-053",
+        "US-060",
+        "US-061",
+        "US-085"
+      ],
+      "DB-G05": [
+        "US-003",
+        "US-011",
+        "US-014",
+        "US-018",
+        "US-027",
+        "US-028",
+        "US-029",
+        "US-044",
+        "US-085"
+      ],
+      "DB-G06": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-026",
+        "US-031",
+        "US-032",
+        "US-034",
+        "US-035",
+        "US-038",
+        "US-039",
+        "US-040",
+        "US-041",
+        "US-042",
+        "US-043",
+        "US-047",
+        "US-053",
+        "US-057",
+        "US-058",
+        "US-085"
+      ],
+      "DB-G07": [
+        "US-021",
+        "US-023",
+        "US-025",
+        "US-026",
+        "US-032",
+        "US-035",
+        "US-038",
+        "US-039",
+        "US-040",
+        "US-042",
+        "US-043",
+        "US-053",
+        "US-057",
+        "US-058",
+        "US-085"
+      ],
+      "DB-G08": [
+        "US-021",
+        "US-024",
+        "US-037",
+        "US-057",
+        "US-058",
+        "US-085"
+      ],
+      "DB-G09": [
+        "US-021",
+        "US-037",
+        "US-038",
+        "US-040",
+        "US-047",
+        "US-051",
+        "US-061",
+        "US-085"
+      ],
+      "DB-G10": [
+        "US-017",
+        "US-025",
+        "US-026",
+        "US-030",
+        "US-031",
+        "US-032",
+        "US-033",
+        "US-034",
+        "US-035",
+        "US-036",
+        "US-038",
+        "US-039",
+        "US-040",
+        "US-041",
+        "US-042",
+        "US-043",
+        "US-046",
+        "US-047",
+        "US-053",
+        "US-060",
+        "US-063",
+        "US-064",
+        "US-065",
+        "US-085"
+      ],
+      "DB-G11": [
+        "US-032",
+        "US-035",
+        "US-036",
+        "US-039",
+        "US-041",
+        "US-043",
+        "US-044",
+        "US-045",
+        "US-046",
+        "US-059",
+        "US-085"
+      ],
+      "DB-G12": [
+        "US-013",
+        "US-015",
+        "US-017",
+        "US-029",
+        "US-030",
+        "US-031",
+        "US-033",
+        "US-034",
+        "US-036",
+        "US-038",
+        "US-040",
+        "US-085"
+      ],
+      "DB-G13": [
+        "US-049",
+        "US-050",
+        "US-051",
+        "US-060",
+        "US-085"
+      ],
+      "DB-G14": [
+        "US-004",
+        "US-018",
+        "US-019",
+        "US-052",
+        "US-070",
+        "US-074",
+        "US-075",
+        "US-078",
+        "US-080",
+        "US-085"
+      ],
+      "DB-G15": [
+        "US-018",
+        "US-020",
+        "US-066",
+        "US-069",
+        "US-071",
+        "US-073",
+        "US-075",
+        "US-078",
+        "US-080",
+        "US-085"
+      ],
+      "DB-G16": [
+        "US-055",
+        "US-056",
+        "US-059",
+        "US-061",
+        "US-085"
+      ],
+      "DB-G17": [
+        "US-001",
+        "US-003",
+        "US-004",
+        "US-006",
+        "US-007",
+        "US-008",
+        "US-009",
+        "US-010",
+        "US-011",
+        "US-012",
+        "US-063",
+        "US-074",
+        "US-077",
+        "US-085"
+      ],
+      "DB-G18": [
+        "US-011",
+        "US-027",
+        "US-028",
+        "US-049",
+        "US-052",
+        "US-054",
+        "US-062",
+        "US-066",
+        "US-067",
+        "US-068",
+        "US-069",
+        "US-070",
+        "US-071",
+        "US-072",
+        "US-073",
+        "US-077",
+        "US-078",
+        "US-079",
+        "US-081",
+        "US-085"
+      ]
+    },
+    "tests": {
+      "T-01": [
+        "US-017",
+        "US-021",
+        "US-030",
+        "US-033",
+        "US-085"
+      ],
+      "T-02": [
+        "US-018",
+        "US-021",
+        "US-022",
+        "US-031",
+        "US-085"
+      ],
+      "T-03": [
+        "US-018",
+        "US-019",
+        "US-021",
+        "US-085"
+      ],
+      "T-04": [
+        "US-018",
+        "US-019",
+        "US-085"
+      ],
+      "T-05": [
+        "US-018",
+        "US-019",
+        "US-085"
+      ],
+      "T-06": [
+        "US-021",
+        "US-023",
+        "US-032",
+        "US-085"
+      ],
+      "T-07": [
+        "US-023",
+        "US-025",
+        "US-032",
+        "US-085"
+      ],
+      "T-08": [
+        "US-023",
+        "US-032",
+        "US-085"
+      ],
+      "T-09": [
+        "US-022",
+        "US-041",
+        "US-085"
+      ],
+      "T-10": [
+        "US-042",
+        "US-085"
+      ],
+      "T-11": [
+        "US-040",
+        "US-041",
+        "US-042",
+        "US-043",
+        "US-085"
+      ],
+      "T-12": [
+        "US-038",
+        "US-085"
+      ],
+      "T-13": [
+        "US-039",
+        "US-043",
+        "US-085"
+      ],
+      "T-14": [
+        "US-034",
+        "US-035",
+        "US-040",
+        "US-085"
+      ],
+      "T-15": [
+        "US-034",
+        "US-036",
+        "US-085"
+      ],
+      "T-16": [
+        "US-015",
+        "US-033",
+        "US-034",
+        "US-036",
+        "US-040",
+        "US-085"
+      ],
+      "T-17": [
+        "US-001",
+        "US-013",
+        "US-015",
+        "US-085"
+      ],
+      "T-18": [
+        "US-013",
+        "US-030",
+        "US-033",
+        "US-036",
+        "US-085"
+      ],
+      "T-19": [
+        "US-013",
+        "US-030",
+        "US-085"
+      ],
+      "T-20": [
+        "US-018",
+        "US-047",
+        "US-085"
+      ],
+      "T-21": [
+        "US-018",
+        "US-022",
+        "US-026",
+        "US-047",
+        "US-085"
+      ],
+      "T-22": [
+        "US-018",
+        "US-020",
+        "US-021",
+        "US-037",
+        "US-047",
+        "US-048",
+        "US-066",
+        "US-085"
+      ],
+      "T-23": [
+        "US-021",
+        "US-037",
+        "US-047",
+        "US-048",
+        "US-085"
+      ],
+      "T-24": [
+        "US-021",
+        "US-037",
+        "US-085"
+      ],
+      "T-25": [
+        "US-037",
+        "US-051",
+        "US-085"
+      ],
+      "T-26": [
+        "US-023",
+        "US-024",
+        "US-057",
+        "US-058",
+        "US-085"
+      ],
+      "T-27": [
+        "US-023",
+        "US-026",
+        "US-027",
+        "US-028",
+        "US-057",
+        "US-058",
+        "US-085"
+      ],
+      "T-28": [
+        "US-045",
+        "US-046",
+        "US-059",
+        "US-085"
+      ],
+      "T-29": [
+        "US-049",
+        "US-085"
+      ],
+      "T-30": [
+        "US-049",
+        "US-085"
+      ],
+      "T-31": [
+        "US-049",
+        "US-085"
+      ],
+      "T-32": [
+        "US-050",
+        "US-085"
+      ],
+      "T-33": [
+        "US-051",
+        "US-085"
+      ],
+      "T-34": [
+        "US-012",
+        "US-016",
+        "US-024",
+        "US-037",
+        "US-052",
+        "US-060",
+        "US-085"
+      ],
+      "T-35": [
+        "US-016",
+        "US-051",
+        "US-060",
+        "US-085"
+      ],
+      "T-36": [
+        "US-017",
+        "US-025",
+        "US-026",
+        "US-030",
+        "US-031",
+        "US-032",
+        "US-035",
+        "US-042",
+        "US-063",
+        "US-064",
+        "US-065",
+        "US-085"
+      ],
+      "T-37": [
+        "US-063",
+        "US-064",
+        "US-065",
+        "US-085"
+      ],
+      "T-38": [
+        "US-001",
+        "US-052",
+        "US-053",
+        "US-085",
+        "US-087"
+      ],
+      "T-39": [
+        "US-001",
+        "US-053",
+        "US-055",
+        "US-059",
+        "US-085",
+        "US-087"
+      ],
+      "T-40": [
+        "US-055",
+        "US-056",
+        "US-061",
+        "US-085",
+        "US-087"
+      ],
+      "T-41": [
+        "US-056",
+        "US-061",
+        "US-085",
+        "US-087"
+      ],
+      "T-42": [
+        "US-059",
+        "US-060",
+        "US-085"
+      ],
+      "T-43": [
+        "US-020",
+        "US-069",
+        "US-071",
+        "US-073",
+        "US-085"
+      ],
+      "T-44": [
+        "US-054",
+        "US-058",
+        "US-070",
+        "US-072",
+        "US-085"
+      ],
+      "T-45": [
+        "US-075",
+        "US-085"
+      ],
+      "T-46": [
+        "US-074",
+        "US-075",
+        "US-076",
+        "US-081",
+        "US-084",
+        "US-085"
+      ],
+      "T-47": [
+        "US-005",
+        "US-021",
+        "US-045",
+        "US-048",
+        "US-053",
+        "US-054",
+        "US-055",
+        "US-056",
+        "US-059",
+        "US-062",
+        "US-085",
+        "US-086",
+        "US-087"
+      ],
+      "T-48": [
+        "US-014",
+        "US-029",
+        "US-044",
+        "US-085"
+      ],
+      "T-49": [
+        "US-015",
+        "US-017",
+        "US-027",
+        "US-028",
+        "US-029",
+        "US-030",
+        "US-031",
+        "US-033",
+        "US-038",
+        "US-067",
+        "US-071",
+        "US-085"
+      ],
+      "T-50": [
+        "US-001",
+        "US-012",
+        "US-013",
+        "US-018",
+        "US-085"
+      ],
+      "T-51": [
+        "US-023",
+        "US-024",
+        "US-025",
+        "US-057",
+        "US-085"
+      ],
+      "T-52": [
+        "US-038",
+        "US-040",
+        "US-085"
+      ],
+      "S-01": [
+        "US-003",
+        "US-005",
+        "US-007",
+        "US-008",
+        "US-011",
+        "US-027",
+        "US-028",
+        "US-052",
+        "US-066",
+        "US-067",
+        "US-068",
+        "US-083",
+        "US-085"
+      ],
+      "S-02": [
+        "US-003",
+        "US-005",
+        "US-007",
+        "US-008",
+        "US-011",
+        "US-014",
+        "US-018",
+        "US-022",
+        "US-085"
+      ],
+      "S-03": [
+        "US-009",
+        "US-011",
+        "US-027",
+        "US-028",
+        "US-044",
+        "US-045",
+        "US-048",
+        "US-054",
+        "US-062",
+        "US-065",
+        "US-066",
+        "US-067",
+        "US-068",
+        "US-073",
+        "US-077",
+        "US-085"
+      ],
+      "S-04": [
+        "US-006",
+        "US-009",
+        "US-011",
+        "US-085"
+      ],
+      "S-05": [
+        "US-004",
+        "US-006",
+        "US-009",
+        "US-011",
+        "US-064",
+        "US-082",
+        "US-084",
+        "US-085"
+      ],
+      "S-06": [
+        "US-004",
+        "US-011",
+        "US-018",
+        "US-085"
+      ],
+      "S-07": [
+        "US-006",
+        "US-010",
+        "US-011",
+        "US-085"
+      ],
+      "S-08": [
+        "US-023",
+        "US-024",
+        "US-032",
+        "US-035",
+        "US-039",
+        "US-042",
+        "US-043",
+        "US-085"
+      ],
+      "S-09": [
+        "US-018",
+        "US-019",
+        "US-021",
+        "US-085"
+      ],
+      "S-10": [
+        "US-016",
+        "US-023",
+        "US-024",
+        "US-060",
+        "US-085"
+      ],
+      "S-11": [
+        "US-035",
+        "US-036",
+        "US-039",
+        "US-045",
+        "US-046",
+        "US-085"
+      ],
+      "S-12": [
+        "US-050",
+        "US-051",
+        "US-085"
+      ],
+      "S-13": [
+        "US-007",
+        "US-009",
+        "US-010",
+        "US-063",
+        "US-074",
+        "US-085"
+      ],
+      "S-14": [
+        "US-010",
+        "US-052",
+        "US-067",
+        "US-068",
+        "US-070",
+        "US-071",
+        "US-072",
+        "US-079",
+        "US-081",
+        "US-085"
+      ],
+      "S-15": [
+        "US-008",
+        "US-054",
+        "US-062",
+        "US-082",
+        "US-083",
+        "US-085",
+        "US-086"
+      ],
+      "S-16": [
+        "US-049",
+        "US-052",
+        "US-068",
+        "US-070",
+        "US-072",
+        "US-078",
+        "US-085"
+      ],
+      "S-17": [
+        "US-018",
+        "US-019",
+        "US-023",
+        "US-046",
+        "US-052",
+        "US-078",
+        "US-080",
+        "US-085"
+      ],
+      "S-18": [
+        "US-018",
+        "US-019",
+        "US-020",
+        "US-021",
+        "US-069",
+        "US-075",
+        "US-078",
+        "US-080",
+        "US-085"
+      ],
+      "S-19": [
+        "US-069",
+        "US-070",
+        "US-073",
+        "US-078",
+        "US-079",
+        "US-080",
+        "US-085"
+      ],
+      "S-20": [
+        "US-077",
+        "US-085"
+      ]
+    },
+    "ui": {
+      "UI-01": [
+        "US-076"
+      ],
+      "UI-02": [
+        "US-006",
+        "US-010"
+      ],
+      "UI-03": [
+        "US-008"
+      ],
+      "UI-04": [
+        "US-007"
+      ],
+      "UI-05": [
+        "US-053"
+      ],
+      "UI-06": [
+        "US-062"
+      ],
+      "UI-07": [
+        "US-027",
+        "US-083"
+      ],
+      "UI-08": [
+        "US-027"
+      ],
+      "UI-09": [
+        "US-028",
+        "US-083"
+      ],
+      "UI-10": [
+        "US-028"
+      ],
+      "UI-11": [
+        "US-029"
+      ],
+      "UI-12": [
+        "US-030",
+        "US-083"
+      ],
+      "UI-13": [
+        "US-030"
+      ],
+      "UI-14": [
+        "US-031",
+        "US-071"
+      ],
+      "UI-15": [
+        "US-032"
+      ],
+      "UI-16": [
+        "US-038"
+      ],
+      "UI-17": [
+        "US-039"
+      ],
+      "UI-18": [
+        "US-041",
+        "US-042",
+        "US-043"
+      ],
+      "UI-19": [
+        "US-033"
+      ],
+      "UI-20": [
+        "US-033"
+      ],
+      "UI-21": [
+        "US-034"
+      ],
+      "UI-22": [
+        "US-035"
+      ],
+      "UI-23": [
+        "US-040"
+      ],
+      "UI-24": [
+        "US-036"
+      ],
+      "UI-25": [
+        "US-044"
+      ],
+      "UI-26": [
+        "US-045"
+      ],
+      "UI-27": [
+        "US-046"
+      ],
+      "UI-28": [
+        "US-049"
+      ],
+      "UI-29": [
+        "US-050",
+        "US-051"
+      ],
+      "UI-30": [
+        "US-064",
+        "US-065"
+      ],
+      "UI-31": [
+        "US-014"
+      ],
+      "UI-32": [
+        "US-047"
+      ],
+      "UI-33": [
+        "US-047"
+      ],
+      "UI-34": [
+        "US-048"
+      ],
+      "UI-35": [
+        "US-048"
+      ],
+      "UI-36": [
+        "US-054"
+      ],
+      "UI-37": [
+        "US-055"
+      ],
+      "UI-38": [
+        "US-056"
+      ],
+      "UI-39": [
+        "US-059"
+      ],
+      "UI-40": [
+        "US-057"
+      ],
+      "UI-41": [
+        "US-058"
+      ],
+      "UI-42": [
+        "US-060",
+        "US-087"
+      ],
+      "UI-43": [
+        "US-061",
+        "US-087"
+      ],
+      "UI-44": [
+        "US-067",
+        "US-068"
+      ],
+      "UI-45": [
+        "US-066"
+      ],
+      "UI-46": [
+        "US-052",
+        "US-070",
+        "US-072"
+      ],
+      "UI-47": [
+        "US-012"
+      ],
+      "UI-48": [
+        "US-009",
+        "US-010"
+      ],
+      "UI-49": [
+        "US-014",
+        "US-015",
+        "US-063"
+      ],
+      "UI-50": [
+        "US-074",
+        "US-075"
+      ],
+      "UI-51": [
+        "US-006"
+      ],
+      "UI-52": [
+        "US-073"
+      ],
+      "UI-53": [
+        "US-074",
+        "US-082",
+        "US-084"
+      ],
+      "UI-54": [
+        "US-077"
+      ]
+    }
+  }
+}
