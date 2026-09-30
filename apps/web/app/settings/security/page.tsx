@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/supabase/server.ts";
 import {
   reauthenticateAction,
   signOutAction,
   updatePasswordAction
-} from "../auth/actions.ts";
-import { hasRecentAuthentication } from "../../server/auth/recent-auth.ts";
+} from "../../auth/actions.ts";
+import { hasRecentAuthentication } from "../../../server/auth/recent-auth.ts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

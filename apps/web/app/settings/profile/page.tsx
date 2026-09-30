@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
-import { updateProfileAction } from "../auth/actions.ts";
+import { createClient } from "../../../lib/supabase/server.ts";
+import { updateProfileAction } from "../../auth/actions.ts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
