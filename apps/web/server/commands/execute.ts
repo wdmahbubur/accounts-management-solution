@@ -5,18 +5,18 @@ import {
 } from "@ams/contracts";
 import { hasCapability } from "@ams/permissions";
 
-import { resolveActorContext } from "../auth";
+import { resolveActorContext } from "../auth/index.ts";
 import {
   commandErrorBody,
   CommandError,
   normalizeCommandError
-} from "./errors";
-import { buildRequestContext } from "./request-context";
+} from "./errors.ts";
+import { buildRequestContext } from "./request-context.ts";
 import type {
   CommandExecutionDependencies,
   CommandExecutionResult,
   OrganizationCommandDefinition
-} from "./types";
+} from "./types.ts";
 
 export async function executeOrganizationCommand<Input, Output>(input: {
   definition: OrganizationCommandDefinition<Input, Output>;

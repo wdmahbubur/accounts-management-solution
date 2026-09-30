@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseUuid } from "@ams/contracts";
 
-import type { IdentityVerifier } from "./types";
+import type { IdentityVerifier } from "./types.ts";
 
 export function createSupabaseIdentityVerifier(
   client: Pick<SupabaseClient, "auth">

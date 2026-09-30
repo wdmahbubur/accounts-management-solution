@@ -30,8 +30,8 @@ export interface OrganizationCommandDefinition<Input, Output> {
 }
 
 export interface CommandExecutionDependencies {
-  identityVerifier: import("../auth").IdentityVerifier;
-  membershipResolver: import("../auth").MembershipResolver;
+  identityVerifier: import("../auth/index.ts").IdentityVerifier;
+  membershipResolver: import("../auth/index.ts").MembershipResolver;
   generateRequestId(): RequestId;
   hashRequest(input: {
     operation: string;

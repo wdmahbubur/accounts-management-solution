@@ -1,11 +1,11 @@
 import type { OrganizationId } from "@ams/contracts";
 
-import { CommandError } from "../commands/errors";
+import { CommandError } from "../commands/errors.ts";
 import type {
   ActorContext,
   IdentityVerifier,
   MembershipResolver
-} from "./types";
+} from "./types.ts";
 
 export async function resolveActorContext(
   organizationId: OrganizationId,

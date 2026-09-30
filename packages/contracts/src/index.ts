@@ -1,4 +1,4 @@
-export * from "./command";
+export * from "./command.ts";
 
 export const contractsModule = {
   name: "contracts",

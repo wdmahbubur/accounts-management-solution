@@ -1,7 +1,7 @@
 import { headers as nextHeaders } from "next/headers";
 
-import type { CommandExecutionDependencies, OrganizationCommandDefinition } from "./types";
-import { executeOrganizationCommand } from "./execute";
+import type { CommandExecutionDependencies, OrganizationCommandDefinition } from "./types.ts";
+import { executeOrganizationCommand } from "./execute.ts";
 
 export function createOrganizationServerAction<Input, Output>(input: {
   definition: OrganizationCommandDefinition<Input, Output>;

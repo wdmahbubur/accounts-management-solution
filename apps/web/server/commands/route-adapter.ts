@@ -1,6 +1,6 @@
-import type { OrganizationCommandDefinition } from "./types";
-import type { CommandExecutionDependencies } from "./types";
-import { executeOrganizationCommand } from "./execute";
+import type { OrganizationCommandDefinition } from "./types.ts";
+import type { CommandExecutionDependencies } from "./types.ts";
+import { executeOrganizationCommand } from "./execute.ts";
 
 export function createOrganizationRouteHandler<Input, Output>(input: {
   definition: OrganizationCommandDefinition<Input, Output>;

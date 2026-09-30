@@ -1,3 +1,3 @@
-export * from "./resolve-actor";
-export * from "./supabase-identity";
-export * from "./types";
+export * from "./resolve-actor.ts";
+export * from "./supabase-identity.ts";
+export * from "./types.ts";

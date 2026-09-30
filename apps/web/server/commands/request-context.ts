@@ -3,7 +3,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { OrganizationId, RequestId } from "@ams/contracts";
 import { parseMutationHeaders } from "@ams/contracts";
 
-import type { CommandExecutionDependencies } from "./types";
+import type { CommandExecutionDependencies } from "./types.ts";
 
 function canonicalize(value: unknown): string {
   if (value === null) {
