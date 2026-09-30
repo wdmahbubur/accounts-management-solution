@@ -28,7 +28,7 @@ Reference/static suites remain useful baselines, but they are never counted as a
 - exact decimal-string expected balances.
 
 The PostgreSQL counterpart lives at
-`supabase/tests/helpers/us005_two_company_fixture.sql`. It directly inserts
+`supabase/test-fixtures/us005_two_company_fixture.sql`. It directly inserts
 synthetic fixture observations for testing. Direct test-fixture insertion does **not**
 prove DB-G01/DB-G02 posting guards and must never be confused with an application post command.
 

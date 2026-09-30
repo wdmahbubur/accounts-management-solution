@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-\ir ../helpers/us005_two_company_fixture.sql
+\ir ../../test-fixtures/us005_two_company_fixture.sql
 
 select plan(12);
 
