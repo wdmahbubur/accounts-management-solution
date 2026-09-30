@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-node@v7.0.0
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
 
       - name: Resolve exact dependency graph
         run: |
