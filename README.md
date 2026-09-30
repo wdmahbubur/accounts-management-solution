@@ -46,6 +46,24 @@ python -m unittest discover -s tests -v
 python verification/check_spec.py
 ```
 
+## Local database migrations
+
+US-003 uses Supabase CLI `2.118.0` and PostgreSQL 17. The committed `supabase/`
+configuration keeps the `finance` and `finance_private` schemas outside the
+Data API exposure list and keeps application seed data disabled.
+
+```bash
+supabase db start
+supabase db reset
+supabase test db
+bash scripts/test-migration-upgrade.sh
+```
+
+`db reset` verifies a clean replay of all migrations. The upgrade script uses
+a second isolated database in the local Supabase PostgreSQL instance to verify
+the staged core-to-security migration path. See
+[the US-003 migration review](docs/14-migration-review.md).
+
 CI runs on pull requests and on pushes to `master`. It installs the committed
 lockfile and fails on lint, typecheck, test or build failures. It contains no
 production deployment job; deployment requires a separately reviewed and

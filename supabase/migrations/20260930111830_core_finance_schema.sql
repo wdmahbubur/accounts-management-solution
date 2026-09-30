@@ -1,13 +1,9 @@
 -- US-003 migration 1/2: core finance schema.
 -- Generated through Supabase CLI from docs/reference-schema.sql.
 -- Field and constraint definitions are intentionally preserved verbatim.
--- Accounts Management SaaS | physical schema reference | v1.0 | 2026-09-29
--- NEW, EMPTY development database only. Assumes Supabase auth.users and roles exist.
--- This is a specification artifact, NOT an applied or integration-tested migration.
--- Application posting/settlement/reconciliation commands and cross-row guards are
--- specified in the accompanying documents and MUST be implemented before writes.
--- Default-deny access is intentional. Do not grant broad DML to make the app work.
--- Create versioned migrations using the Supabase CLI when implementation begins.
+-- Source baseline: AMS specification v1.0, 2026-09-29.
+-- Apply only to a NEW, EMPTY implementation database with Supabase auth.users and roles.
+-- Cross-row financial guards remain intentionally unimplemented; ordinary API writes stay disabled.
 BEGIN;
 CREATE SCHEMA IF NOT EXISTS finance;
 CREATE SCHEMA IF NOT EXISTS finance_private;
