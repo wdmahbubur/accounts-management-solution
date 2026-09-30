@@ -395,9 +395,12 @@
   {
     "id": "S-04",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/application/auth-security.test.ts",
+      "scripts/test-auth-integration.mjs"
+    ],
+    "note": "Real verified Auth metadata escalation is ignored; live membership RPC returns DB capabilities only."
   },
   {
     "id": "S-05",
@@ -420,9 +423,12 @@
   {
     "id": "S-07",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "scripts/test-auth-integration.mjs",
+      "apps/web/server/auth/supabase-membership.ts"
+    ],
+    "note": "A real valid Supabase session is denied after the membership is made inactive; the next actor resolution returns NOT_FOUND."
   },
   {
     "id": "S-08",

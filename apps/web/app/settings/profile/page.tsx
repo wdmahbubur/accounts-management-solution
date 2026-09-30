@@ -22,7 +22,22 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
   }
 
   const params = await searchParams;
+  const { data: rows } = await supabase.rpc("get_own_profile");
+  const persisted =
+    Array.isArray(rows) && rows.length === 1
+      ? (rows[0] as {
+          display_name?: string;
+          locale?: string;
+          timezone?: string;
+        })
+      : null;
   const metadata = user.user_metadata ?? {};
+
+  const displayName =
+    persisted?.display_name ??
+    (typeof metadata.display_name === "string" ? metadata.display_name : "");
+  const locale = persisted?.locale === "bn-BD" ? "bn-BD" : "en-BD";
+  const timezone = persisted?.timezone === "UTC" ? "UTC" : "Asia/Dhaka";
 
   return (
     <main className="auth-shell">
@@ -37,20 +52,20 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
             <input
               name="display_name"
               maxLength={120}
-              defaultValue={typeof metadata.display_name === "string" ? metadata.display_name : ""}
+              defaultValue={displayName}
               required
             />
           </label>
           <label className="field">
             <span>Locale</span>
-            <select name="locale" defaultValue={metadata.locale === "bn-BD" ? "bn-BD" : "en-BD"}>
+            <select name="locale" defaultValue={locale}>
               <option value="en-BD">English (Bangladesh)</option>
               <option value="bn-BD">Bangla (Bangladesh)</option>
             </select>
           </label>
           <label className="field">
             <span>Timezone</span>
-            <select name="timezone" defaultValue={metadata.timezone === "UTC" ? "UTC" : "Asia/Dhaka"}>
+            <select name="timezone" defaultValue={timezone}>
               <option value="Asia/Dhaka">Asia/Dhaka</option>
               <option value="UTC">UTC</option>
             </select>
@@ -58,7 +73,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
           <button type="submit">Save profile</button>
         </form>
         <p className="muted">
-          These values are presentation preferences only. Roles and capabilities are resolved from live company membership, never editable profile metadata.
+          Profile preferences are stored in the application profile. Roles and capabilities are resolved from live company membership, never editable Auth metadata.
         </p>
       </section>
     </main>

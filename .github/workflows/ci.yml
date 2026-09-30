@@ -86,6 +86,12 @@ jobs:
       - name: Run pgTAP database acceptance tests
         run: supabase test db
 
+      - name: Lint database routines
+        run: supabase db lint --level error --fail-on error
+
+      - name: Run local Auth integration
+        run: node scripts/test-auth-integration.mjs
+
       - name: Verify independent multi-connection race harness
         run: bash scripts/test-race-harness.sh
 
@@ -107,8 +113,19 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
       - name: Install locked dependencies
         run: npm ci
+
+      - name: Start local Auth stack
+        run: bash scripts/start-test-db.sh
+
+      - name: Export local public Supabase environment
+        run: node scripts/export-local-supabase-env.mjs >> "$GITHUB_ENV"
 
       - name: Install pinned Chromium runtime
         run: npx playwright install --with-deps chromium

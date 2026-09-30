@@ -1,5 +1,15 @@
 export const RECENT_AUTH_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+export const sensitiveRecentAuthOperations = [
+  "owner_membership_change",
+  "period_close",
+  "period_reopen",
+  "support_access_grant"
+] as const;
+
+export type SensitiveRecentAuthOperation =
+  (typeof sensitiveRecentAuthOperations)[number];
+
 export class RecentAuthenticationRequiredError extends Error {
   constructor() {
     super("Recent authentication is required.");
@@ -54,4 +64,16 @@ export async function requireRecentAuthentication(
   }
 
   return user;
+}
+
+export async function requireRecentAuthenticationFor(
+  operation: SensitiveRecentAuthOperation,
+  auth: RecentAuthReader,
+  now = new Date()
+): Promise<RecentAuthUser> {
+  if (!sensitiveRecentAuthOperations.includes(operation)) {
+    throw new Error("Unknown sensitive operation.");
+  }
+
+  return requireRecentAuthentication(auth, now);
 }

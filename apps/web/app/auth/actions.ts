@@ -177,13 +177,10 @@ export async function updateProfileAction(formData: FormData) {
     redirect(route("/auth/sign-in", { next: "/settings/profile" }));
   }
 
-  const { error } = await supabase.auth.updateUser({
-    data: {
-      // Presentation preferences only. These values are never role/capability authority.
-      display_name: displayName,
-      locale,
-      timezone
-    }
+  const { error } = await supabase.rpc("update_own_profile", {
+    p_display_name: displayName,
+    p_locale: locale,
+    p_timezone: timezone
   });
 
   if (error) {
