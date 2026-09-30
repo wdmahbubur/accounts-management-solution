@@ -9,7 +9,7 @@ The repository now separates evidence by layer:
 | Application/service | `npm test` / `npm run test:application` | TypeScript/Node contracts, service boundaries and repository application tests |
 | Reference model | `npm run test:reference` | Retained Python arithmetic/ledger examples only; not application evidence |
 | Static specification | `npm run test:spec` | Source/artifact consistency only |
-| Real database | `supabase test db` | PostgreSQL/RLS/tenant/schema behavior in the isolated local Supabase stack |
+| Real database | `npm run test:database` | PostgreSQL/RLS/tenant/schema behavior in the isolated local Supabase stack |
 | Race harness | `npm run test:race` | Two independent PostgreSQL sessions can exercise real lock contention |
 | Browser | `npm run test:browser` | Chromium can boot and exercise the actual Next.js app surface |
 
@@ -28,7 +28,7 @@ Reference/static suites remain useful baselines, but they are never counted as a
 - exact decimal-string expected balances.
 
 The PostgreSQL counterpart lives at
-`supabase/test-fixtures/us005_two_company_fixture.sql`. It directly inserts
+`supabase/tests/helpers/us005_two_company_fixture.sql`. It directly inserts
 synthetic fixture observations for testing. Direct test-fixture insertion does **not**
 prove DB-G01/DB-G02 posting guards and must never be confused with an application post command.
 

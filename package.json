@@ -21,7 +21,7 @@
     "test:application": "node --test tests/application/*.test.mjs tests/application/*.test.ts",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
     "test:spec": "cd docs && python verification/check_spec.py",
-    "test:database": "supabase test db",
+    "test:database": "supabase test db supabase/tests/database",
     "test:race": "bash scripts/test-race-harness.sh",
     "test:browser": "playwright test"
   },
