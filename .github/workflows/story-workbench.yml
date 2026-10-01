@@ -27,6 +27,16 @@ jobs:
           data = json.loads(raw)
           paths = [f['path'] for f in data['files']]
           assert len(paths) == len(set(paths)) and len(paths) <= 100
+          # git show can resolve unmatched bracket-containing paths as empty output.
+          # Only these explicitly declared, independently checked NEW files are normalized.
+          for name in request.get('new_paths', []):
+              entry = next(f for f in data['files'] if f['path'] == name)
+              assert entry['before'] == hashlib.sha256(b'').hexdigest()
+              assert not pathlib.Path(name).exists(), 'New file was concurrently created'
+              old_header = '--- a/' + name + '\n+++ b/' + name + '\n'
+              assert old_header + '@@ -0,0 +' in data['patch']
+              data['patch'] = data['patch'].replace(old_header, '--- /dev/null\n+++ b/' + name + '\n', 1)
+              entry['before'] = None
           for f in data['files']:
               p = pathlib.Path(f['path'])
               assert not p.is_absolute() and '..' not in p.parts and not p.is_symlink()
