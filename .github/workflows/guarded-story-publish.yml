@@ -1,0 +1,63 @@
+name: Guarded story publication
+on:
+  push:
+    branches: [chore/continuation-source-20261001]
+    paths: [.github/handoff/apply.json]
+permissions:
+  contents: write
+jobs:
+  publish:
+    if: github.repository == 'wdmahbubur/accounts-management-solution'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Apply reviewed source with exact-head and per-file guards
+        shell: python
+        run: |
+          import base64,gzip,hashlib,json,pathlib,re,subprocess
+          request=json.loads(pathlib.Path('.github/handoff/apply.json').read_text())
+          parts=request['parts']
+          assert 1<=len(parts)<=16 and all(re.fullmatch(r'\.github/handoff/part-[0-9]+\.b64',p) for p in parts)
+          raw=gzip.decompress(base64.b64decode(''.join(pathlib.Path(p).read_text().strip() for p in parts),validate=True))
+          assert len(raw)<2000000 and hashlib.sha256(raw).hexdigest()==request['sha256']
+          payload=json.loads(raw); branch=payload['branch']; expected=payload['expected_head']
+          assert re.fullmatch(r'feat/us-[0-9]{3}-[a-z0-9-]+',branch) and re.fullmatch(r'[0-9a-f]{40}',expected)
+          files=payload['files']; paths=[f['path'] for f in files]
+          assert 1<=len(paths)<=100 and len(paths)==len(set(paths))
+          for f in files:
+              p=pathlib.PurePosixPath(f['path'])
+              assert not p.is_absolute() and '..' not in p.parts
+              assert p.parts[0] in ('apps','packages','supabase','tests','scripts','docs') or str(p)=='.github/workflows/ci.yml'
+              assert not any(x.startswith('.env') or x=='node_modules' for x in p.parts)
+              assert f['mode'] in ('100644','100755')
+          subprocess.run(['git','fetch','--no-tags','origin',branch],check=True)
+          head=subprocess.check_output(['git','rev-parse','FETCH_HEAD']).decode().strip()
+          assert head==expected,'Concurrent branch change; refusing to overwrite'
+          subprocess.run(['git','checkout','--detach',head],check=True)
+          for f in files:
+              p=pathlib.Path(f['path'])
+              assert not p.is_symlink() and not any(a.is_symlink() for a in p.parents)
+              actual=hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else None
+              assert actual==f['before'],'Concurrent or mismatched source: '+str(p)
+          for f in files:
+              p=pathlib.Path(f['path']); p.parent.mkdir(parents=True,exist_ok=True)
+              p.write_text(f['content']); p.chmod(0o755 if f['mode']=='100755' else 0o644)
+          subprocess.run(['git','add','--',*paths],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          message=payload['message']; assert isinstance(message,str) and 1<=len(message)<=200
+          subprocess.run(['git','commit','-m',message],check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/'+branch],check=True)
+          pathlib.Path('/tmp/story-head.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          pathlib.Path('/tmp/story-tree.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD^{tree}']).decode())
+          subprocess.run(['git','archive','--format=tar.gz','-o','/tmp/story-source.tar.gz','HEAD'],check=True)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-story-source
+          path: |
+            /tmp/story-head.txt
+            /tmp/story-tree.txt
+            /tmp/story-source.tar.gz
+          retention-days: 1
