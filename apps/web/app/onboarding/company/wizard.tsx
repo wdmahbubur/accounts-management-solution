@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { createCompanyAction } from "./actions.ts";
+import { createCompanyAction } from "../actions.ts";
 
 const STORAGE_KEY = "ams:onboarding-company:v1";
 const stepNames = ["Company", "Calendar", "Books", "Team", "Review"] as const;
