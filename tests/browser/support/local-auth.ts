@@ -19,6 +19,13 @@ export function localStack() {
   const admin = createClient(url, pick("SECRET_KEY", "secret_key", "SERVICE_ROLE_KEY", "service_role_key"), settings);
   const publicKey = pick("PUBLISHABLE_KEY", "publishable_key", "ANON_KEY", "anon_key");
   return {
+    async uploadPrivateFixture(key: string, contents: string) {
+      const result = await admin.storage.from("ams-private-artifacts").upload(key, Buffer.from(contents), {
+        contentType: "application/octet-stream", cacheControl: "0", upsert: false
+      });
+      if (result.error) throw new Error(`Could not upload synthetic private fixture: ${result.error.message}`);
+    },
+    publicArtifactUrl: (key: string) => `${url}/storage/v1/object/public/ams-private-artifacts/${key}`,
     sql: (statement: string) => execFileSync("psql", [dbUrl, "-v", "ON_ERROR_STOP=1", "-qAtc", statement], { encoding: "utf8" }).trim(),
     async user(prefix: string, displayName: string) {
       const email = `${prefix}@example.invalid`;

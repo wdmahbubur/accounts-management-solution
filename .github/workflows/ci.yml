@@ -110,6 +110,9 @@ jobs:
       - name: Verify last-owner concurrency protection
         run: bash scripts/test-role-race.sh
 
+      - name: Verify single-use invitation acceptance race
+        run: bash scripts/test-invitation-race.sh
+
       - name: Verify role-template migration backfill
         run: bash scripts/test-role-migration-upgrade.sh
 
