@@ -101,7 +101,11 @@ test("US-009 real users/roles forms, API denial, stale context, transfer and liv
   expect(JSON.stringify(denied.body)).not.toContain("Role Owner");
 
   const transfer = page.getByRole("form", { name: "Transfer ownership", exact: true });
-  await transfer.getByLabel("New owner", { exact: true }).selectOption(workerMember);
+  await expect(transfer).toBeVisible();
+  const target = transfer.getByRole("combobox", { name: "New owner", exact: true });
+  await expect(target).toBeEnabled();
+  await expect(target.getByRole("option", { name: "Role Worker", exact: true })).toHaveAttribute("value", workerMember);
+  await target.selectOption(workerMember, { timeout: 10_000 });
   await transfer.getByLabel("I understand my Owner access will be removed.", { exact: true }).check();
   await transfer.getByRole("button", { name: "Transfer ownership", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Access denied", exact: true })).toBeVisible();

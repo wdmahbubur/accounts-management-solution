@@ -47,6 +47,7 @@ function CapabilityFields({ role, grantable }: { role?: ManagedRole; grantable: 
   </>;
 }
 export function RoleSettings(props: Props) {
+  const transferId = useId();
   const { organizationId, nonce, actorMemberId, actorCapabilities, members, roles, view } = props;
   const owner = members.some((member) => member.id === actorMemberId && member.isOwner);
   const canManage = actorCapabilities.includes("users.manage");
@@ -115,11 +116,12 @@ export function RoleSettings(props: Props) {
         {members.filter((member) => member.id !== actorMemberId && member.status === "active").length === 0
           ? <p>Add another active member before transferring ownership.</p>
           : <MutationForm operation="transfer" organizationId={organizationId} nonce={nonce} label="Transfer ownership">
-            <label className="field"><span>New owner</span><select name="member_id" required defaultValue="">
+            <div className="field"><label htmlFor={`${transferId}-owner`}>New owner</label>
+              <select id={`${transferId}-owner`} name="member_id" required defaultValue="">
               <option value="" disabled>Select an active member</option>
               {members.filter((member) => member.id !== actorMemberId && member.status === "active").map((member) =>
                 <option key={member.id} value={member.id}>{member.displayName}</option>)}
-            </select></label>
+            </select></div>
             <label className="check-field"><input type="checkbox" name="confirmed" value="yes" required />
               <span>I understand my Owner access will be removed.</span></label>
           </MutationForm>}

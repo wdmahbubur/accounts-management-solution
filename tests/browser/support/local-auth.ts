@@ -29,6 +29,12 @@ export function localStack() {
       const client = createClient(url, publicKey, settings);
       const signed = await client.auth.signInWithPassword({ email, password });
       expect(signed.error).toBeNull();
+      // Metadata is not the company's immutable audit-name snapshot. Set the
+      // actual own profile through the ordinary authenticated application RPC.
+      const profile = await client.rpc("update_own_profile", {
+        p_display_name: displayName, p_locale: "en-BD", p_timezone: "Asia/Dhaka"
+      });
+      expect(profile.error).toBeNull();
       return { id: result.data.user.id, email, password, client };
     }
   };
