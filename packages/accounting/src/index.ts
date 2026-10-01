@@ -3,3 +3,5 @@ export const accountingModule = {
   responsibility:
     "Pure decimal-safe accounting calculations and posting-rule primitives."
 } as const;
+
+export * from "./calculations.ts";

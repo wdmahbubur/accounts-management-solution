@@ -1,0 +1,11 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(4);
+select ok(not has_function_privilege('anon','public.calculate_document_preview(jsonb)','EXECUTE'),'No anonymous calculation RPC grant');
+select ok(has_function_privilege('authenticated','public.calculate_document_preview(jsonb)','EXECUTE'),'Explicit ordinary-role pure calculation grant');
+select ok(not (select prosecdef from pg_proc where oid='public.calculate_document_preview(jsonb)'::regprocedure),'Pure calculation is security invoker');
+set local role authenticated;
+select is(public.calculate_document_preview('{"currency":"BDT","lines":[{"quantity":"1","unit_price":"11000","tax_rate":"10","tax_mode":"inclusive"}]}')->>'net','10000.00','T-17 real database inclusive arithmetic');
+reset role;
+select * from finish();
+rollback;
