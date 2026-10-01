@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { updateSession } from "./lib/supabase/proxy.ts";
+
 export function proxy(request: NextRequest) {
   if (
     request.nextUrl.pathname === "/internal/ui-fixtures" &&
@@ -8,9 +10,15 @@ export function proxy(request: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
-  return NextResponse.next();
+  return updateSession(request);
 }
 
 export const config = {
-  matcher: "/internal/ui-fixtures"
+  matcher: [
+    "/auth/:path*",
+    "/settings/:path*",
+    "/companies/:path*",
+    "/o/:path*",
+    "/internal/ui-fixtures"
+  ]
 };
