@@ -79,7 +79,14 @@ delete from finance.business_documents where id='12000000-eeee-4eee-8eee-eeeeeee
 set local role authenticated; set local request.jwt.claim.sub='12000000-1111-4111-8111-111111111111';
 select throws_ok($$select pg_temp.change(5,'{"books_start_date":"2026-05-01"}')$$,'P0412',NULL,'Removing last draft never reopens historical date policy');
 set local request.jwt.claim.sub='12000000-2222-4222-8222-222222222222';
-select lives_ok($$select public.read_company_settings('12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'Billing company.read has safe profile/calendar read');
+select throws_ok($$select public.read_company_settings('12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'42501',NULL,'Billing has no implicit company.read grant');
+reset role;
+insert into finance.roles(id,organization_id,name) values('12000000-aaaa-4aaa-8aaa-000000000005','12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Explicit company reader');
+insert into finance.role_permissions(organization_id,role_id,permission_id)
+select '12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa','12000000-aaaa-4aaa-8aaa-000000000005',id from finance.permissions where code='company.read';
+insert into finance.member_roles(organization_id,member_id,role_id) values('12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa','12000000-aaaa-4aaa-8aaa-000000000002','12000000-aaaa-4aaa-8aaa-000000000005');
+set local role authenticated; set local request.jwt.claim.sub='12000000-2222-4222-8222-222222222222';
+select lives_ok($$select public.read_company_settings('12000000-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'Explicit company.read permits profile/calendar without update authority');
 select throws_ok($$select pg_temp.change(5,'{"name":"Unauthorized"}')$$,'42501',NULL,'Billing cannot change settings without company.update');
 select throws_ok($$update finance.organizations set name='Unauthorized'$$,'42501',NULL,'Direct raw organization DML is denied');
 reset role;
