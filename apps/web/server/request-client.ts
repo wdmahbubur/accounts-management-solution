@@ -33,6 +33,7 @@ const procedures = new Set([
   "post_write_off_document",
   "save_write_off_draft",
   "list_write_off_options",
+  "reverse_posted_document",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",

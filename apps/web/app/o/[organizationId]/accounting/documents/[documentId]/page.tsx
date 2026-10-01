@@ -10,6 +10,7 @@ import { canPostDocument } from "../../../../../../server/documents/posting.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 import { PostingAction } from "../posting-action.tsx";
+import { ReverseDocumentAction } from "../reverse-document-action.tsx";
 import styles from "../documents.module.css";
 
 function draftOptions(value: Record<string, unknown>): DraftOptions {
@@ -44,12 +45,15 @@ export default async function DocumentDetailPage({ params }: {
   let document: Record<string, unknown> | undefined;
   let options: DraftOptions | undefined;
   let canPost = false;
+  let canReverse = false;
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const documentType = String(document.document_type);
     canPost = String(document.state) === "approved" && canPostDocument(actor, documentType);
+    canReverse = String(document.state) === "posted" && actor.capabilities.includes("journal.post") &&
+      !document.reversed_by_document_id && !["reversal", "opening_balance", "year_close"].includes(documentType);
     const canEdit = String(document.state) === "draft" &&
       (sourceTypes as readonly string[]).includes(documentType);
     if (canEdit) {
@@ -86,7 +90,8 @@ export default async function DocumentDetailPage({ params }: {
           <p>State: {String(document.state)} · Accounting date: {String(document.accounting_date)}</p>
           <p>Total (BDT): {String(document.total_amount)}</p>
           <p>This source is read-only in its current state.</p>
-        </section>{canPost && <PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}</>
+        </section>{canPost && <PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}
+          {canReverse && <ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} />}</>
       )}
     </main>
   );
