@@ -54,14 +54,9 @@ test("US-012 company settings, stale edits, tenant context, immutable foundation
     expect((await browserApi(page, api, { method: "PATCH", headers, data: { expected_version: 3, changes, reason: "Invalid data test" } })).status).toBe(422);
   }
   await page.screenshot({ path: testInfo.outputPath("us012-settings-desktop.png"), fullPage: true });
-  const oldNonce = await companyNonce(page);
-  const switcher = await ctx.newPage(); await switcher.goto("/companies");
-  await switcher.getByRole("button", { name: "Open Other Settings Company", exact: true }).click();
-  await expect(switcher).toHaveURL(new RegExp(`/o/${otherOrg}$`));
-  expect((await browserApi(page, api, { method: "PATCH", headers: { "x-company-context": oldNonce }, data: { expected_version: 3, changes: { name: "Wrong tenant" }, reason: "Stale context test" } })).status).toBe(409);
-  await page.goto("/companies"); await page.getByRole("button", { name: "Open Settings Company", exact: true }).click();
-  await page.goto(`/o/${org}/settings/company`);
-  // First real database source fixture locks the foundation; this is not a posting implementation.
+
+  // Verify the accounting foundation before switching this shared browser
+  // context to another company. An old tab must stay stale after that switch.
   const sourceId = randomUUID();
   stack.sql(`insert into finance.business_documents(id,organization_id,document_type,issue_date,accounting_date,total_amount,created_by_member_id)
     values('${sourceId}','${org}','invoice','2026-05-15','2026-05-15',123.45,'${ownerMember}');`);
@@ -77,6 +72,12 @@ test("US-012 company settings, stale edits, tenant context, immutable foundation
   expect(stack.sql(`select total_amount::text||'|'||accounting_date::text from finance.business_documents where id='${sourceId}';`)).toBe("123.45|2026-05-15");
   expect(stack.sql(`select count(*) from finance.audit_events where organization_id='${org}' and action='company.settings_updated' and actor_member_id='${ownerMember}' and reason is not null;`)).toBe("3");
   expect(stack.sql(`select count(*) from finance.audit_events where organization_id='${org}' and redacted_change::text like '%boss@example.invalid%';`)).toBe("0");
+
+  const oldNonce = await companyNonce(page);
+  const switcher = await ctx.newPage(); await switcher.goto("/companies");
+  await switcher.getByRole("button", { name: "Open Other Settings Company", exact: true }).click();
+  await expect(switcher).toHaveURL(new RegExp(`/o/${otherOrg}$`));
+  expect((await browserApi(page, api, { method: "PATCH", headers: { "x-company-context": oldNonce }, data: { expected_version: 5, changes: { name: "Wrong tenant" }, reason: "Stale context test" } })).status).toBe(409);
   await ctx.setOffline(true);
   await expect(form.getByRole("button", { name: "Save company settings", exact: true })).toBeDisabled();
   await ctx.setOffline(false);
