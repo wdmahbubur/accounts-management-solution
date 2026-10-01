@@ -1,5 +1,5 @@
 import { parseUuid } from "@ams/contracts";
-import { CommandError } from "../commands/errors.ts";
+import { CommandError, retryableTransactionError, type RetryableTransactionError } from "../commands/errors.ts";
 
 export const taxKinds = ["standard", "zero_rated", "exempt", "out_of_scope"] as const;
 export type TaxKind = typeof taxKinds[number];
@@ -72,7 +72,8 @@ export function parseTaxCatalog(codes: unknown, accounts: unknown): TaxCatalog {
   const parsedAccounts = accounts.map((raw) => { const r = object(raw); return { id: parseUuid(r.id), code: String(r.code), name: String(r.name), accountType: String(r.account_type), normalSide: String(r.normal_side), mappingKey: typeof r.mapping_key === "string" ? r.mapping_key : null } satisfies TaxAccount; });
   return { codes: parsedCodes, accounts: parsedAccounts };
 }
-export function taxDatabaseError(error: { code?: string }): CommandError {
+export function taxDatabaseError(error: { code?: string; message?:string }): CommandError|RetryableTransactionError {
+  const retryable=retryableTransactionError(error);if(retryable)return retryable;
   if (error.code === "28000") return CommandError.unauthenticated();
   if (error.code === "42501") return CommandError.forbidden();
   if (error.code === "P0002") return CommandError.notFound();
