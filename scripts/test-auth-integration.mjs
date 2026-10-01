@@ -122,6 +122,44 @@ sql(
    on conflict (organization_id,user_id) do update set status='active';`
 );
 
+
+const onboardingPayload = {
+  p_name: "US007 Live Company",
+  p_legal_name: "US007 Live Company Limited",
+  p_country_code: "BD",
+  p_base_currency: "BDT",
+  p_timezone: "Asia/Dhaka",
+  p_fiscal_year_start_month: 1,
+  p_books_start_date: "2026-04-01",
+  p_idempotency_key: "us007_live_rpc_key_0123456789"
+};
+
+const onboarding = await sessionA.rpc("create_company_atomic", onboardingPayload);
+assert.equal(onboarding.error, null);
+assert.equal(onboarding.data?.length, 1);
+assert.equal(onboarding.data?.[0]?.replayed, false);
+assert.match(onboarding.data?.[0]?.organization_id ?? "", /^[0-9a-f-]{36}$/i);
+
+const onboardingReplay = await sessionA.rpc("create_company_atomic", onboardingPayload);
+assert.equal(onboardingReplay.error, null);
+assert.equal(onboardingReplay.data?.[0]?.organization_id, onboarding.data?.[0]?.organization_id);
+assert.equal(onboardingReplay.data?.[0]?.replayed, true);
+
+const changedOnboarding = await sessionA.rpc("create_company_atomic", {
+  ...onboardingPayload,
+  p_name: "US007 Changed Company"
+});
+assert.equal(changedOnboarding.error?.code, "23505");
+
+const unsupportedCurrency = await sessionA.rpc("create_company_atomic", {
+  ...onboardingPayload,
+  p_name: "US007 USD Company",
+  p_legal_name: "US007 USD Company",
+  p_base_currency: "USD",
+  p_idempotency_key: "us007_usd_rpc_key_0123456789"
+});
+assert.equal(unsupportedCurrency.error?.code, "22023");
+
 const metadataUpdate = await sessionA.auth.updateUser({
   data: { role: "Owner", capabilities: ["*"] }
 });
