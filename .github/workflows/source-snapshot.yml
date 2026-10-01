@@ -1,0 +1,30 @@
+name: Source and backlog snapshot
+on:
+  push:
+    branches: [chore/isolated-cli-snapshot]
+    paths: [.github/workflows/source-snapshot.yml]
+permissions:
+  contents: read
+  issues: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 254e3eedf9118e2157cedb70f64c46c5707f0faf
+          persist-credentials: false
+      - name: Archive tracked source and public backlog metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/ams-snapshot
+          git archive --format=tar.gz -o /tmp/ams-snapshot/source.tar.gz HEAD
+          git rev-parse HEAD > /tmp/ams-snapshot/head.txt
+          gh api --paginate --slurp 'repos/wdmahbubur/accounts-management-solution/issues?state=all&per_page=100' > /tmp/ams-snapshot/issues.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: source-and-backlog
+          path: /tmp/ams-snapshot
+          retention-days: 1
