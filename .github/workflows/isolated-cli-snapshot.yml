@@ -1,0 +1,34 @@
+name: Isolated CLI snapshot
+on:
+  push:
+    branches: [chore/isolated-cli-snapshot]
+    paths: [.github/workflows/isolated-cli-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+        with:
+          version: 2.118.0
+      - name: Copy and verify standalone pinned CLI
+        run: |
+          mkdir -p /tmp/ams-cli/bin
+          cp "$(readlink -f "$(command -v supabase)")" /tmp/ams-cli/bin/supabase
+          chmod +x /tmp/ams-cli/bin/supabase
+          test "$(/tmp/ams-cli/bin/supabase --version)" = "2.118.0"
+          /tmp/ams-cli/bin/supabase migration new --help
+          tar -czf /tmp/ams-cli.tar.gz -C /tmp/ams-cli bin
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pinned-supabase-cli
+          path: /tmp/ams-cli.tar.gz
+          retention-days: 1
