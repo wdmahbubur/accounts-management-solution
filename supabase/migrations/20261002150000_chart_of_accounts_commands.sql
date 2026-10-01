@@ -166,7 +166,9 @@ BEGIN
   END IF;
   SELECT * INTO v_account FROM finance.accounts a WHERE a.organization_id=NEW.organization_id
     AND a.id=NEW.account_id FOR UPDATE;
-  IF NOT FOUND OR NOT v_account.is_active OR NOT v_account.is_postable THEN
+  -- Let the composite tenant FK report a missing/cross-company account; the
+  -- row-local rule adds only active/postable enforcement for an in-tenant row.
+  IF FOUND AND (NOT v_account.is_active OR NOT v_account.is_postable) THEN
     RAISE EXCEPTION 'journal lines require an active postable account in the same company' USING ERRCODE='23514';
   END IF;
   RETURN NEW;
