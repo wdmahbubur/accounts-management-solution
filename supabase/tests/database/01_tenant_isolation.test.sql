@@ -20,14 +20,20 @@ values
   ('aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'US003 User'),
   ('bbbbbbbb-1111-4111-8111-bbbbbbbbbbbb', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '11111111-1111-4111-8111-111111111111', 'US003 User');
 
-insert into finance.permissions (id, code, description)
-values ('10000000-0000-4000-8000-000000000001', 'accounting.read', 'US003 accounting read');
+insert into finance.permissions (code, description)
+values ('accounting.read', 'US003 accounting read')
+on conflict (code) do nothing;
 
 insert into finance.roles (id, organization_id, name)
 values ('aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'US003 Accounting Reader');
 
 insert into finance.role_permissions (organization_id, role_id, permission_id)
-values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa', '10000000-0000-4000-8000-000000000001');
+select
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa',
+  p.id
+from finance.permissions p
+where p.code = 'accounting.read';
 
 insert into finance.member_roles (organization_id, member_id, role_id)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa', 'aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa');

@@ -129,7 +129,39 @@ test("S-15 company switching invalidates the prior tenant shell and lists only a
     "-v",
     "ON_ERROR_STOP=1",
     "-c",
-    `update finance.organization_members set status='inactive' where user_id='${userId}' and organization_id='${orgB}';`
+    `
+      insert into auth.users (id, email)
+      values ('88888888-8888-4888-8888-888888888888', 'us008-browser-alt-owner@example.invalid')
+      on conflict (id) do nothing;
+
+      insert into finance.organization_members
+        (id, organization_id, user_id, display_name_snapshot, status)
+      values
+        (
+          '88888888-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          '${orgB}',
+          '88888888-8888-4888-8888-888888888888',
+          'US008 Alternate Owner',
+          'active'
+        )
+      on conflict (organization_id, user_id) do update set status='active';
+
+      insert into finance.member_roles (organization_id, member_id, role_id)
+      select
+        '${orgB}',
+        '88888888-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        r.id
+      from finance.roles r
+      where r.organization_id='${orgB}'
+        and r.is_system
+        and r.template_key='owner'
+      on conflict (organization_id, member_id, role_id) do nothing;
+
+      update finance.organization_members
+      set status='inactive'
+      where user_id='${userId}'
+        and organization_id='${orgB}';
+    `
   ]);
 
   await pageB.goto("http://127.0.0.1:3000/companies");

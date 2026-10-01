@@ -369,14 +369,19 @@ AS $$
 DECLARE
   v_codes text[];
 BEGIN
-  SELECT COALESCE(array_agg(DISTINCT code ORDER BY code), ARRAY[]::text[])
+  SELECT COALESCE(
+    array_agg(DISTINCT requested.permission_code ORDER BY requested.permission_code),
+    ARRAY[]::text[]
+  )
   INTO v_codes
-  FROM unnest(COALESCE(p_permission_codes, ARRAY[]::text[])) AS code;
+  FROM unnest(COALESCE(p_permission_codes, ARRAY[]::text[]))
+    AS requested(permission_code);
 
   IF EXISTS (
     SELECT 1
-    FROM unnest(v_codes) code
-    LEFT JOIN finance.permissions p ON p.code = code
+    FROM unnest(v_codes) AS requested(permission_code)
+    LEFT JOIN finance.permissions p
+      ON p.code = requested.permission_code
     WHERE p.id IS NULL
   ) THEN
     RAISE EXCEPTION 'unknown permission code' USING ERRCODE = '22023';
@@ -388,11 +393,11 @@ BEGIN
 
   IF EXISTS (
     SELECT 1
-    FROM unnest(v_codes) code
+    FROM unnest(v_codes) AS requested(permission_code)
     WHERE NOT finance_private.member_has_capability(
       p_organization_id,
       p_actor_member_id,
-      code
+      requested.permission_code
     )
   ) THEN
     RAISE EXCEPTION 'permission grant exceeds actor authority'
