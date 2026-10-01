@@ -15,6 +15,7 @@ function validateSaveEnvelope(raw:unknown){const r=record(raw);if(Object.keys(r)
   return{expectedVersion:Number(r.expected_version),draft:validateDraftDocument(r.draft)};}
 async function save(client:RpcClient,actor:ActorContext,request:{requestId:string;idempotencyKey:string|null;requestHash:string},draft:DraftDocument,documentId:string|null,expectedVersion:number|null):Promise<SaveDraftReceipt>{
   const required=typeCapability[draft.documentType]??"journal.write";if(!actor.capabilities.includes(required))throw CommandError.forbidden();
+  if(draft.allocationPlan.length&&!actor.capabilities.includes("dues.read"))throw CommandError.forbidden();
   if(!request.idempotencyKey)throw CommandError.validation({idempotency_key:"A stable idempotency key is required."});
   const r=await client.rpc("save_financial_document",{p_organization_id:actor.organizationId,p_document_id:documentId,p_expected_version:expectedVersion,
     p_request_id:request.requestId,p_idempotency_key:request.idempotencyKey,p_request_hash:request.requestHash,p_payload:{document_type:draft.documentType,
@@ -22,7 +23,8 @@ async function save(client:RpcClient,actor:ActorContext,request:{requestId:strin
       description:draft.description,currency:draft.currency,rounding_adjustment:draft.roundingAdjustment,rounding_reason:draft.roundingReason,rounding_account_id:draft.roundingAccountId,trade:draft.trade,movement:draft.movement,transfer:draft.transfer,
       lines:draft.lines.map((line)=>({id:line.id,item_id:line.itemId,original_line_id:line.originalLineId,description:line.description,quantity:line.quantity,
         unit_price:line.unitPrice,discount_amount:line.discountAmount,account_id:line.accountId,cost_center_id:line.costCenterId,tax_code_id:line.taxCodeId,
-        tax_mode:line.taxMode,cash_flow_class:line.cashFlowClass})),journal_rows:draft.journalRows}});
+        tax_mode:line.taxMode,cash_flow_class:line.cashFlowClass})),journal_rows:draft.journalRows,
+      allocation_plan:draft.allocationPlan.map((plan)=>({target_open_item_id:plan.targetOpenItemId,amount:plan.amount}))}});
   if(r.error)throw documentDatabaseError(r.error);if(!Array.isArray(r.data)||r.data.length!==1)throw new Error("Invalid document save receipt.");const row=record(r.data[0],"receipt");
   if(typeof row.document_id!=="string"||!Number.isSafeInteger(row.document_version)||typeof row.state!=="string"||typeof row.net_amount!=="string"||typeof row.tax_amount!=="string"||typeof row.total_amount!=="string"||typeof row.material_digest!=="string")throw new Error("Malformed document save receipt.");
   return{documentId:row.document_id,documentVersion:Number(row.document_version),state:row.state,netAmount:row.net_amount,taxAmount:row.tax_amount,totalAmount:row.total_amount,materialDigest:row.material_digest};
