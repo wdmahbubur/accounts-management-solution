@@ -47,7 +47,7 @@ test("US-012 company settings, stale edits, tenant context, immutable foundation
   await staleForm.getByLabel("Legal name", { exact: true }).fill("Stale overwrite");
   await staleForm.getByLabel("Reason for change", { exact: true }).fill("Stale tab test");
   await staleForm.getByRole("button", { name: "Save company settings", exact: true }).click();
-  await expect(staleTab.getByRole("alert")).toContainText("Settings changed");
+  await expect(staleForm.getByRole("alert")).toContainText("Settings changed");
   expect(stack.sql(`select legal_name from finance.organizations where id='${org}';`)).toBe("বাংলা সেবা Limited");
   const headers = { "x-company-context": await companyNonce(page) };
   for (const changes of [{ base_currency: "USD" }, { books_start_date: "2026-02-30" }, { actor_id: reader.id }]) {
