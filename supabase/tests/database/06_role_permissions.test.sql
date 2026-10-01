@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(26);
 
 select is(
   (select count(*)::bigint from finance.permissions),
@@ -265,19 +265,59 @@ set local role authenticated;
 set local request.jwt.claim.sub = '99111111-1111-4111-8111-111111111111';
 
 select lives_ok(
-  $$select public.set_member_roles(
+  $select public.set_member_roles(
     (select id from finance.organizations where name='US009 Company'),
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
-    array[(select id from finance.roles r
-      where r.organization_id=(select id from finance.organizations where name='US009 Company')
-        and r.template_key='accountant')]::uuid[],
-    'req_us009_accountant_assign'
-  )$$,
-  'Owner can assign Accountant to another member'
+    array[
+      (select id from finance.roles r
+       where r.organization_id=(select id from finance.organizations where name='US009 Company')
+         and r.template_key='accountant'),
+      (select id from finance.roles r
+       where r.organization_id=(select id from finance.organizations where name='US009 Company')
+         and r.template_key='owner')
+    ]::uuid[],
+    'req_us009_accountant_owner_assign'
+  )$,
+  'Owner can explicitly add another Owner together with Accountant'
 );
 
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '99222222-2222-4222-8222-222222222222';
+
+select throws_ok(
+  $select public.set_member_roles(
+    (select id from finance.organizations where name='US009 Company'),
+    (select id from finance.organization_members
+      where organization_id=(select id from finance.organizations where name='US009 Company')
+        and user_id='99111111-1111-4111-8111-111111111111'),
+    array[]::uuid[],
+    'req_us009_admin_remove_owner'
+  )$,
+  '42501',
+  'only an active owner may remove Owner',
+  'Admin cannot demote an Owner even when another active Owner exists'
+);
+
+select throws_ok(
+  $select public.deactivate_member(
+    (select id from finance.organizations where name='US009 Company'),
+    (select id from finance.organization_members
+      where organization_id=(select id from finance.organizations where name='US009 Company')
+        and user_id='99111111-1111-4111-8111-111111111111'),
+    'req_us009_admin_deactivate_owner'
+  )$,
+  '42501',
+  'only an active owner may deactivate an Owner',
+  'Admin cannot deactivate an Owner even when another active Owner exists'
+);
+
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '99111111-1111-4111-8111-111111111111';
+
 select lives_ok(
-  $$select public.transfer_ownership(
+  $select public.transfer_ownership(
     (select id from finance.organizations where name='US009 Company'),
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     'req_us009_transfer_owner'
