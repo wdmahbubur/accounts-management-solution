@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { companyNonce, localStack, openCompany } from "./support/local-auth.ts";
+import { browserApi, companyNonce, localStack, openCompany } from "./support/local-auth.ts";
 
 test("US-009 real users/roles forms, API denial, stale context, transfer and live revocation", async ({ browser }, testInfo) => {
   test.setTimeout(120_000);
@@ -43,16 +43,19 @@ test("US-009 real users/roles forms, API denial, stale context, transfer and liv
   await expect(page.getByRole("heading", { name: "Invoice reviewer", exact: true })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("us009-roles-desktop.png"), fullPage: true });
 
+  const allowed = await browserApi(page, `/api/v1/organizations/${org}/roles`);
+  expect(allowed.status).toBe(200);
+  expect(allowed.body.data.some((role: { name: string }) => role.name === "Invoice reviewer")).toBe(true);
   const oldNonce = await companyNonce(page);
   const tab = await ownerContext.newPage();
   await tab.goto("/companies");
   await tab.getByRole("button", { name: "Open Role Other Company", exact: true }).click();
   await expect(tab).toHaveURL(new RegExp(`/o/${otherOrg}$`));
-  const stale = await page.request.post(`/api/v1/organizations/${org}/roles`, {
+  const stale = await browserApi(page, `/api/v1/organizations/${org}/roles`, { method: "POST",
     headers: { "x-company-context": oldNonce }, data: { name: "Stale role", permission_codes: ["sales.read"] }
   });
-  expect(stale.status()).toBe(409);
-  expect((await stale.json()).error.code).toBe("STALE_VERSION");
+  expect(stale.status).toBe(409);
+  expect((stale.body).error.code).toBe("STALE_VERSION");
   expect(stack.sql(`select count(*) from finance.roles where organization_id='${org}' and name='Stale role';`)).toBe("0");
   await page.goto("/companies");
   await page.getByRole("button", { name: "Open Role Test Company", exact: true }).click();
@@ -71,18 +74,18 @@ test("US-009 real users/roles forms, API denial, stale context, transfer and liv
   await adminPage.getByRole("link", { name: "Roles", exact: true }).click();
   await expect(adminPage.getByRole("form", { name: "Create role", exact: true }).getByLabel("reports.read", { exact: true })).toBeDisabled();
   const adminHeaders = { "x-company-context": await companyNonce(adminPage) };
-  const overGrant = await adminPage.request.post(`/api/v1/organizations/${org}/roles`, {
+  const overGrant = await browserApi(adminPage, `/api/v1/organizations/${org}/roles`, { method: "POST",
     headers: adminHeaders, data: { name: "Escalated reports", permission_codes: ["reports.read"] }
   });
-  expect(overGrant.status()).toBe(403);
-  const selfGrant = await adminPage.request.put(`/api/v1/organizations/${org}/members/${workerMember}/roles`, {
+  expect(overGrant.status).toBe(403);
+  const selfGrant = await browserApi(adminPage, `/api/v1/organizations/${org}/members/${workerMember}/roles`, { method: "PUT",
     headers: adminHeaders, data: { role_ids: [ownerRole] }
   });
-  expect(selfGrant.status()).toBe(403);
-  const forged = await adminPage.request.post(`/api/v1/organizations/${org}/roles`, {
+  expect(selfGrant.status).toBe(403);
+  const forged = await browserApi(adminPage, `/api/v1/organizations/${org}/roles`, { method: "POST",
     headers: adminHeaders, data: { name: "Forged", permission_codes: [], actor_id: owner.id }
   });
-  expect(forged.status()).toBe(422);
+  expect(forged.status).toBe(422);
 
   // An existing Admin session loses capability immediately when assigned Billing.
   await assignment().getByLabel("Admin", { exact: true }).uncheck();
@@ -93,9 +96,9 @@ test("US-009 real users/roles forms, API denial, stale context, transfer and liv
     where mr.member_id='${workerMember}' and r.template_key='billing';`)).toBe("1");
   await adminPage.reload();
   await expect(adminPage.getByRole("heading", { name: "Access denied", exact: true })).toBeVisible();
-  const denied = await adminPage.request.get(`/api/v1/organizations/${org}/members`);
-  expect(denied.status()).toBe(403);
-  expect(JSON.stringify(await denied.json())).not.toContain("Role Owner");
+  const denied = await browserApi(adminPage, `/api/v1/organizations/${org}/members`);
+  expect(denied.status).toBe(403);
+  expect(JSON.stringify(denied.body)).not.toContain("Role Owner");
 
   const transfer = page.getByRole("form", { name: "Transfer ownership", exact: true });
   await transfer.getByLabel("New owner", { exact: true }).selectOption(workerMember);
@@ -111,8 +114,8 @@ test("US-009 real users/roles forms, API denial, stale context, transfer and liv
   await remove.getByLabel("I understand this removes company access immediately and keeps the audit identity.", { exact: true }).check();
   await remove.getByRole("button", { name: "Deactivate Role Owner", exact: true }).click();
   await expect(oldOwnerCard.getByText("Inactive", { exact: true })).toBeVisible();
-  const removed = await page.request.get(`/api/v1/organizations/${org}/members`);
-  expect(removed.status()).toBe(404);
+  const removed = await browserApi(page, `/api/v1/organizations/${org}/members`);
+  expect(removed.status).toBe(404);
   await adminPage.setViewportSize({ width: 390, height: 844 });
   await adminPage.screenshot({ path: testInfo.outputPath("us009-users-mobile.png"), fullPage: true });
   await expect.poll(() => adminPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

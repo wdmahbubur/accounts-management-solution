@@ -47,3 +47,19 @@ export async function companyNonce(page: Page) {
   expect(nonce).toMatch(/^[A-Za-z0-9_-]{22,172}$/);
   return nonce!;
 }
+
+// Execute protected API requests in the browser so production Secure cookies on
+// loopback are handled by Chromium, exactly as for ordinary same-origin requests.
+// APIRequestContext has different HTTP-loopback Secure-cookie behavior.
+export async function browserApi(page: Page, url: string, options: {
+  method?: string; headers?: Record<string, string>; data?: unknown;
+} = {}) {
+  return page.evaluate(async ({ url, options }) => {
+    const response = await fetch(url, {
+      method: options.method ?? "GET", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", ...options.headers },
+      ...(options.data === undefined ? {} : { body: JSON.stringify(options.data) })
+    });
+    return { status: response.status, body: await response.json() };
+  }, { url, options });
+}
