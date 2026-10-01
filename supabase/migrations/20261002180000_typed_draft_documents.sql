@@ -17,7 +17,7 @@ BEGIN
     IF OLD.state<>'draft' THEN RAISE EXCEPTION 'posted and approved documents cannot be deleted' USING ERRCODE='23514'; END IF;
     RETURN OLD;
   END IF;
-  IF OLD.state IN ('posted','void') THEN RAISE EXCEPTION 'posted and void documents are immutable' USING ERRCODE='23514'; END IF;
+  IF OLD.state IN ('posted','void') THEN RAISE EXCEPTION 'posted and void documents are immutable' USING ERRCODE='40001'; END IF;
   IF NEW.version=OLD.version AND
     (NEW.organization_id,NEW.id,NEW.document_type,NEW.state,NEW.document_number,NEW.fiscal_year_id,NEW.party_id,NEW.issue_date,
      NEW.accounting_date,NEW.due_date,NEW.external_reference,NEW.description,NEW.currency,NEW.rounding_adjustment,NEW.rounding_reason,NEW.rounding_account_id,NEW.party_snapshot,
@@ -201,7 +201,7 @@ BEGIN
   ELSE
     SELECT * INTO v_document FROM finance.business_documents d WHERE d.organization_id=p_organization_id AND d.id=v_id FOR UPDATE;
     IF NOT FOUND THEN RAISE EXCEPTION 'document unavailable' USING ERRCODE='P0002'; END IF;
-    IF v_document.state IN ('posted','void') THEN RAISE EXCEPTION 'posted or void sources cannot be edited' USING ERRCODE='23514'; END IF;
+    IF v_document.state IN ('posted','void') THEN RAISE EXCEPTION 'posted or void sources cannot be edited' USING ERRCODE='40001'; END IF;
     IF p_expected_version IS NULL OR v_document.version<>p_expected_version THEN RAISE EXCEPTION 'document version is stale' USING ERRCODE='40001'; END IF;
     IF v_document.document_type<>v_type THEN RAISE EXCEPTION 'document type cannot change' USING ERRCODE='23514'; END IF;
     UPDATE finance.approval_requests SET state='superseded' WHERE organization_id=p_organization_id AND document_id=v_id AND state IN ('pending','approved');
@@ -378,6 +378,95 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.save_financial_document(uuid,uuid,integer,text,text,text,jsonb) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.save_financial_document(uuid,uuid,integer,text,text,text,jsonb) TO authenticated;
+
+CREATE FUNCTION public.save_document_allocation_plan(
+  p_organization_id uuid,p_document_id uuid,p_expected_version integer,p_request_id text,
+  p_idempotency_key text,p_request_hash text,p_allocation_plan jsonb
+) RETURNS TABLE(document_id uuid,document_version integer,state text,net_amount finance.amount,tax_amount finance.amount,
+  total_amount finance.amount,material_digest text)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_actor uuid; v_type finance.document_type; v_state finance.document_state; v_party uuid; v_date date; v_period_id uuid;
+  v_year_id uuid; v_status text; v_plan jsonb; v_target finance.open_items%ROWTYPE; v_side text; v_control text;
+  v_amount finance.amount; v_total finance.amount:=0; v_payment finance.amount; v_hash text; v_existing_actor uuid;
+  v_existing_document uuid; v_receipt jsonb; v_result jsonb; v_doc finance.business_documents%ROWTYPE;
+BEGIN
+  PERFORM finance_private.validate_request_id(p_request_id);
+  IF p_expected_version IS NULL OR p_expected_version<1 OR p_idempotency_key IS NULL OR p_idempotency_key !~ '^[A-Za-z0-9_-]{22,172}$'
+     OR p_request_hash IS NULL OR p_request_hash !~ '^[0-9a-f]{64}$' OR jsonb_typeof(p_allocation_plan) IS DISTINCT FROM 'array'
+     OR jsonb_array_length(p_allocation_plan)>100 THEN RAISE EXCEPTION 'invalid allocation-plan request' USING ERRCODE='22023'; END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_organization_id::text||':documents.allocation-plan:'||p_idempotency_key,0));
+  SELECT o.status INTO v_status FROM finance.organizations o WHERE o.id=p_organization_id FOR SHARE;
+  IF NOT FOUND OR v_status<>'active' THEN RAISE EXCEPTION 'company is not writable' USING ERRCODE='42501'; END IF;
+  SELECT d.document_type,d.state,d.party_id,d.accounting_date,d.fiscal_year_id INTO v_type,v_state,v_party,v_date,v_year_id
+    FROM finance.business_documents d WHERE d.organization_id=p_organization_id AND d.id=p_document_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'document unavailable' USING ERRCODE='P0002'; END IF;
+  IF v_type NOT IN ('receipt','vendor_payment') OR v_party IS NULL THEN
+    RAISE EXCEPTION 'allocation plans require an editable receipt or supplier payment' USING ERRCODE='23514';
+  END IF;
+  v_actor:=finance_private.require_capability(p_organization_id,CASE WHEN v_type='receipt' THEN 'sales.write' ELSE 'purchases.write' END);
+  PERFORM finance_private.require_capability(p_organization_id,'dues.read');
+  SELECT i.request_hash,i.actor_member_id,i.response_body,i.resource_document_id INTO v_hash,v_existing_actor,v_receipt,v_existing_document FROM finance.idempotency_requests i
+    WHERE i.organization_id=p_organization_id AND i.operation='documents.allocation-plan' AND i.idempotency_key=p_idempotency_key FOR UPDATE;
+  IF FOUND THEN
+    IF v_hash<>p_request_hash OR v_existing_actor<>v_actor OR v_existing_document<>p_document_id THEN RAISE EXCEPTION 'idempotency key conflict' USING ERRCODE='23505'; END IF;
+    RETURN QUERY SELECT (v_receipt->>'document_id')::uuid,(v_receipt->>'document_version')::integer,v_receipt->>'state',
+      (v_receipt->>'net_amount')::finance.amount,(v_receipt->>'tax_amount')::finance.amount,
+      (v_receipt->>'total_amount')::finance.amount,v_receipt->>'material_digest'; RETURN;
+  END IF;
+  IF v_state IN ('posted','void') THEN RAISE EXCEPTION 'posted and void documents are immutable' USING ERRCODE='23514'; END IF;
+  SELECT fy.status INTO v_status FROM finance.fiscal_years fy WHERE fy.organization_id=p_organization_id AND fy.id=v_year_id FOR UPDATE;
+  IF NOT FOUND OR v_status<>'open' THEN RAISE EXCEPTION 'fiscal year is locked' USING ERRCODE='23514'; END IF;
+  SELECT p.id INTO v_period_id FROM finance.accounting_periods p WHERE p.organization_id=p_organization_id AND p.fiscal_year_id=v_year_id
+    AND p.kind='regular' AND p.starts_on<=v_date AND p.ends_on>=v_date FOR UPDATE;
+  IF NOT FOUND OR NOT EXISTS(SELECT 1 FROM finance.accounting_periods p WHERE p.organization_id=p_organization_id AND p.id=v_period_id AND p.status='open') THEN
+    RAISE EXCEPTION 'accounting period is locked or unavailable' USING ERRCODE='23514';
+  END IF;
+  SELECT * INTO v_doc FROM finance.business_documents d WHERE d.organization_id=p_organization_id AND d.id=p_document_id FOR UPDATE;
+  IF v_doc.version<>p_expected_version THEN RAISE EXCEPTION 'document version is stale' USING ERRCODE='40001'; END IF;
+  IF v_doc.state IN ('posted','void') OR v_doc.accounting_date<>v_date OR v_doc.document_type<>v_type THEN
+    RAISE EXCEPTION 'document changed while saving allocation plan' USING ERRCODE='40001';
+  END IF;
+  v_control:=CASE WHEN v_type='receipt' THEN 'ar' ELSE 'ap' END;
+  v_side:=CASE WHEN v_type='receipt' THEN 'debit' ELSE 'credit' END;
+  SELECT m.amount INTO v_payment FROM finance.money_movements m WHERE m.organization_id=p_organization_id
+    AND m.document_id=p_document_id AND m.direction=CASE WHEN v_type='receipt' THEN 'in' ELSE 'out' END;
+  IF NOT FOUND THEN RAISE EXCEPTION 'cash movement is required before settlement planning' USING ERRCODE='23514'; END IF;
+  UPDATE finance.approval_requests SET state='superseded' WHERE organization_id=p_organization_id AND document_id=p_document_id AND state IN ('pending','approved');
+  UPDATE finance.business_documents d SET state='draft',version=d.version+1,material_digest=p_request_hash,updated_at=clock_timestamp()
+    WHERE d.organization_id=p_organization_id AND d.id=p_document_id RETURNING * INTO v_doc;
+  DELETE FROM finance.document_allocation_plans WHERE organization_id=p_organization_id AND document_id=p_document_id;
+  FOR v_plan IN SELECT value FROM jsonb_array_elements(p_allocation_plan) LOOP
+    IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR jsonb_object_length(v_plan)<>2 OR
+       NOT (v_plan ? 'target_open_item_id' AND v_plan ? 'amount') THEN RAISE EXCEPTION 'invalid allocation-plan row' USING ERRCODE='22023'; END IF;
+    PERFORM finance_private.require_decimal_string(v_plan->'amount',2,false);
+    v_amount:=(v_plan->>'amount')::finance.amount;
+    IF v_amount<=0 THEN RAISE EXCEPTION 'allocation amount must be positive' USING ERRCODE='23514'; END IF;
+    SELECT * INTO v_target FROM finance.open_items oi WHERE oi.organization_id=p_organization_id
+      AND oi.id=(v_plan->>'target_open_item_id')::uuid AND oi.party_id=v_party AND oi.control_kind=v_control
+      AND oi.side=v_side AND oi.issue_date<=v_date;
+    IF NOT FOUND THEN RAISE EXCEPTION 'allocation target is incompatible or unavailable' USING ERRCODE='23514'; END IF;
+    IF v_amount>v_target.original_amount-COALESCE((
+      SELECT sum(a.amount) FROM finance.settlement_allocations a LEFT JOIN finance.allocation_reversals r
+        ON r.organization_id=a.organization_id AND r.allocation_id=a.id AND r.effective_date<=v_date
+      WHERE a.organization_id=p_organization_id AND a.effective_date<=v_date AND r.id IS NULL
+        AND (a.debit_open_item_id=v_target.id OR a.credit_open_item_id=v_target.id)),0) THEN
+      RAISE EXCEPTION 'allocation exceeds historical open-item capacity' USING ERRCODE='23514';
+    END IF;
+    INSERT INTO finance.document_allocation_plans(organization_id,document_id,target_open_item_id,amount)
+      VALUES(p_organization_id,p_document_id,v_target.id,v_amount);
+    v_total:=v_total+v_amount;
+  END LOOP;
+  IF v_total>v_payment THEN RAISE EXCEPTION 'planned settlement exceeds payment amount' USING ERRCODE='23514'; END IF;
+  SELECT jsonb_build_object('document_id',v_doc.id,'document_version',v_doc.version,'state',v_doc.state,'net_amount',v_doc.net_amount::text,
+    'tax_amount',v_doc.tax_amount::text,'total_amount',v_doc.total_amount::text,'material_digest',v_doc.material_digest) INTO v_result;
+  INSERT INTO finance.idempotency_requests(organization_id,operation,idempotency_key,request_hash,actor_member_id,response_status,response_body,resource_document_id)
+    VALUES(p_organization_id,'documents.allocation-plan',p_idempotency_key,p_request_hash,v_actor,200,v_result,p_document_id);
+  PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'document.allocation-plan.update','business_document',p_document_id,p_request_id,
+    jsonb_build_object('version',v_doc.version,'target_count',jsonb_array_length(p_allocation_plan),'amount',v_total::text,'digest',p_request_hash));
+  RETURN QUERY SELECT p_document_id,v_doc.version,v_doc.state::text,v_doc.net_amount,v_doc.tax_amount,v_doc.total_amount,v_doc.material_digest;
+END $$;
+REVOKE ALL ON FUNCTION public.save_document_allocation_plan(uuid,uuid,integer,text,text,text,jsonb) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.save_document_allocation_plan(uuid,uuid,integer,text,text,text,jsonb) TO authenticated;
 
 CREATE FUNCTION public.read_financial_document(p_organization_id uuid,p_document_id uuid)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$
