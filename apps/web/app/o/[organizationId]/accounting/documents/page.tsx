@@ -33,10 +33,12 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
 
   let rows: DirectoryRow[] | undefined;
+  let canAdjust = false;
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     if (!actor.capabilities.includes("documents.read")) throw CommandError.forbidden();
+    canAdjust = actor.capabilities.includes("dues.adjust");
     rows = await readDocumentDirectory(runtime.client, organizationId);
   } catch (error) {
     failure = error;
@@ -64,6 +66,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
               New {label}
             </Link>
           ))}
+          {canAdjust && <Link className="secondary" href={`/o/${organizationId}/accounting/write-offs/new`}>New bad-debt write-off</Link>}
         </div>
       </section>
       <section className={`panel ${styles.panel}`}>
