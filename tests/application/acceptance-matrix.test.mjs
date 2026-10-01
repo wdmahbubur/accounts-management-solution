@@ -27,10 +27,10 @@ test("US-005 acceptance matrix tracks every T/S case without treating incomplete
   const pending = matrix.filter((entry) => entry.status === "pending");
 
   assert.deepEqual(covered.map((entry) => entry.id), ["S-02", "S-04", "S-05", "S-06", "S-07"]);
-  assert.deepEqual(partial.map((entry) => entry.id), ["S-01"]);
+  assert.deepEqual(partial.map((entry) => entry.id), ["S-01", "S-13"]);
   assert.deepEqual(fixtureReady.map((entry) => entry.id), ["T-47"]);
   assert.equal(covered.length, 5);
-  assert.equal(partial.length, 1);
+  assert.equal(partial.length, 2);
   assert.equal(fixtureReady.length, 1);
-  assert.equal(pending.length, 65);
+  assert.equal(pending.length, 64);
 });
