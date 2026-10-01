@@ -10,9 +10,12 @@ export interface CompanyOnboardingInput {
 }
 
 export class CompanyOnboardingValidationError extends Error {
-  constructor(readonly field: string, message: string) {
+  readonly field: string;
+
+  constructor(field: string, message: string) {
     super(message);
     this.name = "CompanyOnboardingValidationError";
+    this.field = field;
   }
 }
 
