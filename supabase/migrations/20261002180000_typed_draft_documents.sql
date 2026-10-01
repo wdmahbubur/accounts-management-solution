@@ -475,6 +475,8 @@ BEGIN
   IF NOT finance_private.can_read_document(p_organization_id,p_document_id) THEN RAISE EXCEPTION 'document unavailable' USING ERRCODE='P0002'; END IF;
   SELECT * INTO v_document FROM finance.business_documents d WHERE d.organization_id=p_organization_id AND d.id=p_document_id;
   SELECT jsonb_build_object('id',d.id,'document_type',d.document_type,'state',d.state,'document_number',d.document_number,'party_id',d.party_id,
+    'reversal_of_document_id',d.reversal_of_document_id,'reversed_by_document_id',(SELECT r.id FROM finance.business_documents r WHERE r.organization_id=d.organization_id AND r.reversal_of_document_id=d.id),
+    'reversed_by_document_number',(SELECT r.document_number FROM finance.business_documents r WHERE r.organization_id=d.organization_id AND r.reversal_of_document_id=d.id),
     'party_snapshot',d.party_snapshot,'issue_date',d.issue_date,'accounting_date',d.accounting_date,'due_date',d.due_date,'external_reference',d.external_reference,
     'description',d.description,'currency',d.currency,'net_amount',d.net_amount::text,'tax_amount',d.tax_amount::text,'rounding_adjustment',d.rounding_adjustment::text,
     'rounding_reason',d.rounding_reason,'rounding_account_id',d.rounding_account_id,
