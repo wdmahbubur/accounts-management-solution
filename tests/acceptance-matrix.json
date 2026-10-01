@@ -372,9 +372,11 @@
     "status": "partial",
     "evidence": [
       "supabase/tests/database/01_tenant_isolation.test.sql",
-      "tests/application/commands.test.ts"
+      "tests/application/commands.test.ts",
+      "supabase/tests/database/05_company_context.test.sql",
+      "tests/browser/company-switching.spec.ts"
     ],
-    "note": "Real DB tenant isolation and inaccessible-organization masking exist, but the full guessed source/account/file UUID application path is not implemented yet; do not count as passed."
+    "note": "Tenant isolation, active company listing, live context validation and permission-safe organization denial have real evidence; guessed source/account/file UUID paths remain future feature surfaces, so this case is still partial."
   },
   {
     "id": "S-02",
@@ -485,9 +487,13 @@
   {
     "id": "S-15",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/application/company-context.test.ts",
+      "tests/browser/company-switching.spec.ts",
+      "apps/web/server/tenant-scope.ts"
+    ],
+    "note": "A real browser switch invalidates a previously loaded tenant shell and all cache/query/download key primitives include organization scope. The future finance dashboard named by S-15 does not exist yet, so the case is not counted as covered."
   },
   {
     "id": "S-16",

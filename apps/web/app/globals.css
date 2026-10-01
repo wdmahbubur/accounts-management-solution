@@ -215,3 +215,42 @@ code.inline {
     grid-template-columns: 1fr;
   }
 }
+
+
+.company-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.company-card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid #d8deea;
+  border-radius: 14px;
+  background: white;
+}
+
+.company-card[data-current="true"] {
+  border-color: #172033;
+  box-shadow: 0 0 0 1px #172033;
+}
+
+.company-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.company-card-heading h2,
+.company-card-heading p {
+  margin: 0;
+}
+
+.current-badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e9edf5;
+  font-size: 0.8rem;
+}
