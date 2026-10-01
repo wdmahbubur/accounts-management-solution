@@ -68,3 +68,16 @@ export async function previewFinancialDocument(client:RpcClient,actor:ActorConte
   return{documentId,documentVersion:expectedVersion,preview:{currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced:debits===credits},
     warnings:[...(journal.length&&debits!==credits?["Journal draft is unbalanced."]:[]),"Preview only. No journal, settlement or cash movement is created."]};
 }
+export async function previewApprovalDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number){
+  if(!actor.capabilities.includes("approvals.read"))throw CommandError.forbidden();
+  const source=await readFinancialDocument(client,actor,documentId);if(Number(source.version)!==expectedVersion)throw CommandError.conflict("STALE_VERSION");
+  const rows=Array.isArray(source.lines)?source.lines.map((raw)=>record(raw,"line")):[];
+  if(rows.length){const rounding=String(source.rounding_adjustment??"0.00");const preview=calculateDocument({currency:"BDT",lines:rows.map((line)=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
+      discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
+      ...(rounding==="0.00"?{}:{rounding:{amount:rounding,reason:String(source.rounding_reason),account_id:String(source.rounding_account_id)}})});
+    return{documentId,documentVersion:expectedVersion,preview,warnings:["Review preview only. Posting remains a separate authorized action."]};}
+  const journal=Array.isArray(source.journal_rows)?source.journal_rows.map((raw)=>record(raw,"journal_row")):[];let debits=0n,credits=0n;
+  for(const row of journal){debits+=moneyUnits(String(row.debit));credits+=moneyUnits(String(row.credit));}
+  return{documentId,documentVersion:expectedVersion,preview:{currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced:debits===credits},
+    warnings:[...(journal.length&&debits!==credits?["Journal draft is unbalanced."]:[]),"Review preview only. Posting remains a separate authorized action."]};
+}
