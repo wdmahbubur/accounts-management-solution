@@ -95,6 +95,9 @@ jobs:
       - name: Run pgTAP database acceptance tests
         run: supabase test db
 
+      - name: Verify exact TypeScript and PostgreSQL calculation parity
+        run: node scripts/test-calculation-parity.mjs
+
       - name: Lint database routines
         run: supabase db lint --level error --fail-on error
 
