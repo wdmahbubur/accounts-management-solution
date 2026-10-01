@@ -1,4 +1,4 @@
-import { parseOrganizationId } from "@ams/contracts";
+import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -47,7 +47,7 @@ export default async function OrganizationContextPage({
 
   const resolver = createSupabaseMembershipResolver(supabase);
   const membership = await resolver.resolveActiveMembership({
-    userId: user.id as never,
+    userId: parseUuid(user.id, "verified_user_id"),
     organizationId
   });
 
