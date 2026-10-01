@@ -9,7 +9,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;
 }) {
   const path = usePathname(); const online = useOnline(); const root = `/o/${organizationId}`;
-  const current = path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : path.endsWith("/settings/taxes") ? "Tax configuration" : path.endsWith("/settings/approvals") ? "Approval policies" : path.endsWith("/approvals") ? "Approval inbox" : path.endsWith("/accounting/accounts") ? "Chart of accounts" : path.includes("/accounting/documents") ? "Financial documents" : "Workspace overview";
+  const current = path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : path.endsWith("/settings/taxes") ? "Tax configuration" : path.endsWith("/settings/approvals") ? "Approval policies" : path.endsWith("/approvals") ? "Approval inbox" : path.endsWith("/accounting/periods") ? "Fiscal periods" : path.endsWith("/accounting/accounts") ? "Chart of accounts" : path.includes("/accounting/documents") ? "Financial documents" : "Workspace overview";
   const nav = [{ href: root, label: "Workspace overview" }, ...(capabilities.includes("users.read") ? [
     { href: `${root}/settings/users`, label: "Manage users" }, { href: `${root}/settings/roles`, label: "Manage roles" }
   ] : []), ...(capabilities.includes("accounting.read") ? [{ href: `${root}/accounting/accounts`, label: "Chart of accounts" }] : []),
@@ -17,6 +17,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   if (capabilities.includes("approvals.manage")) nav.push({ href: `${root}/settings/approvals`, label: "Approval policies" });
   if (capabilities.includes("approvals.read")) nav.push({ href: `${root}/approvals`, label: "Approval inbox" });
   if (capabilities.includes("documents.read")) nav.push({ href: `${root}/accounting/documents`, label: "Financial documents" });
+  if (capabilities.includes("accounting.read")) nav.push({ href: `${root}/accounting/periods`, label: "Fiscal periods" });
   return <div className={styles.shell}>
     <a className={styles.skip} href="#workspace-content">Skip to workspace content</a>
     <aside className={styles.sidebar} aria-label="Workspace sidebar">
