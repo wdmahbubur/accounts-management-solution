@@ -16,6 +16,7 @@ export default defineConfig({
     }
   ],
   webServer: {
+    env: { AMS_UI_TEST_HARNESS: "1" },
     command: "npm run build && npm run start --workspace=@ams/web -- --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
