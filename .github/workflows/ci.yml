@@ -110,11 +110,17 @@ jobs:
       - name: Verify last-owner concurrency protection
         run: bash scripts/test-role-race.sh
 
+      - name: Verify single-use invitation acceptance race
+        run: bash scripts/test-invitation-race.sh
+
       - name: Verify role-template migration backfill
         run: bash scripts/test-role-migration-upgrade.sh
 
       - name: Verify staged migration upgrade path
         run: bash scripts/test-migration-upgrade.sh
+
+      - name: Verify invitation upgrade preserves accepted access and retires legacy links
+        run: bash scripts/test-invitation-upgrade.sh
 
   browser:
     name: Playwright browser harness
