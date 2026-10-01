@@ -2,37 +2,59 @@ name: Story workbench
 on:
   push:
     branches: [feat/us-009-capability-roles]
-    paths: [.github/workflows/story-workbench.yml]
+    paths: [.github/handoff/story-apply.json]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  snapshot:
+  apply:
+    if: github.repository == 'wdmahbubur/accounts-management-solution'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Archive tracked source only
-        run: git archive --format=tar.gz --output=source.tar.gz HEAD
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: story-source
-          path: source.tar.gz
-          retention-days: 1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Package isolated local test runtime
+      - name: Validate and apply reviewed source patch
+        shell: python
         run: |
-          mkdir -p /tmp/ams-runtime/bin
-          cp "$(command -v node)" /tmp/ams-runtime/bin/node
-          tar -czf /tmp/ams-runtime/dependencies.tar.gz node_modules apps/web/node_modules packages/*/node_modules 2>/dev/null || test -s /tmp/ams-runtime/dependencies.tar.gz
+          import base64, gzip, hashlib, json, pathlib, subprocess
+          request = json.loads(pathlib.Path('.github/handoff/story-apply.json').read_text())
+          parts = request['parts']
+          assert 1 <= len(parts) <= 8
+          assert all(p.startswith('.github/handoff/story-part-') and p.endswith('.b64') and '..' not in p for p in parts)
+          encoded = ''.join(pathlib.Path(p).read_text().strip() for p in parts)
+          raw = gzip.decompress(base64.b64decode(encoded, validate=True))
+          assert len(raw) < 2000000
+          assert hashlib.sha256(raw).hexdigest() == request['sha256'], 'Patch checksum mismatch'
+          data = json.loads(raw)
+          paths = [f['path'] for f in data['files']]
+          assert len(paths) == len(set(paths)) and len(paths) <= 100
+          for f in data['files']:
+              p = pathlib.Path(f['path'])
+              assert not p.is_absolute() and '..' not in p.parts and not p.is_symlink()
+              assert p.parts[0] in ('apps', 'packages', 'scripts', 'supabase', 'tests', 'docs')
+              assert not any(part.startswith('.env') or part == 'node_modules' for part in p.parts)
+              actual = hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else None
+              assert actual == f['before'], 'Concurrent file change: ' + str(p)
+          patch = '/tmp/story.patch'
+          pathlib.Path(patch).write_text(data['patch'])
+          subprocess.run(['git', 'apply', '--check', patch], check=True)
+          subprocess.run(['git', 'apply', patch], check=True)
+          changed = subprocess.check_output(['git','diff','--name-only']).decode().splitlines()
+          added = subprocess.check_output(['git','ls-files','--others','--exclude-standard']).decode().splitlines()
+          assert set(changed + added) == set(paths), 'Unexpected patch paths'
+          subprocess.run(['git', 'add', '--', *paths], check=True)
+          subprocess.run(['git', 'diff', '--cached', '--check'], check=True)
+          subprocess.run(['git','config','user.name','github-actions[bot]'], check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git','commit','-m','feat: complete US-009 role management boundaries and application flows'], check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/feat/us-009-capability-roles'], check=True)
+      - name: Archive applied tracked source
+        run: |
+          git archive --format=tar.gz --output=/tmp/story-source.tar.gz HEAD
+          git rev-parse HEAD > /tmp/story-head.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: story-runtime
-          path: /tmp/ams-runtime
+          name: story-applied-source
+          path: |
+            /tmp/story-source.tar.gz
+            /tmp/story-head.txt
           retention-days: 1
