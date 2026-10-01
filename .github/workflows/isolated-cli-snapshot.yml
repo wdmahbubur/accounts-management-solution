@@ -19,14 +19,29 @@ jobs:
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
         with:
           version: 2.118.0
-      - name: Copy and verify standalone pinned CLI
+      - name: Resolve and verify installed platform binary
+        shell: python
         run: |
-          mkdir -p /tmp/ams-cli/bin
-          cp "$(readlink -f "$(command -v supabase)")" /tmp/ams-cli/bin/supabase
-          chmod +x /tmp/ams-cli/bin/supabase
-          test "$(/tmp/ams-cli/bin/supabase --version)" = "2.118.0"
-          /tmp/ams-cli/bin/supabase migration new --help
-          tar -czf /tmp/ams-cli.tar.gz -C /tmp/ams-cli bin
+          import pathlib, shutil, subprocess
+          shim = pathlib.Path(shutil.which('supabase')).resolve()
+          root = next(p for p in shim.parents if p.name == 'node_modules')
+          dest = pathlib.Path('/tmp/ams-cli/bin/supabase')
+          dest.parent.mkdir(parents=True, exist_ok=True)
+          for path in root.rglob('*'):
+              if not path.is_file() or 'supabase' not in str(path):
+                  continue
+              with path.open('rb') as stream:
+                  magic = stream.read(4)
+              if magic != b'\x7fELF':
+                  continue
+              result = subprocess.run([str(path), '--version'], capture_output=True, text=True, timeout=15)
+              if result.returncode == 0 and result.stdout.strip() == '2.118.0':
+                  shutil.copyfile(path, dest)
+                  dest.chmod(0o755)
+                  break
+          assert dest.exists(), 'Pinned platform binary was not found'
+          subprocess.run([str(dest), 'migration', 'new', '--help'], check=True)
+          subprocess.run(['tar', '-czf', '/tmp/ams-cli.tar.gz', '-C', '/tmp/ams-cli', 'bin'], check=True)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: pinned-supabase-cli
