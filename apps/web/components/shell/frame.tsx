@@ -19,6 +19,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   ] : []), ...(capabilities.includes("tax.read") ? [
     { href: `${root}/settings/taxes`, label: "Tax configuration" }
   ] : [])];
+  if (capabilities.includes("documents.read")) nav.push({ href: `${root}/accounting/documents`, label: "Financial documents" });
   return <div className={styles.shell}>
     <a className={styles.skip} href="#workspace-content">Skip to workspace content</a>
     <aside className={styles.sidebar} aria-label="Workspace sidebar">

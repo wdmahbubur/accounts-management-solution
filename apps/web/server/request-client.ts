@@ -6,6 +6,10 @@ import { withActorTransaction } from "./database.ts";
 const procedures = new Set([
   "authorize_artifact_download",
   "create_company_atomic",
+  "save_financial_document",
+  "save_document_allocation_plan",
+  "read_financial_document",
+  "list_document_draft_options",
   "create_custom_role",
   "deactivate_member",
   "get_own_profile",
