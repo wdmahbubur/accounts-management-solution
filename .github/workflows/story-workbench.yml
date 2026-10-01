@@ -1,0 +1,38 @@
+name: Story workbench
+on:
+  push:
+    branches: [feat/us-009-capability-roles]
+    paths: [.github/workflows/story-workbench.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Archive tracked source only
+        run: git archive --format=tar.gz --output=source.tar.gz HEAD
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: story-source
+          path: source.tar.gz
+          retention-days: 1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Package isolated local test runtime
+        run: |
+          mkdir -p /tmp/ams-runtime/bin
+          cp "$(command -v node)" /tmp/ams-runtime/bin/node
+          tar -czf /tmp/ams-runtime/dependencies.tar.gz node_modules apps/web/node_modules packages/*/node_modules 2>/dev/null || test -s /tmp/ams-runtime/dependencies.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: story-runtime
+          path: /tmp/ams-runtime
+          retention-days: 1
