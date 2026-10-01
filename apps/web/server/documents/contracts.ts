@@ -10,6 +10,7 @@ export interface DraftDocument {
   trade: Record<string, unknown>|null; movement: Record<string, unknown>|null; transfer: Record<string, unknown>|null;
   lines: DraftLine[]; journalRows: Record<string, unknown>[]; allocationPlan: { targetOpenItemId: Uuid; amount: MoneyString }[];
 }
+export interface AllocationPlanInput { expectedVersion:number; allocationPlan:{targetOpenItemId:Uuid;amount:MoneyString}[] }
 export function record(raw: unknown, field="body"): Record<string, unknown> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw CommandError.validation({ [field]: "Expected an object." });
   return raw as Record<string, unknown>;
@@ -21,6 +22,13 @@ function decimal(value:unknown,field:string,scale:number){const pattern=scale===
 function idOrNull(value:unknown,field:string):Uuid|null{return value===null?null:parseUuid(value,field);}
 function enumValue(value:unknown,values:readonly string[],field:string){if(typeof value!=="string"||!values.includes(value))throw CommandError.validation({[field]:"Choose a supported value."});return value;}
 function jsonObject(value:unknown,keys:readonly string[],field:string):Record<string,unknown>|null{if(value===undefined||value===null)return null;const r=record(value,field);exactKeys(r,keys,field);return r;}
+export function validateAllocationPlanInput(raw:unknown):AllocationPlanInput{
+  const r=record(raw);exactKeys(r,["expected_version","allocation_plan"],"body");
+  if(!Number.isSafeInteger(r.expected_version)||Number(r.expected_version)<1)throw CommandError.validation({expected_version:"Refresh the current document before saving its settlement plan."});
+  if(!Array.isArray(r.allocation_plan)||r.allocation_plan.length>100)throw CommandError.validation({allocation_plan:"Use up to 100 settlement targets."});
+  const seen=new Set<string>();const allocationPlan=r.allocation_plan.map((item,index)=>{const plan=record(item,`allocation_plan.${index+1}`);exactKeys(plan,["target_open_item_id","amount"],`allocation_plan.${index+1}`);const targetOpenItemId=parseUuid(plan.target_open_item_id,"target_open_item_id");if(seen.has(targetOpenItemId))throw CommandError.validation({allocation_plan:"Use each open item only once."});seen.add(targetOpenItemId);const amount=parseMoneyString(plan.amount,`allocation_plan.${index+1}.amount`);if(BigInt(amount.replace(".",""))<=0n)throw CommandError.validation({[`allocation_plan.${index+1}.amount`]:"Enter an amount greater than zero."});return{targetOpenItemId,amount};});
+  return{expectedVersion:Number(r.expected_version),allocationPlan};
+}
 export function validateDraftDocument(raw:unknown):DraftDocument{
   const r=record(raw);exactKeys(r,["document_type","party_id","issue_date","accounting_date","due_date","external_reference","description","currency","rounding_adjustment","rounding_reason","rounding_account_id","trade","movement","transfer","lines","journal_rows","allocation_plan"],"body");
   const documentType=enumValue(r.document_type,sourceTypes,"document_type") as SourceType;
@@ -28,7 +36,7 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   if(!Array.isArray(r.lines)||r.lines.length>500)throw CommandError.validation({lines:"Use up to 500 document lines."});
   if(!Array.isArray(r.journal_rows)||r.journal_rows.length>1000)throw CommandError.validation({journal_rows:"Use up to 1,000 journal rows."});
   const allocationPlanRaw=r.allocation_plan??[];if(!Array.isArray(allocationPlanRaw)||allocationPlanRaw.length>100)throw CommandError.validation({allocation_plan:"Use up to 100 settlement targets."});
-  const allocationPlan=allocationPlanRaw.map((item,index)=>{const plan=record(item,`allocation_plan.${index+1}`);exactKeys(plan,["target_open_item_id","amount"],`allocation_plan.${index+1}`);const amount=parseMoneyString(plan.amount,`allocation_plan.${index+1}.amount`);if(BigInt(amount.replace(".",""))<=0n)throw CommandError.validation({[`allocation_plan.${index+1}.amount`]:"Enter an amount greater than zero."});return{targetOpenItemId:parseUuid(plan.target_open_item_id,"target_open_item_id"),amount};});
+  const planIds=new Set<string>();const allocationPlan=allocationPlanRaw.map((item,index)=>{const plan=record(item,`allocation_plan.${index+1}`);exactKeys(plan,["target_open_item_id","amount"],`allocation_plan.${index+1}`);const amount=parseMoneyString(plan.amount,`allocation_plan.${index+1}.amount`);if(BigInt(amount.replace(".",""))<=0n)throw CommandError.validation({[`allocation_plan.${index+1}.amount`]:"Enter an amount greater than zero."});const targetOpenItemId=parseUuid(plan.target_open_item_id,"target_open_item_id");if(planIds.has(targetOpenItemId))throw CommandError.validation({allocation_plan:"Use each open item only once."});planIds.add(targetOpenItemId);return{targetOpenItemId,amount};});
   const lines=r.lines.map((item,index)=>{const line=record(item,`lines.${index+1}`);exactKeys(line,["id","item_id","original_line_id","description","quantity","unit_price","discount_amount","account_id","cost_center_id","tax_code_id","tax_mode","cash_flow_class"],`lines.${index+1}`);return{
     id:idOrNull(line.id??null,"line_id"),itemId:idOrNull(line.item_id??null,"item_id"),originalLineId:idOrNull(line.original_line_id??null,"original_line_id"),description:text(line.description,`lines.${index+1}.description`,500),
     quantity:decimal(line.quantity,`lines.${index+1}.quantity`,6),unitPrice:decimal(line.unit_price,`lines.${index+1}.unit_price`,6),discountAmount:parseMoneyString(line.discount_amount??"0.00",`lines.${index+1}.discount_amount`),

@@ -4,7 +4,7 @@ import { calculateDocument, moneyUnits, formatMoney } from "@ams/accounting";
 import { CommandError } from "../commands/errors.ts";
 import type { ActorContext } from "../auth/types.ts";
 import type { OrganizationCommandDefinition } from "../commands/types.ts";
-import { record, documentDatabaseError, validateDraftDocument, type DraftDocument } from "./contracts.ts";
+import { record, documentDatabaseError, validateDraftDocument, validateAllocationPlanInput, type AllocationPlanInput, type DraftDocument } from "./contracts.ts";
 
 type RpcClient=Pick<SupabaseClient,"rpc">;
 const typeCapability:Record<string,string>={invoice:"sales.write",customer_credit:"sales.write",receipt:"sales.write",customer_refund:"sales.write",customer_advance:"sales.write",
@@ -31,8 +31,18 @@ async function save(client:RpcClient,actor:ActorContext,request:{requestId:strin
 }
 export function createDraftCommand(client:RpcClient):OrganizationCommandDefinition<DraftDocument,SaveDraftReceipt>{return{operation:"documents.save",capability:capability("documents.read"),idempotency:"required",validate:validateDraftDocument,
   execute:(context,input)=>save(client,context.actor,context,input,null,null)};}
-export function updateDraftCommand(client:RpcClient,documentId:string):OrganizationCommandDefinition<{expectedVersion:number;draft:DraftDocument},SaveDraftReceipt>{return{operation:"documents.save",capability:capability("documents.read"),idempotency:"required",validate:validateSaveEnvelope,
+export function updateDraftCommand(client:RpcClient,documentId:string):OrganizationCommandDefinition<{expectedVersion:number;draft:DraftDocument},SaveDraftReceipt>{return{operation:`documents.save:${documentId}`,capability:capability("documents.read"),idempotency:"required",validate:validateSaveEnvelope,
   execute:(context,input)=>save(client,context.actor,context,input.draft,documentId,input.expectedVersion)};}
+export function updateAllocationPlanCommand(client:RpcClient,documentId:string):OrganizationCommandDefinition<AllocationPlanInput,SaveDraftReceipt>{return{operation:`documents.allocation-plan:${documentId}`,capability:capability("documents.read"),idempotency:"required",validate:validateAllocationPlanInput,
+  async execute(context,input){const source=await readFinancialDocument(client,context.actor,documentId);const type=String(source.document_type);const required=typeCapability[type];
+    if(!required||!context.actor.capabilities.includes(required)||!context.actor.capabilities.includes("dues.read"))throw CommandError.forbidden();
+    const r=await client.rpc("save_document_allocation_plan",{p_organization_id:context.actor.organizationId,p_document_id:documentId,p_expected_version:input.expectedVersion,
+      p_request_id:context.requestId,p_idempotency_key:context.idempotencyKey,p_request_hash:context.requestHash,
+      p_allocation_plan:input.allocationPlan.map((p)=>({target_open_item_id:p.targetOpenItemId,amount:p.amount}))});
+    if(r.error)throw documentDatabaseError(r.error);if(!Array.isArray(r.data)||r.data.length!==1)throw new Error("Invalid allocation-plan receipt.");const row=record(r.data[0],"receipt");
+    if(typeof row.document_id!=="string"||!Number.isSafeInteger(row.document_version)||typeof row.state!=="string"||typeof row.net_amount!=="string"||typeof row.tax_amount!=="string"||typeof row.total_amount!=="string"||typeof row.material_digest!=="string")throw new Error("Malformed allocation-plan receipt.");
+    return{documentId:row.document_id,documentVersion:Number(row.document_version),state:row.state,netAmount:row.net_amount,taxAmount:row.tax_amount,totalAmount:row.total_amount,materialDigest:row.material_digest};
+  }};}
 export async function readFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string){
   const r=await client.rpc("read_financial_document",{p_organization_id:actor.organizationId,p_document_id:documentId});if(r.error)throw documentDatabaseError(r.error);
   return record(r.data,"document");
