@@ -46,7 +46,7 @@ export default async function DocumentDetailPage({ params }: {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const documentType = String(document.document_type);
-    const canEdit = !["posted", "void"].includes(String(document.state)) &&
+    const canEdit = String(document.state) === "draft" &&
       (sourceTypes as readonly string[]).includes(documentType);
     if (canEdit) {
       const raw = await readDraftOptions(runtime.client, actor, documentType, String(document.accounting_date));
