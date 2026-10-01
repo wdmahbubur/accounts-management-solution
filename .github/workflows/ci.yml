@@ -119,6 +119,9 @@ jobs:
       - name: Verify single-use invitation acceptance race
         run: bash scripts/test-invitation-race.sh
 
+      - name: Verify versioned settings and first-activity races
+        run: python scripts/test-company-settings-race.py
+
       - name: Verify role-template migration backfill
         run: bash scripts/test-role-migration-upgrade.sh
 
@@ -127,6 +130,9 @@ jobs:
 
       - name: Verify invitation upgrade preserves accepted access and retires legacy links
         run: bash scripts/test-invitation-upgrade.sh
+
+      - name: Verify company settings upgrade preserves historical facts
+        run: bash scripts/test-company-settings-upgrade.sh
 
   browser:
     name: Playwright browser harness

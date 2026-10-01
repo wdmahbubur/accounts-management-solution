@@ -9,8 +9,8 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;
 }) {
   const path = usePathname(); const online = useOnline(); const root = `/o/${organizationId}`;
-  const current = path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : "Workspace overview";
-  const nav = [{ href: root, label: "Workspace overview" }, ...(capabilities.includes("users.read") ? [
+  const current = path.endsWith("/settings/company") ? "Company settings" : path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : "Workspace overview";
+  const nav = [{ href: root, label: "Workspace overview" }, ...(capabilities.includes("company.read") ? [{ href: `${root}/settings/company`, label: "Company settings" }] : []), ...(capabilities.includes("users.read") ? [
     { href: `${root}/settings/users`, label: "Manage users" }, { href: `${root}/settings/roles`, label: "Manage roles" }
   ] : [])];
   return <div className={styles.shell}>
