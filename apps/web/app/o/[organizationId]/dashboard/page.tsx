@@ -75,6 +75,7 @@ export default async function OrganizationDashboardPage({
               <Link href={`/o/${organizationId}/settings/roles`}>Roles and permissions</Link>
             </>}
             {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/periods`}>Fiscal periods</Link>}
+            {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/accounts`}>Chart of accounts</Link>}
             <Link href="/settings/profile">Profile preferences</Link>
             <Link href="/settings/security">Session security</Link>
           </nav>
