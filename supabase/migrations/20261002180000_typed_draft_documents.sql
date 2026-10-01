@@ -61,6 +61,7 @@ CREATE TRIGGER document_lines_draft_guard BEFORE INSERT OR UPDATE OR DELETE ON f
 CREATE TRIGGER money_movements_draft_guard BEFORE INSERT OR UPDATE OR DELETE ON finance.money_movements FOR EACH ROW EXECUTE FUNCTION finance_private.guard_draft_child();
 CREATE TRIGGER transfers_draft_guard BEFORE INSERT OR UPDATE OR DELETE ON finance.transfers FOR EACH ROW EXECUTE FUNCTION finance_private.guard_draft_child();
 CREATE TRIGGER manual_journal_rows_draft_guard BEFORE INSERT OR UPDATE OR DELETE ON finance.manual_journal_rows FOR EACH ROW EXECUTE FUNCTION finance_private.guard_draft_child();
+CREATE TRIGGER document_allocation_plans_draft_guard BEFORE INSERT OR UPDATE OR DELETE ON finance.document_allocation_plans FOR EACH ROW EXECUTE FUNCTION finance_private.guard_draft_child();
 
 CREATE FUNCTION finance_private.require_decimal_string(p_value jsonb,p_scale integer,p_signed boolean DEFAULT false)
 RETURNS void LANGUAGE plpgsql IMMUTABLE SECURITY DEFINER SET search_path='' AS $$
@@ -102,13 +103,15 @@ DECLARE v_actor uuid; v_type finance.document_type; v_permission text; v_documen
   v_issue date; v_accounting date; v_due date; v_books_start date; v_year_id uuid; v_currency text; v_rounding finance.amount;
   v_rounding_reason text; v_rounding_account uuid; v_rounding_row finance.accounts%ROWTYPE; v_receipt jsonb; v_existing_hash text; v_existing_actor uuid; v_result jsonb;
   v_line_count integer:=0; v_journal_count integer:=0; v_debits finance.amount; v_credits finance.amount; v_movement_amount finance.amount;
+  v_plan_total finance.amount:=0; v_plan_amount finance.amount; v_target finance.open_items%ROWTYPE; v_plan_control text; v_plan_side text; v_plan jsonb;
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_idempotency_key IS NULL OR p_idempotency_key !~ '^[A-Za-z0-9_-]{22,172}$' OR p_request_hash IS NULL OR p_request_hash !~ '^[0-9a-f]{64}$' THEN
     RAISE EXCEPTION 'valid idempotency key and request hash required' USING ERRCODE='22023';
   END IF;
-  IF jsonb_typeof(p_payload) IS DISTINCT FROM 'object' OR jsonb_typeof(p_payload->'lines') IS DISTINCT FROM 'array' OR octet_length(p_payload::text)>1000000 THEN
-    RAISE EXCEPTION 'document payload and line array required' USING ERRCODE='22023';
+  IF jsonb_typeof(p_payload) IS DISTINCT FROM 'object' OR jsonb_typeof(p_payload->'lines') IS DISTINCT FROM 'array' OR
+     jsonb_typeof(COALESCE(p_payload->'allocation_plan','[]'::jsonb)) IS DISTINCT FROM 'array' OR octet_length(p_payload::text)>1000000 THEN
+    RAISE EXCEPTION 'document payload and typed arrays required' USING ERRCODE='22023';
   END IF;
   BEGIN v_type:=(p_payload->>'document_type')::finance.document_type;
     v_issue:=(p_payload->>'issue_date')::date; v_accounting:=(p_payload->>'accounting_date')::date;
@@ -213,6 +216,7 @@ BEGIN
     DELETE FROM finance.money_movements WHERE organization_id=p_organization_id AND document_id=v_id;
     DELETE FROM finance.transfers WHERE organization_id=p_organization_id AND document_id=v_id;
     DELETE FROM finance.manual_journal_rows WHERE organization_id=p_organization_id AND document_id=v_id;
+    DELETE FROM finance.document_allocation_plans WHERE organization_id=p_organization_id AND document_id=v_id;
     v_document.version:=v_document.version+1;
   END IF;
   IF v_type IN ('invoice','customer_credit','bill','vendor_credit','paid_expense') THEN
@@ -281,6 +285,43 @@ BEGIN
   IF v_type IN ('receipt','vendor_payment','customer_refund','vendor_refund','customer_advance','vendor_advance','paid_expense') AND
      NOT EXISTS(SELECT 1 FROM finance.money_movements m WHERE m.organization_id=p_organization_id AND m.document_id=v_id) THEN
     RAISE EXCEPTION 'this source type requires a cash movement' USING ERRCODE='23514';
+  END IF;
+  IF jsonb_array_length(COALESCE(p_payload->'allocation_plan','[]'::jsonb))>0 THEN
+    IF v_type NOT IN ('receipt','vendor_payment') OR v_party IS NULL OR
+       jsonb_array_length(p_payload->'allocation_plan')>100 THEN
+      RAISE EXCEPTION 'allocation plans are only supported for receipt and supplier payment drafts' USING ERRCODE='23514';
+    END IF;
+    PERFORM finance_private.require_capability(p_organization_id,'dues.read');
+    v_plan_control:=CASE WHEN v_type='receipt' THEN 'ar' ELSE 'ap' END;
+    v_plan_side:=CASE WHEN v_type='receipt' THEN 'debit' ELSE 'credit' END;
+    FOR v_plan IN SELECT value FROM jsonb_array_elements(p_payload->'allocation_plan') LOOP
+      IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR jsonb_object_length(v_plan)<>2 OR
+         NOT (v_plan ? 'target_open_item_id' AND v_plan ? 'amount') THEN
+        RAISE EXCEPTION 'invalid allocation plan row' USING ERRCODE='22023';
+      END IF;
+      PERFORM finance_private.require_decimal_string(v_plan->'amount',2,false);
+      v_plan_amount:=(v_plan->>'amount')::finance.amount;
+      IF v_plan_amount<=0 THEN RAISE EXCEPTION 'allocation amount must be positive' USING ERRCODE='23514'; END IF;
+      SELECT * INTO v_target FROM finance.open_items oi WHERE oi.organization_id=p_organization_id
+        AND oi.id=(v_plan->>'target_open_item_id')::uuid AND oi.party_id=v_party
+        AND oi.control_kind=v_plan_control AND oi.side=v_plan_side AND oi.issue_date<=v_accounting FOR UPDATE;
+      IF NOT FOUND THEN RAISE EXCEPTION 'allocation target is incompatible or unavailable' USING ERRCODE='23514'; END IF;
+      IF v_plan_amount>v_target.original_amount-COALESCE((
+        SELECT sum(a.amount) FROM finance.settlement_allocations a LEFT JOIN finance.allocation_reversals r
+          ON r.organization_id=a.organization_id AND r.allocation_id=a.id AND r.effective_date<=v_accounting
+        WHERE a.organization_id=p_organization_id AND a.effective_date<=v_accounting AND r.id IS NULL
+          AND (a.debit_open_item_id=v_target.id OR a.credit_open_item_id=v_target.id)),0) THEN
+        RAISE EXCEPTION 'allocation exceeds historical open-item capacity' USING ERRCODE='23514';
+      END IF;
+      INSERT INTO finance.document_allocation_plans(organization_id,document_id,target_open_item_id,amount)
+        VALUES(p_organization_id,v_id,v_target.id,v_plan_amount);
+      v_plan_total:=v_plan_total+v_plan_amount;
+    END LOOP;
+    SELECT m.amount INTO v_movement_amount FROM finance.money_movements m
+      WHERE m.organization_id=p_organization_id AND m.document_id=v_id;
+    IF v_movement_amount IS NULL OR v_plan_total>v_movement_amount THEN
+      RAISE EXCEPTION 'planned settlements exceed the draft payment amount' USING ERRCODE='23514';
+    END IF;
   END IF;
   IF p_payload ? 'transfer' AND jsonb_typeof(p_payload->'transfer')='object' THEN
     v_row:=p_payload->'transfer';
@@ -363,7 +404,9 @@ BEGIN
       WHERE l.organization_id=d.organization_id AND l.document_id=d.id),'[]'::jsonb),
     'journal_rows',COALESCE((SELECT jsonb_agg(jsonb_build_object('line_no',j.line_no,'account_id',j.account_id,'party_id',j.party_id,'cost_center_id',j.cost_center_id,
       'debit',j.debit::text,'credit',j.credit::text,'description',j.description,'cash_flow_class',j.cash_flow_class,'open_item_reference',j.open_item_reference,
-      'open_item_due_date',j.open_item_due_date) ORDER BY j.line_no) FROM finance.manual_journal_rows j WHERE j.organization_id=d.organization_id AND j.document_id=d.id),'[]'::jsonb))
+      'open_item_due_date',j.open_item_due_date) ORDER BY j.line_no) FROM finance.manual_journal_rows j WHERE j.organization_id=d.organization_id AND j.document_id=d.id),'[]'::jsonb),
+    'allocation_plan',COALESCE((SELECT jsonb_agg(jsonb_build_object('target_open_item_id',p.target_open_item_id,'amount',p.amount::text) ORDER BY p.target_open_item_id)
+      FROM finance.document_allocation_plans p WHERE p.organization_id=d.organization_id AND p.document_id=d.id),'[]'::jsonb))
     INTO v_result FROM finance.business_documents d LEFT JOIN finance.trade_documents td ON td.organization_id=d.organization_id AND td.document_id=d.id
       LEFT JOIN finance.money_movements mm ON mm.organization_id=d.organization_id AND mm.document_id=d.id
       LEFT JOIN finance.transfers tr ON tr.organization_id=d.organization_id AND tr.document_id=d.id

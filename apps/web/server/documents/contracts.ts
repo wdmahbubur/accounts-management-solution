@@ -8,7 +8,7 @@ export interface DraftDocument {
   documentType: SourceType; partyId: Uuid|null; issueDate: string; accountingDate: string; dueDate: string|null;
   externalReference: string|null; description: string; currency: "BDT"; roundingAdjustment: MoneyString; roundingReason:string|null; roundingAccountId:Uuid|null;
   trade: Record<string, unknown>|null; movement: Record<string, unknown>|null; transfer: Record<string, unknown>|null;
-  lines: DraftLine[]; journalRows: Record<string, unknown>[];
+  lines: DraftLine[]; journalRows: Record<string, unknown>[]; allocationPlan: { targetOpenItemId: Uuid; amount: MoneyString }[];
 }
 export function record(raw: unknown, field="body"): Record<string, unknown> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw CommandError.validation({ [field]: "Expected an object." });
@@ -22,11 +22,13 @@ function idOrNull(value:unknown,field:string):Uuid|null{return value===null?null
 function enumValue(value:unknown,values:readonly string[],field:string){if(typeof value!=="string"||!values.includes(value))throw CommandError.validation({[field]:"Choose a supported value."});return value;}
 function jsonObject(value:unknown,keys:readonly string[],field:string):Record<string,unknown>|null{if(value===undefined||value===null)return null;const r=record(value,field);exactKeys(r,keys,field);return r;}
 export function validateDraftDocument(raw:unknown):DraftDocument{
-  const r=record(raw);exactKeys(r,["document_type","party_id","issue_date","accounting_date","due_date","external_reference","description","currency","rounding_adjustment","rounding_reason","rounding_account_id","trade","movement","transfer","lines","journal_rows"],"body");
+  const r=record(raw);exactKeys(r,["document_type","party_id","issue_date","accounting_date","due_date","external_reference","description","currency","rounding_adjustment","rounding_reason","rounding_account_id","trade","movement","transfer","lines","journal_rows","allocation_plan"],"body");
   const documentType=enumValue(r.document_type,sourceTypes,"document_type") as SourceType;
   if(r.currency!=="BDT")throw CommandError.validation({currency:"V1 supports BDT only."});
   if(!Array.isArray(r.lines)||r.lines.length>500)throw CommandError.validation({lines:"Use up to 500 document lines."});
   if(!Array.isArray(r.journal_rows)||r.journal_rows.length>1000)throw CommandError.validation({journal_rows:"Use up to 1,000 journal rows."});
+  const allocationPlanRaw=r.allocation_plan??[];if(!Array.isArray(allocationPlanRaw)||allocationPlanRaw.length>100)throw CommandError.validation({allocation_plan:"Use up to 100 settlement targets."});
+  const allocationPlan=allocationPlanRaw.map((item,index)=>{const plan=record(item,`allocation_plan.${index+1}`);exactKeys(plan,["target_open_item_id","amount"],`allocation_plan.${index+1}`);const amount=parseMoneyString(plan.amount,`allocation_plan.${index+1}.amount`);if(BigInt(amount.replace(".",""))<=0n)throw CommandError.validation({[`allocation_plan.${index+1}.amount`]:"Enter an amount greater than zero."});return{targetOpenItemId:parseUuid(plan.target_open_item_id,"target_open_item_id"),amount};});
   const lines=r.lines.map((item,index)=>{const line=record(item,`lines.${index+1}`);exactKeys(line,["id","item_id","original_line_id","description","quantity","unit_price","discount_amount","account_id","cost_center_id","tax_code_id","tax_mode","cash_flow_class"],`lines.${index+1}`);return{
     id:idOrNull(line.id??null,"line_id"),itemId:idOrNull(line.item_id??null,"item_id"),originalLineId:idOrNull(line.original_line_id??null,"original_line_id"),description:text(line.description,`lines.${index+1}.description`,500),
     quantity:decimal(line.quantity,`lines.${index+1}.quantity`,6),unitPrice:decimal(line.unit_price,`lines.${index+1}.unit_price`,6),discountAmount:parseMoneyString(line.discount_amount??"0.00",`lines.${index+1}.discount_amount`),
@@ -47,6 +49,7 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   if(tradeTypes.includes(documentType)!==(trade!==null))throw CommandError.validation({trade:"Trade details are required only for trade documents."});
   if(movementTypes.includes(documentType)!==(movement!==null))throw CommandError.validation({movement:"Cash movement details are required for this source type."});
   if((documentType==="transfer")!==(transfer!==null))throw CommandError.validation({transfer:"Transfer details are required only for transfers."});
+  if(!["receipt","vendor_payment"].includes(documentType)&&allocationPlan.length)throw CommandError.validation({allocation_plan:"Only receipt and supplier payment drafts can propose open-item settlements."});
   if(!["manual_journal","controlled_adjustment","opening_balance"].includes(documentType)&&journalRows.length>0)throw CommandError.validation({journal_rows:"Journal rows are only valid for journal sources."});
   if(!tradeTypes.includes(documentType)&&lines.length>0)throw CommandError.validation({lines:"Trade lines are only valid for trade sources."});
   if(tradeTypes.includes(documentType)&&lines.length===0)throw CommandError.validation({lines:"Add at least one trade line."});
@@ -56,7 +59,7 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   const roundingReason=r.rounding_reason===null||r.rounding_reason===undefined?null:text(r.rounding_reason,"rounding_reason",500);
   const roundingAccountId=idOrNull(r.rounding_account_id??null,"rounding_account_id");
   if((roundingUnits===0n&&(roundingReason!==null||roundingAccountId!==null))||(roundingUnits!==0n&&(roundingUnits < -5n||roundingUnits>5n||!roundingReason||!roundingAccountId)))throw CommandError.validation({rounding_adjustment:"A nonzero rounding adjustment up to 0.05 BDT needs a reason and rounding account."});
-  return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:"BDT",roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows};
+  return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:"BDT",roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows,allocationPlan};
 }
 export function documentDatabaseError(error:{code?:string}):CommandError{
   if(error.code==="28000")return CommandError.unauthenticated();if(error.code==="42501")return CommandError.forbidden();if(error.code==="P0002")return CommandError.notFound();
