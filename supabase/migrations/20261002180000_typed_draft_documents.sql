@@ -494,6 +494,11 @@ BEGIN
     'journal_rows',COALESCE((SELECT jsonb_agg(jsonb_build_object('line_no',j.line_no,'account_id',j.account_id,'party_id',j.party_id,'cost_center_id',j.cost_center_id,
       'debit',j.debit::text,'credit',j.credit::text,'description',j.description,'cash_flow_class',j.cash_flow_class,'open_item_reference',j.open_item_reference,
       'open_item_due_date',j.open_item_due_date) ORDER BY j.line_no) FROM finance.manual_journal_rows j WHERE j.organization_id=d.organization_id AND j.document_id=d.id),'[]'::jsonb),
+    'posted_journal',(SELECT jsonb_build_object('id',je.id,'accounting_date',je.accounting_date,'lines',COALESCE((SELECT jsonb_agg(jsonb_build_object('line_id',jl.id,'account_id',jl.account_id,'party_id',jl.party_id,
+      'debit',jl.debit::text,'credit',jl.credit::text,'open_item_id',oi.id) ORDER BY jl.line_no) FROM finance.journal_lines jl LEFT JOIN finance.open_items oi ON oi.organization_id=jl.organization_id AND oi.journal_line_id=jl.id
+      WHERE jl.organization_id=je.organization_id AND jl.journal_entry_id=je.id),'[]'::jsonb)) FROM finance.journal_entries je WHERE je.organization_id=d.organization_id AND je.source_document_id=d.id AND je.state='posted'),
+    'write_off',(SELECT jsonb_build_object('target_open_item_id',w.target_open_item_id,'expense_account_id',w.expense_account_id,'amount',w.amount::text,'reason',w.reason)
+      FROM finance.write_off_details w WHERE w.organization_id=d.organization_id AND w.document_id=d.id),
     'allocation_plan',COALESCE((SELECT jsonb_agg(jsonb_build_object('target_open_item_id',p.target_open_item_id,'amount',p.amount::text) ORDER BY p.target_open_item_id)
       FROM finance.document_allocation_plans p WHERE p.organization_id=d.organization_id AND p.document_id=d.id),'[]'::jsonb))
     INTO v_result FROM finance.business_documents d LEFT JOIN finance.trade_documents td ON td.organization_id=d.organization_id AND td.document_id=d.id
