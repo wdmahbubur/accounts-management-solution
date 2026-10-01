@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -60,7 +62,7 @@ export default async function CompanyOnboardingPage({
                 : "Company setup could not be completed. Review the fields and try again."}
             </p>
           ) : null}
-          <CompanyOnboardingWizard />
+          <CompanyOnboardingWizard initialIdempotencyKey={randomUUID()} />
         </>
       )}
     </main>

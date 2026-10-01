@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { createCompanyAction } from "../actions.ts";
 
@@ -27,42 +27,56 @@ const emptyDraft: Draft = {
   idempotencyKey: ""
 };
 
-export function CompanyOnboardingWizard() {
+export function CompanyOnboardingWizard({
+  initialIdempotencyKey
+}: {
+  initialIdempotencyKey: string;
+}) {
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>({
+    ...emptyDraft,
+    idempotencyKey: initialIdempotencyKey
+  });
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    const stored = window.sessionStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Partial<Draft>;
-        setDraft({
-          ...emptyDraft,
-          ...parsed,
-          idempotencyKey:
-            typeof parsed.idempotencyKey === "string" &&
-            parsed.idempotencyKey.length >= 22
-              ? parsed.idempotencyKey
-              : window.crypto.randomUUID()
-        });
-        return;
-      } catch {
-        window.sessionStorage.removeItem(STORAGE_KEY);
-      }
-    }
-
-    setDraft({ ...emptyDraft, idempotencyKey: window.crypto.randomUUID() });
-  }, []);
+  function persist(next: Draft) {
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }
 
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
-    setDraft((current) => ({ ...current, [key]: value }));
+    const next = { ...draft, [key]: value };
+    setDraft(next);
+    persist(next);
     setSaved(false);
   }
 
   function saveDraft() {
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    persist(draft);
     setSaved(true);
+  }
+
+  function restoreDraft() {
+    const stored = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as Partial<Draft>;
+      const restored = {
+        ...emptyDraft,
+        ...parsed,
+        idempotencyKey:
+          typeof parsed.idempotencyKey === "string" &&
+          parsed.idempotencyKey.length >= 22
+            ? parsed.idempotencyKey
+            : initialIdempotencyKey
+      };
+      setDraft(restored);
+      setSaved(true);
+    } catch {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    }
   }
 
   const canContinue =
@@ -227,6 +241,9 @@ export function CompanyOnboardingWizard() {
           ) : null}
           <button type="button" className="secondary" onClick={saveDraft}>
             Save draft
+          </button>
+          <button type="button" className="secondary" onClick={restoreDraft}>
+            Restore saved draft
           </button>
           {step < stepNames.length - 1 ? (
             <button
