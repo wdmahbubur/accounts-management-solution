@@ -38,7 +38,10 @@ test("S-15 company switching invalidates the prior tenant shell and lists only a
     "SERVICE_ROLE_KEY",
     "service_role_key"
   );
-  const dbUrl = pick(status, "DB_URL", "db_url");
+  const dbUrl =
+    (typeof status.DB_URL === "string" && status.DB_URL) ||
+    (typeof status.db_url === "string" && status.db_url) ||
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
   const admin = createClient(url, secret, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
