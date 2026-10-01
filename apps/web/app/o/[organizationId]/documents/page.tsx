@@ -1,4 +1,4 @@
-import { parseOrganizationId, parseUuid } from "@ams/contracts";
+import { parseOrganizationId, parseUuid, type OrganizationId } from "@ams/contracts";
 import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../server/commands/errors.ts";
@@ -9,7 +9,7 @@ export const revalidate = 0;
 type Search = Promise<Record<string, string | string[] | undefined>>;
 function first(value: string | string[] | undefined): string { return Array.isArray(value) ? value[0] ?? "" : value ?? ""; }
 export default async function EvidenceLibrary({ params, searchParams }: { params: Promise<{ organizationId: string }>; searchParams: Search }) {
-  let organizationId: string;
+  let organizationId: OrganizationId;
   try { organizationId = parseOrganizationId((await params).organizationId); } catch { redirect("/companies?error=not_found"); }
   const runtime = await roleRuntime();
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
