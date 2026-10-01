@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Apply reviewed source with exact-head and per-file guards
+      - name: Apply reviewed application source with exact-head guards
         shell: python
         run: |
           import base64,gzip,hashlib,json,pathlib,re,subprocess
@@ -23,12 +23,15 @@ jobs:
           assert len(raw)<2000000 and hashlib.sha256(raw).hexdigest()==request['sha256']
           payload=json.loads(raw); branch=payload['branch']; expected=payload['expected_head']
           assert re.fullmatch(r'feat/us-[0-9]{3}-[a-z0-9-]+',branch) and re.fullmatch(r'[0-9a-f]{40}',expected)
-          files=payload['files']; paths=[f['path'] for f in files]
+          # GITHUB_TOKEN does not have workflow-write permission. The authorized
+          # GitHub connector applies any CI change separately and starts normal CI.
+          files=[f for f in payload['files'] if not f['path'].startswith('.github/')]
+          paths=[f['path'] for f in files]
           assert 1<=len(paths)<=100 and len(paths)==len(set(paths))
           for f in files:
               p=pathlib.PurePosixPath(f['path'])
               assert not p.is_absolute() and '..' not in p.parts
-              assert p.parts[0] in ('apps','packages','supabase','tests','scripts','docs') or str(p)=='.github/workflows/ci.yml'
+              assert p.parts[0] in ('apps','packages','supabase','tests','scripts','docs')
               assert not any(x.startswith('.env') or x=='node_modules' for x in p.parts)
               assert f['mode'] in ('100644','100755')
           subprocess.run(['git','fetch','--no-tags','origin',branch],check=True)
