@@ -24,7 +24,7 @@ export const revalidate = 0;
 
 export default async function NewDraftPage({ params, searchParams }: {
   params: Promise<{ organizationId: string }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; party_id?: string }>;
 }) {
   let organizationId;
   try {
@@ -33,7 +33,8 @@ export default async function NewDraftPage({ params, searchParams }: {
     redirect("/companies?error=not_found");
   }
 
-  const requested = (await searchParams).type;
+  const query = await searchParams;
+  const requested = query.type;
   if (!requested || !(sourceTypes as readonly string[]).includes(requested)) {
     redirect(`/o/${organizationId}/accounting/documents`);
   }
@@ -60,5 +61,7 @@ export default async function NewDraftPage({ params, searchParams }: {
     throw failure;
   }
 
-  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options!} />;
+  const selectedParty = query.party_id && options!.parties.some((party) => party.id === query.party_id) ? query.party_id : null;
+  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options!}
+    initial={selectedParty ? { party_id: selectedParty } : undefined} />;
 }
