@@ -48,7 +48,7 @@ DECLARE v_actor uuid; v_item finance.open_items%ROWTYPE; v_debit finance.open_it
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_debit_open_item_id IS NULL OR p_credit_open_item_id IS NULL OR p_debit_open_item_id=p_credit_open_item_id OR
-     p_idempotency_key IS NULL OR length(p_idempotency_key) NOT BETWEEN 1 AND 200 OR p_request_hash !~ '^[0-9a-f]{64}$' OR
+     p_idempotency_key IS NULL OR length(p_idempotency_key) NOT BETWEEN 1 AND 200 OR p_request_hash IS NULL OR p_request_hash !~ '^[0-9a-f]{64}$' OR
      p_effective_date IS NULL OR NOT isfinite(p_effective_date) THEN
     RAISE EXCEPTION 'invalid allocation request' USING ERRCODE='22023';
   END IF;
