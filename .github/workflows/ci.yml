@@ -65,10 +65,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Use pinned Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.118.0
+
+      - name: Install locked Node dependencies
+        run: npm ci
 
       - name: Verify database commands
         run: |
@@ -77,14 +86,20 @@ jobs:
           supabase db reset --help
           supabase test db --help
 
-      - name: Start isolated Supabase PostgreSQL
-        run: bash scripts/start-test-db.sh
+      - name: Start isolated Supabase stack
+        run: bash scripts/start-test-stack.sh
 
       - name: Verify clean migration replay
         run: supabase db reset
 
       - name: Run pgTAP database acceptance tests
         run: supabase test db
+
+      - name: Lint database routines
+        run: supabase db lint --level error --fail-on error
+
+      - name: Run local Auth integration
+        run: node scripts/test-auth-integration.mjs
 
       - name: Verify independent multi-connection race harness
         run: bash scripts/test-race-harness.sh
@@ -107,8 +122,19 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
       - name: Install locked dependencies
         run: npm ci
+
+      - name: Start local Auth stack
+        run: bash scripts/start-test-stack.sh
+
+      - name: Export local public Supabase environment
+        run: node scripts/export-local-supabase-env.mjs >> "$GITHUB_ENV"
 
       - name: Install pinned Chromium runtime
         run: npx playwright install --with-deps chromium
