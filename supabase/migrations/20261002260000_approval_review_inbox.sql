@@ -24,7 +24,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'document unavailable' USING ERRCODE='P0002'; END IF;
   v_permission:=CASE WHEN v_type IN ('invoice','customer_credit','receipt','customer_refund','customer_advance') THEN 'sales.write'
     WHEN v_type IN ('bill','vendor_credit','paid_expense','vendor_payment','vendor_refund','vendor_advance') THEN 'purchases.write'
-    WHEN v_type='transfer' THEN 'banking.write' ELSE 'journal.write' END;
+    WHEN v_type='transfer' THEN 'banking.write' WHEN v_type='write_off' THEN 'dues.adjust' ELSE 'journal.write' END;
   v_actor:=finance_private.require_capability(p_organization_id,v_permission);
   v_needs_allocation:=v_type IN ('receipt','vendor_payment');
   IF v_needs_allocation THEN PERFORM finance_private.require_capability(p_organization_id,'dues.read'); END IF;

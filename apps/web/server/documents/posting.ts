@@ -10,6 +10,7 @@ export interface PostDocumentReceipt { documentId:string;documentNumber:string;d
 const postCapability:Record<string,string>={invoice:"sales.post",customer_credit:"sales.post",receipt:"sales.post",customer_refund:"sales.post",customer_advance:"sales.post",
   bill:"purchases.post",vendor_credit:"purchases.post",paid_expense:"purchases.post",vendor_payment:"purchases.post",vendor_refund:"purchases.post",vendor_advance:"purchases.post",
   transfer:"banking.write",manual_journal:"journal.post",controlled_adjustment:"journal.post",opening_balance:"journal.post"};
+postCapability.write_off="dues.adjust";
 export function canPostDocument(actor:ActorContext,documentType:string){const required=postCapability[documentType];return !!required&&actor.capabilities.includes(required);}
 type RpcClient=Pick<SupabaseClient,"rpc">;
 function error(value:{code?:string;message?:string}){
@@ -30,7 +31,7 @@ export function postFinancialDocumentCommand(client:RpcClient,documentId:string,
   const required=postCapability[documentType];if(!required)throw CommandError.validation({document:"This document type does not have a posting command yet."});
   return{operation:`documents.post:${documentId}`,capability:capability(required),idempotency:"required",validate,
     async execute(context,input){if(!context.idempotencyKey)throw CommandError.validation({idempotency_key:"A stable idempotency key is required."});
-      const result=await client.rpc("post_financial_document",{p_organization_id:context.actor.organizationId,p_document_id:documentId,p_expected_version:input.expectedVersion,
+      const result=await client.rpc(documentType==="write_off"?"post_write_off_document":"post_financial_document",{p_organization_id:context.actor.organizationId,p_document_id:documentId,p_expected_version:input.expectedVersion,
         p_request_id:context.requestId,p_idempotency_key:context.idempotencyKey,p_request_hash:context.requestHash});if(result.error)error(result.error);return parse(result.data);
     }};
 }
