@@ -100,7 +100,12 @@ set local role authenticated; set local request.jwt.claim.sub='11000000-1111-411
 select is((select count(*)::integer from public.read_document_directory('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')),0,'Archived tenant cannot leak through a scoped read');
 reset role; set local role anon;
 select throws_ok($$select * from public.read_document_directory('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'42501',NULL,'Anonymous direct RPC denied');
-reset role; grant usage on schema extensions to ams_job_worker; set local role ams_job_worker;
+reset role;
+-- Test-transaction-only supervisor membership: exercise the actual NOLOGIN
+-- worker role without granting any data access or changing production grants.
+grant ams_job_worker to current_user with set true;
+grant usage on schema extensions to ams_job_worker;
+set local role ams_job_worker;
 select throws_ok($$select * from finance.business_documents$$,'42501',NULL,'Unscoped worker cannot read company facts');
 select throws_ok($$select * from public.read_document_directory('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'42501',NULL,'Worker cannot reuse human read RPC');
 reset role;
