@@ -50,6 +50,9 @@ jobs:
       - name: Build Next.js
         run: npm run build
 
+      - name: Verify synthetic UI fixtures are disabled in ordinary deployment runtime
+        run: node scripts/test-ui-fixture-gate.mjs
+
       - name: Run reference model separately
         run: npm run test:reference
 

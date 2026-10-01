@@ -1,0 +1,16 @@
+.money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.feedback { display: grid; gap: 8px; padding: 18px; border: 1px solid #ccd6e4; border-left: 4px solid #365d90; border-radius: 10px; background: #f6f8fc; }
+.feedback p { margin: 0; }
+.table { max-width: 100%; overflow-x: auto; border: 1px solid #d8deea; border-radius: 10px; }
+.table table { border-collapse: collapse; width: 100%; text-align: left; }
+.table caption { text-align: left; padding: 16px; color: #526278; }
+.table th, .table td { padding: 14px; border-bottom: 1px solid #e2e8f0; }
+.table th { font-weight: 600; background: #f5f7fb; }
+.table input { min-width: 110px; }
+.table :focus-visible, .dialog :focus-visible { outline: 3px solid #315ec1; outline-offset: 3px; }
+.badge { display: inline-block; padding: 5px 10px; border: 1px solid #cad5e6; border-radius: 999px; font-size: .85rem; text-transform: capitalize; }
+.dialog { width: min(620px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow: auto; border: 1px solid #cbd5e1; border-radius: 18px; padding: 28px; color: #172033; }
+.dialog h2 { margin-top: 0; }
+.dialog::backdrop { background: rgb(15 23 42 / 55%); }
+.dateRange { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border: 1px solid #d8deea; border-radius: 10px; padding: 18px; }
+@media (max-width: 520px) { .dateRange { grid-template-columns: 1fr; } .dialog { padding: 20px; } }

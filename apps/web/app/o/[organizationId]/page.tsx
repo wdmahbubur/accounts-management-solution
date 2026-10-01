@@ -2,6 +2,7 @@ import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import styles from "./workspace.module.css";
 
 import { createClient } from "../../../lib/supabase/server.ts";
 import { createSupabaseMembershipResolver } from "../../../server/auth/supabase-membership.ts";
@@ -68,38 +69,33 @@ export default async function OrganizationContextPage({
   const cacheTag = organizationCacheTag(organizationId, "context-shell");
 
   return (
-    <main className="auth-shell">
+    <main className="management-shell" data-scope-key={queryKey.join("/")} data-cache-tag={cacheTag}>
       <p className="eyebrow">Current company</p>
       <h1>{company.organizationName}</h1>
-      <section className="panel">
-        <p>
-          <strong>Legal name:</strong> {company.legalName}
-        </p>
-        <p>
-          <strong>Status:</strong> {company.organizationStatus}
-        </p>
-        <p>
-          <strong>Roles:</strong>{" "}
-          {company.roleNames.length ? company.roleNames.join(", ") : "—"}
-        </p>
-        <p className="muted">
-          This tenant shell is dynamic and membership-validated on every request.
-          Future company reads must use an organization-scoped query key and cache tag.
-        </p>
-        <p className="muted">
-          Scope key: <code className="inline">{queryKey.join("/")}</code>
-        </p>
-        <p className="muted">
-          Cache tag: <code className="inline">{cacheTag}</code>
-        </p>
-        <div className="link-row">
+      <p className="muted">Your company workspace. Choose an authorized tool below.</p>
+      <div className={styles.grid}>
+        <section className={`panel ${styles.card}`} aria-label="Company details">
+          <h2>Company details</h2>
+          <dl><div><dt>Legal name</dt><dd>{company.legalName}</dd></div>
+            <div><dt>Workspace status</dt><dd>{company.organizationStatus === "onboarding" ? "Setup in progress" : company.organizationStatus === "read_only" ? "Read-only" : "Active"}</dd></div>
+            <div><dt>Your roles</dt><dd>{company.roleNames.length ? company.roleNames.join(", ") : "No roles assigned"}</dd></div>
+          </dl>
           <Link href="/companies">Switch company</Link>
-          {membership.capabilities.includes("users.read") && <>
-            <Link href={`/o/${organizationId}/settings/users`}>Users</Link>
-            <Link href={`/o/${organizationId}/settings/roles`}>Roles</Link>
-          </>}
-        </div>
-      </section>
+        </section>
+        <section className={`panel ${styles.card}`} aria-label="Workspace tools">
+          <h2>Workspace tools</h2>
+          <p>Access is checked for this company each time you open a protected tool or make a change.</p>
+          <nav className={styles.tools} aria-label="Quick actions">
+            {membership.capabilities.includes("users.read") && <>
+              <Link href={`/o/${organizationId}/settings/users`}>Users</Link>
+              <Link href={`/o/${organizationId}/settings/roles`}>Roles</Link>
+            </>}
+            <Link href="/settings/profile">Profile preferences</Link>
+            <Link href="/settings/security">Review session security</Link>
+          </nav>
+          <p className="muted">Switching companies opens a separate workspace. Financial changes are never queued offline.</p>
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,0 +1,28 @@
+.shell { min-height: 100dvh; display: grid; grid-template-columns: 244px minmax(0, 1fr); }
+.sidebar { background: #17263f; color: #eef4ff; display: flex; flex-direction: column; gap: 34px; padding: 28px 20px; }
+.sidebar a { color: #dce7fb; text-decoration: none; }
+.brand { display: flex; gap: 12px; align-items: center; font-size: 1.15rem; font-weight: 700; }
+.mark { display: grid; place-items: center; width: 38px; height: 42px; border-radius: 11px; color: #17263f; background: #dbe9ff; }
+.brandSub { display: block; font-size: .68rem; font-weight: 400; letter-spacing: .02em; margin-top: 4px; }
+.workspace { padding: 18px 14px; border: 1px solid #42536e; border-radius: 12px; display: grid; gap: 12px; overflow-wrap: anywhere; }
+.workspace small { font-size: .64rem; letter-spacing: .12em; color: #bdcce3; }
+.workspace a { font-size: .8rem; text-decoration: underline; text-underline-offset: 4px; }
+.navigation { display: grid; gap: 8px; }
+.navigation a { padding: 12px 14px; border-radius: 8px; font-size: .94rem; }
+.navigation a[aria-current="page"], .navigation a:hover { background: #334967; color: white; }
+.secondary { margin-top: auto; display: grid; gap: 16px; font-size: .85rem; }
+.secondary p { font-size: .76rem; line-height: 1.7; color: #bdcce3; }
+.body { min-width: 0; display: flex; flex-direction: column; }
+.header { background: white; border-bottom: 1px solid #d8deea; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 18px 30px; align-items: center; font-size: .8rem; }
+.header nav { overflow-wrap: anywhere; line-height: 1.8; }
+.session { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.session span { max-width: 220px; overflow-wrap: anywhere; color: #526278; }
+.session button { padding: 8px 12px; font-size: .8rem; }
+.content { padding: 24px 30px; flex: 1; min-width: 0; }
+.content > main { width: 100%; max-width: 1120px; padding: 16px 0 32px; }
+.content > section { margin-bottom: 20px; }
+.footer { padding: 16px 30px; border-top: 1px solid #d8deea; font-size: .75rem; color: #526278; }
+.skip { position: fixed; top: 8px; left: 8px; transform: translateY(-180%); padding: 12px 18px; background: white; color: #17263f; z-index: 50; border: 2px solid #315ec1; }
+.skip:focus { transform: none; }
+.shell :focus-visible { outline: 3px solid #5d89ef; outline-offset: 3px; }
+@media (max-width: 850px) { .shell { grid-template-columns: 1fr; } .sidebar { padding: 16px 20px; gap: 16px; } .brandSub, .workspace small, .secondary { display: none; } .workspace { border: 0; padding: 0; grid-template-columns: minmax(0,1fr) auto; align-items: center; } .navigation { display: flex; flex-wrap: wrap; gap: 6px; } .navigation a { padding: 10px; } .header { padding: 16px 20px; } .content { padding: 20px 16px; } .footer { padding: 16px; } }
