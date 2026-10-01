@@ -51,7 +51,7 @@ export default async function CompanyOnboardingPage({
           <p className="muted">
             Company switching and the full permission matrix are completed by the next foundation stories.
           </p>
-          <Link href="/">Return home</Link>
+          <Link href="/companies">Open company list</Link>
         </section>
       ) : (
         <>
