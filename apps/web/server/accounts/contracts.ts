@@ -35,7 +35,7 @@ function bool(value: unknown, field: string): boolean {
   return value;
 }
 function oneOf<T extends readonly string[]>(value: unknown, values: T, field: string): T[number] {
-  if (typeof value !== "string" || !values.includes(value)) throw CommandError.validation({ [field]: "Choose a supported value." });
+  if (typeof value !== "string" || !(values as readonly string[]).includes(value)) throw CommandError.validation({ [field]: "Choose a supported value." });
   return value as T[number];
 }
 export function validateAccountInput(raw: unknown): AccountInput {
