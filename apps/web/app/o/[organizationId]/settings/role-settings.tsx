@@ -9,6 +9,7 @@ import type { ManagedMember, ManagedRole, RoleOperation, RoleReceipt } from "../
 import { changeRoleAction } from "./role-actions.ts";
 
 interface Props {
+  children?: ReactNode;
   view: "users" | "roles"; organizationId: string; nonce: string;
   actorMemberId: string; actorCapabilities: string[]; roles: ManagedRole[]; members: ManagedMember[];
 }
@@ -127,5 +128,6 @@ export function RoleSettings(props: Props) {
           </MutationForm>}
       </section>}
     </>}
+    {props.children}
   </main>;
 }

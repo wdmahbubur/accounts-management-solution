@@ -94,7 +94,10 @@ access-management lock, then checks one success, one consumed-token denial, one
 membership, one role and one acceptance audit. Unit tests cover authenticated
 encryption and command boundaries. The browser test uses actual Auth, forms,
 API requests and synthetic bytes in private Storage, with positive read controls
-before wrong-tenant, scan, permission, expiry and revocation denials.
+before wrong-tenant, other-requester, scan, permission, expiry and revocation
+denials. `test-invitation-upgrade.sh` resets only the isolated local stack to the
+pre-invitation migration, seeds legacy pending/accepted records, then applies the
+new migration and checks preserved access plus audited legacy-link retirement.
 
 Execution results are recorded against the final PR commit; test definitions
 alone are not evidence of passing. Accountant, independent security and pilot

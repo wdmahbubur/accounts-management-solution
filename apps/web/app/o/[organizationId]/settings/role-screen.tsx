@@ -31,8 +31,8 @@ export async function RoleScreen({ organizationId: raw, view }: { organizationId
   }
   const isOwner = data.members.some((member) => member.id === actor.memberId && member.isOwner);
   const grantable = data.roles.filter((role) => (role.templateKey !== "owner" || isOwner) && role.permissionCodes.every((code) => actor.capabilities.includes(code)));
-  return <><RoleSettings view={view} organizationId={organizationId} nonce={runtime.current.nonce}
-    actorMemberId={actor.memberId} actorCapabilities={[...actor.capabilities]} {...data} />
+  return <RoleSettings view={view} organizationId={organizationId} nonce={runtime.current.nonce}
+    actorMemberId={actor.memberId} actorCapabilities={[...actor.capabilities]} {...data}>
     {view === "users" && <InvitationsPanel organizationId={organizationId} nonce={runtime.current.nonce}
-      roles={grantable} invitations={invitations} canManage={actor.capabilities.includes("users.manage")} />}</>;
+      roles={grantable} invitations={invitations} canManage={actor.capabilities.includes("users.manage")} />}</RoleSettings>;
 }
