@@ -591,7 +591,7 @@ AS $$
 BEGIN
   PERFORM finance_private.require_capability(
     p_organization_id,
-    'users.manage'
+    'users.read'
   );
 
   RETURN QUERY
@@ -928,6 +928,23 @@ BEGIN
     v_role_ids
   );
 
+  IF finance_private.is_active_owner(p_organization_id, p_member_id)
+     AND NOT EXISTS (
+       SELECT 1
+       FROM finance.roles r
+       WHERE r.organization_id = p_organization_id
+         AND r.id = ANY(v_role_ids)
+         AND r.is_system
+         AND r.template_key = 'owner'
+     )
+     AND NOT finance_private.is_active_owner(
+       p_organization_id,
+       v_actor_member_id
+     ) THEN
+    RAISE EXCEPTION 'only an active owner may remove Owner'
+      USING ERRCODE = '42501';
+  END IF;
+
   DELETE FROM finance.member_roles mr
   WHERE mr.organization_id = p_organization_id
     AND mr.member_id = p_member_id
@@ -975,6 +992,15 @@ BEGIN
 
   IF p_member_id = v_actor_member_id THEN
     RAISE EXCEPTION 'self deactivation is not allowed'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF finance_private.is_active_owner(p_organization_id, p_member_id)
+     AND NOT finance_private.is_active_owner(
+       p_organization_id,
+       v_actor_member_id
+     ) THEN
+    RAISE EXCEPTION 'only an active owner may deactivate an Owner'
       USING ERRCODE = '42501';
   END IF;
 
