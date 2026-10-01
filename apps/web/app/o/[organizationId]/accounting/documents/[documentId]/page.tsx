@@ -6,8 +6,10 @@ import { resolveActorContext } from "../../../../../../server/auth/resolve-actor
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
 import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
+import { canPostDocument } from "../../../../../../server/documents/posting.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
+import { PostingAction } from "../posting-action.tsx";
 import styles from "../documents.module.css";
 
 function draftOptions(value: Record<string, unknown>): DraftOptions {
@@ -41,11 +43,13 @@ export default async function DocumentDetailPage({ params }: {
 
   let document: Record<string, unknown> | undefined;
   let options: DraftOptions | undefined;
+  let canPost = false;
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const documentType = String(document.document_type);
+    canPost = String(document.state) === "approved" && canPostDocument(actor, documentType);
     const canEdit = String(document.state) === "draft" &&
       (sourceTypes as readonly string[]).includes(documentType);
     if (canEdit) {
@@ -76,13 +80,13 @@ export default async function DocumentDetailPage({ params }: {
           documentType={documentType as SourceType} options={options!} initial={document}
           expectedVersion={Number(document.version)} />
       ) : (
-        <section className={`panel ${styles.panel}`}>
+        <><section className={`panel ${styles.panel}`}>
           <p className="eyebrow">{documentType}</p>
           <h1>{typeof document.document_number === "string" ? document.document_number : "Draft"}</h1>
           <p>State: {String(document.state)} · Accounting date: {String(document.accounting_date)}</p>
           <p>Total (BDT): {String(document.total_amount)}</p>
           <p>This source is read-only in its current state.</p>
-        </section>
+        </section>{canPost && <PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}</>
       )}
     </main>
   );

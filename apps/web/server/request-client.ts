@@ -29,6 +29,7 @@ const procedures = new Set([
   "decide_financial_approval",
   "list_approval_inbox",
   "read_approval_review",
+  "post_financial_document",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
