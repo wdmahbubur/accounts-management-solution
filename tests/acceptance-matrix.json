@@ -390,9 +390,13 @@
   {
     "id": "S-03",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "packages/permissions/src/index.ts",
+      "supabase/tests/database/06_role_permissions.test.sql",
+      "tests/application/permissions.test.ts"
+    ],
+    "note": "Billing has a real live sales-scoped capability set and is denied protected role-management reads; broad P&L/AP/private-bank/vendor-evidence endpoints do not exist yet, so S-03 is not overstated as fully covered."
   },
   {
     "id": "S-04",
@@ -470,12 +474,14 @@
   {
     "id": "S-13",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
       "supabase/tests/database/04_atomic_onboarding.test.sql",
-      "scripts/test-onboarding-race.sh"
+      "supabase/tests/database/06_role_permissions.test.sql",
+      "scripts/test-onboarding-race.sh",
+      "scripts/test-role-race.sh"
     ],
-    "note": "Atomic onboarding creates exactly one active Owner assignment and concurrent replay cannot duplicate tenant setup. General role-escalation and concurrent last-owner removal commands remain US-009, so S-13 is not counted as covered."
+    "note": "Covered by DB routines that deny self/over-grants plus an independent two-connection last-owner removal race; one concurrent mutation succeeds at most and at least one active Owner remains."
   },
   {
     "id": "S-14",

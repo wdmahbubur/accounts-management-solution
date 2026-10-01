@@ -254,3 +254,15 @@ code.inline {
   background: #e9edf5;
   font-size: 0.8rem;
 }
+
+.management-shell { width: min(1060px, calc(100% - 32px)); display: grid; gap: 20px; }
+.management-shell h1, .management-shell h2, .management-shell p { margin: 0; }
+.management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; }
+.management-shell .panel { box-shadow: none; align-content: start; overflow-wrap: anywhere; }
+.mutation-fields { display: grid; gap: 16px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.capability-options { display: grid; gap: 10px; border: 1px solid #d8deea; border-radius: 9px; padding: 16px; }
+.check-field { display: flex; align-items: flex-start; gap: 10px; font-size: .94rem; }
+.check-field input[type="checkbox"] { width: 18px; height: 18px; margin: 1px 0; flex: 0 0 auto; }
+button:disabled, fieldset:disabled { opacity: .65; cursor: wait; }
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #5c83ca; outline-offset: 3px; }
+summary { cursor: pointer; font-weight: 700; margin-bottom: 16px; }
