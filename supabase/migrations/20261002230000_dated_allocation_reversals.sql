@@ -41,7 +41,7 @@ BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_allocation_id IS NULL OR p_idempotency_key IS NULL OR length(p_idempotency_key) NOT BETWEEN 1 AND 200 OR
      p_operation IS DISTINCT FROM 'allocations.reverse:'||p_allocation_id::text OR
-     p_request_hash !~ '^[0-9a-f]{64}$' OR p_effective_date IS NULL OR NOT isfinite(p_effective_date) OR
+     p_request_hash IS NULL OR p_request_hash !~ '^[0-9a-f]{64}$' OR p_effective_date IS NULL OR NOT isfinite(p_effective_date) OR
      p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 10 AND 1000 THEN
     RAISE EXCEPTION 'invalid allocation reversal request' USING ERRCODE='22023';
   END IF;
