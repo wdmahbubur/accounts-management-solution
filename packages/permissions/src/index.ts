@@ -30,6 +30,7 @@ export const capabilityCodes = [
   "tax.manage",
   "approvals.read",
   "approvals.decide",
+  "approvals.manage",
   "periods.lock",
   "periods.reopen",
   "reports.read",
