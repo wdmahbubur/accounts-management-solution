@@ -1,4 +1,5 @@
 import { parseOrganizationId } from "@ams/contracts";
+import { assertMutationOrigin } from "../auth/mutation-origin.ts";
 import { resolveActorContext } from "../auth/resolve-actor.ts";
 import { CommandError, commandErrorBody, normalizeCommandError } from "../commands/errors.ts";
 import { executeOrganizationCommand } from "../commands/execute.ts";
@@ -27,8 +28,7 @@ export async function roleGet(organizationId: string, resource: "roles" | "membe
 export async function roleMutation(request: Request, organizationId: string,
   operation: RoleOperation, target?: { role_id: string } | { member_id: string }) {
   try {
-    const origin = request.headers.get("origin");
-    if (origin && origin !== new URL(request.url).origin) throw CommandError.forbidden();
+    assertMutationOrigin(request.headers);
     const runtime = await roleRuntime();
     assertFreshCompanySubmission({ expectedOrganizationId: organizationId,
       expectedNonce: request.headers.get("x-company-context"), current: runtime.current });
