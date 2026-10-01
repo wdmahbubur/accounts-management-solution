@@ -107,6 +107,12 @@ jobs:
       - name: Verify concurrent onboarding idempotency
         run: bash scripts/test-onboarding-race.sh
 
+      - name: Verify last-owner concurrency protection
+        run: bash scripts/test-role-race.sh
+
+      - name: Verify role-template migration backfill
+        run: bash scripts/test-role-migration-upgrade.sh
+
       - name: Verify staged migration upgrade path
         run: bash scripts/test-migration-upgrade.sh
 
