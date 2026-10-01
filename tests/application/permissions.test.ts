@@ -37,14 +37,14 @@ test("S-03 Billing template is sales-scoped and excludes broad financial reads",
     "sales.read",
     "sales.write",
     "sales.post",
-    "contacts.read",
-    "dues.read",
     "dues.allocate"
   ]) {
     assert.equal(roleTemplateCapabilityCodes.billing.includes(allowed as never), true);
   }
 
   for (const denied of [
+    "contacts.read",
+    "dues.read",
     "purchases.read",
     "documents.read",
     "banking.read",

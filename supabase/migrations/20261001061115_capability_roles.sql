@@ -92,8 +92,7 @@ AS $$
       ]::text[]
       WHEN 'billing' THEN ARRAY[
         'sales.read','sales.write','sales.post',
-        'contacts.read','contacts.write','catalog.read',
-        'dues.read','dues.allocate'
+        'contacts.write','catalog.read','dues.allocate'
       ]::text[]
       WHEN 'auditor' THEN ARRAY[
         'company.read','sales.read','purchases.read','contacts.read','catalog.read',
@@ -687,11 +686,11 @@ BEGIN
         FILTER (WHERE r.name IS NOT NULL),
       ARRAY[]::text[]
     ),
-    bool_or(
+    COALESCE(bool_or(
       m.status = 'active'
       AND r.is_system
       AND r.template_key = 'owner'
-    )
+    ), false)
   FROM finance.organization_members m
   LEFT JOIN finance.member_roles mr
     ON mr.organization_id = m.organization_id

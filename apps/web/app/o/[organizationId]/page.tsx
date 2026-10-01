@@ -92,7 +92,13 @@ export default async function OrganizationContextPage({
         <p className="muted">
           Cache tag: <code className="inline">{cacheTag}</code>
         </p>
-        <Link href="/companies">Switch company</Link>
+        <div className="link-row">
+          <Link href="/companies">Switch company</Link>
+          {membership.capabilities.includes("users.read") && <>
+            <Link href={`/o/${organizationId}/settings/users`}>Users</Link>
+            <Link href={`/o/${organizationId}/settings/roles`}>Roles</Link>
+          </>}
+        </div>
       </section>
     </main>
   );

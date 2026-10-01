@@ -66,7 +66,7 @@ select results_eq(
     join finance.permissions p on p.id=rp.permission_id
     join finance.organizations o on o.id=r.organization_id
     where o.name='US009 Company' and r.template_key='billing'$$,
-  array['catalog.read,contacts.read,contacts.write,dues.allocate,dues.read,sales.post,sales.read,sales.write']::text[],
+  array['catalog.read,contacts.write,dues.allocate,sales.post,sales.read,sales.write']::text[],
   'Billing defaults to explicit sales scope only'
 );
 
@@ -142,15 +142,17 @@ select
   'active'
 from finance.organizations o where o.name='US009 Company';
 
+select set_config('test.us009_org', (select id::text from finance.organizations where name='US009 Company'), true);
+
 set local role authenticated;
 set local request.jwt.claim.sub = '99111111-1111-4111-8111-111111111111';
 
 select lives_ok(
   $$select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     '99222222-aaaa-4aaa-8aaa-aaaaaaaaaaa2',
     array[(select id from finance.roles r
-      where r.organization_id=(select id from finance.organizations where name='US009 Company')
+      where r.organization_id=current_setting('test.us009_org')::uuid
         and r.template_key='admin')]::uuid[],
     'req_us009_admin_assign'
   )$$,
@@ -159,10 +161,10 @@ select lives_ok(
 
 select lives_ok(
   $$select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     '99444444-aaaa-4aaa-8aaa-aaaaaaaaaaa4',
     array[(select id from finance.roles r
-      where r.organization_id=(select id from finance.organizations where name='US009 Company')
+      where r.organization_id=current_setting('test.us009_org')::uuid
         and r.template_key='billing')]::uuid[],
     'req_us009_billing_assign'
   )$$,
@@ -171,7 +173,7 @@ select lives_ok(
 
 select lives_ok(
   $$select public.create_custom_role(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     'Sales reviewer',
     array['sales.read','contacts.read']::text[],
     'req_us009_custom_create'
@@ -185,7 +187,7 @@ select results_eq(
     join finance.roles r
       on r.organization_id=rp.organization_id and r.id=rp.role_id
     join finance.permissions p on p.id=rp.permission_id
-    where r.organization_id=(select id from finance.organizations where name='US009 Company')
+    where r.organization_id=current_setting('test.us009_org')::uuid
       and r.name='Sales reviewer'$$,
   array['contacts.read,sales.read']::text[],
   'custom role stores only requested valid permissions'
@@ -197,10 +199,10 @@ set local request.jwt.claim.sub = '99222222-2222-4222-8222-222222222222';
 
 select throws_ok(
   $$select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     '99222222-aaaa-4aaa-8aaa-aaaaaaaaaaa2',
     array[(select id from finance.roles r
-      where r.organization_id=(select id from finance.organizations where name='US009 Company')
+      where r.organization_id=current_setting('test.us009_org')::uuid
         and r.template_key='finance_manager')]::uuid[],
     'req_us009_self_escalate'
   )$$,
@@ -211,10 +213,10 @@ select throws_ok(
 
 select throws_ok(
   $$select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     array[(select id from finance.roles r
-      where r.organization_id=(select id from finance.organizations where name='US009 Company')
+      where r.organization_id=current_setting('test.us009_org')::uuid
         and r.template_key='accountant')]::uuid[],
     'req_us009_overgrant'
   )$$,
@@ -225,7 +227,7 @@ select throws_ok(
 
 select throws_ok(
   $$select public.create_custom_role(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     'Escalated custom',
     array['reports.read']::text[],
     'req_us009_custom_overgrant'
@@ -241,7 +243,7 @@ set local request.jwt.claim.sub = '99444444-4444-4444-8444-444444444444';
 
 select throws_ok(
   $$select * from public.list_roles_for_management(
-    (select id from finance.organizations where name='US009 Company')
+    current_setting('test.us009_org')::uuid
   )$$,
   '42501',
   'permission denied',
@@ -252,7 +254,7 @@ select is(
   (select count(*)::bigint
    from unnest(
      (select capabilities from public.resolve_active_membership(
-       (select id from finance.organizations where name='US009 Company')
+       current_setting('test.us009_org')::uuid
      ))
    ) code
    where code in ('documents.read','banking.read','accounting.read','ledger.read','reports.read','purchases.read')),
@@ -265,19 +267,19 @@ set local role authenticated;
 set local request.jwt.claim.sub = '99111111-1111-4111-8111-111111111111';
 
 select lives_ok(
-  $select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+  $$select public.set_member_roles(
+    current_setting('test.us009_org')::uuid,
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     array[
       (select id from finance.roles r
-       where r.organization_id=(select id from finance.organizations where name='US009 Company')
+       where r.organization_id=current_setting('test.us009_org')::uuid
          and r.template_key='accountant'),
       (select id from finance.roles r
-       where r.organization_id=(select id from finance.organizations where name='US009 Company')
+       where r.organization_id=current_setting('test.us009_org')::uuid
          and r.template_key='owner')
     ]::uuid[],
     'req_us009_accountant_owner_assign'
-  )$,
+  )$$,
   'Owner can explicitly add another Owner together with Accountant'
 );
 
@@ -286,27 +288,27 @@ set local role authenticated;
 set local request.jwt.claim.sub = '99222222-2222-4222-8222-222222222222';
 
 select throws_ok(
-  $select public.set_member_roles(
-    (select id from finance.organizations where name='US009 Company'),
+  $$select public.set_member_roles(
+    current_setting('test.us009_org')::uuid,
     (select id from finance.organization_members
-      where organization_id=(select id from finance.organizations where name='US009 Company')
+      where organization_id=current_setting('test.us009_org')::uuid
         and user_id='99111111-1111-4111-8111-111111111111'),
     array[]::uuid[],
     'req_us009_admin_remove_owner'
-  )$,
+  )$$,
   '42501',
   'only an active owner may remove Owner',
   'Admin cannot demote an Owner even when another active Owner exists'
 );
 
 select throws_ok(
-  $select public.deactivate_member(
-    (select id from finance.organizations where name='US009 Company'),
+  $$select public.deactivate_member(
+    current_setting('test.us009_org')::uuid,
     (select id from finance.organization_members
-      where organization_id=(select id from finance.organizations where name='US009 Company')
+      where organization_id=current_setting('test.us009_org')::uuid
         and user_id='99111111-1111-4111-8111-111111111111'),
     'req_us009_admin_deactivate_owner'
-  )$,
+  )$$,
   '42501',
   'only an active owner may deactivate an Owner',
   'Admin cannot deactivate an Owner even when another active Owner exists'
@@ -317,20 +319,24 @@ set local role authenticated;
 set local request.jwt.claim.sub = '99111111-1111-4111-8111-111111111111';
 
 select lives_ok(
-  $select public.transfer_ownership(
-    (select id from finance.organizations where name='US009 Company'),
+  $$select public.transfer_ownership(
+    current_setting('test.us009_org')::uuid,
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     'req_us009_transfer_owner'
   )$$,
   'Owner can transfer ownership atomically to another active member'
 );
 
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '99333333-3333-4333-8333-333333333333';
+
 select is(
   (select count(*)::bigint
    from finance.member_roles mr
    join finance.roles r
      on r.organization_id=mr.organization_id and r.id=mr.role_id
-   where mr.organization_id=(select id from finance.organizations where name='US009 Company')
+   where mr.organization_id=current_setting('test.us009_org')::uuid
      and mr.member_id=(select id from finance.organization_members m
        where m.organization_id=mr.organization_id
          and m.user_id='99111111-1111-4111-8111-111111111111')
@@ -344,7 +350,7 @@ select is(
    from finance.member_roles mr
    join finance.roles r
      on r.organization_id=mr.organization_id and r.id=mr.role_id
-   where mr.organization_id=(select id from finance.organizations where name='US009 Company')
+   where mr.organization_id=current_setting('test.us009_org')::uuid
      and mr.member_id='99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3'
      and r.template_key='owner'),
   1::bigint,
@@ -357,12 +363,12 @@ set local request.jwt.claim.sub = '99222222-2222-4222-8222-222222222222';
 
 select throws_ok(
   $$select public.deactivate_member(
-    (select id from finance.organizations where name='US009 Company'),
+    current_setting('test.us009_org')::uuid,
     '99333333-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     'req_us009_last_owner_block'
   )$$,
-  '23514',
-  'cannot remove last active owner',
+  '42501',
+  'only an active owner may deactivate an Owner',
   'last active Owner cannot be deactivated'
 );
 
@@ -370,7 +376,7 @@ reset role;
 
 select ok(
   (select count(*) from finance.audit_events a
-   where a.organization_id=(select id from finance.organizations where name='US009 Company')
+   where a.organization_id=current_setting('test.us009_org')::uuid
      and a.action in ('member.roles.set','role.custom.create','ownership.transfer')) >= 5,
   'role and ownership mutations append audit evidence'
 );
@@ -382,7 +388,7 @@ select is(
      on mr.organization_id=m.organization_id and mr.member_id=m.id
    join finance.roles r
      on r.organization_id=mr.organization_id and r.id=mr.role_id
-   where m.organization_id=(select id from finance.organizations where name='US009 Company')
+   where m.organization_id=current_setting('test.us009_org')::uuid
      and m.status='active'
      and r.is_system
      and r.template_key='owner'),

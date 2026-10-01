@@ -79,10 +79,8 @@ export const roleTemplateCapabilityCodes = {
     "sales.read",
     "sales.write",
     "sales.post",
-    "contacts.read",
     "contacts.write",
     "catalog.read",
-    "dues.read",
     "dues.allocate"
   ],
   auditor: [
