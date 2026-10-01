@@ -1,5 +1,5 @@
 import { parseUuid, type Uuid } from "@ams/contracts";
-import { CommandError } from "../commands/errors.ts";
+import { CommandError, retryableTransactionError, type RetryableTransactionError } from "../commands/errors.ts";
 
 export const accountTypes = ["asset", "liability", "equity", "income", "expense"] as const;
 export const normalSides = ["debit", "credit"] as const;
@@ -64,7 +64,8 @@ export function parseCatalog(value: unknown): AccountCatalog {
   }
   return {accounts:[...accounts.values()],mappings:[...mappings.values()].sort((a,b)=>a.key.localeCompare(b.key))};
 }
-export function accountDatabaseError(error: {code?:string;message?:string}): CommandError {
+export function accountDatabaseError(error: {code?:string;message?:string}): CommandError|RetryableTransactionError {
+  const retryable=retryableTransactionError(error);if(retryable)return retryable;
   if(error.code==="28000")return CommandError.unauthenticated();
   if(error.code==="42501")return CommandError.forbidden();
   if(error.code==="P0002")return CommandError.notFound();
