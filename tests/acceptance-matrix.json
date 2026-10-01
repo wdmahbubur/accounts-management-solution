@@ -468,9 +468,12 @@
   {
     "id": "S-13",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "supabase/tests/database/04_atomic_onboarding.test.sql",
+      "scripts/test-onboarding-race.sh"
+    ],
+    "note": "Atomic onboarding creates exactly one active Owner assignment and concurrent replay cannot duplicate tenant setup. General role-escalation and concurrent last-owner removal commands remain US-009, so S-13 is not counted as covered."
   },
   {
     "id": "S-14",

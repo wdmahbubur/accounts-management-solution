@@ -160,3 +160,58 @@ code.inline {
   border-radius: 5px;
   background: #eef1f6;
 }
+
+
+.wizard {
+  display: grid;
+  gap: 20px;
+}
+
+.wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.wizard-steps li {
+  padding: 10px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.wizard-steps li[data-current="true"] {
+  border-color: #172033;
+  font-weight: 700;
+}
+
+.review-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.review-list div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.4fr) 1fr;
+  gap: 12px;
+}
+
+.review-list dt {
+  font-weight: 700;
+}
+
+.review-list dd {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .wizard-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .review-list div {
+    grid-template-columns: 1fr;
+  }
+}

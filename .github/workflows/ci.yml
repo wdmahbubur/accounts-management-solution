@@ -104,6 +104,9 @@ jobs:
       - name: Verify independent multi-connection race harness
         run: bash scripts/test-race-harness.sh
 
+      - name: Verify concurrent onboarding idempotency
+        run: bash scripts/test-onboarding-race.sh
+
       - name: Verify staged migration upgrade path
         run: bash scripts/test-migration-upgrade.sh
 
