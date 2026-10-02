@@ -48,8 +48,8 @@ test("environment and local setup are documented without secrets", async () => {
   const root = await readJson("package.json");
 
   assert.match(env, /NEXT_PUBLIC_APP_URL=/);
-  assert.match(env, /NEXT_PUBLIC_SUPABASE_URL=/);
-  assert.match(env, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=/);
+  assert.match(env, /DATABASE_URL=/);
+  assert.match(env, /AUTH_SECRET=/);
   assert.doesNotMatch(env, /SERVICE_ROLE|SECRET_KEY|PASSWORD=/i);
 
   for (const script of ["lint", "typecheck", "test", "build"]) {

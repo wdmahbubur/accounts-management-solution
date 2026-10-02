@@ -324,12 +324,11 @@
   {
     "id": "T-47",
     "kind": "functional",
-    "status": "fixture_ready",
+    "status": "pending",
     "evidence": [
-      "packages/test-fixtures/src/index.ts",
-      "supabase/tests/database/02_deterministic_fixture.test.sql"
+      "packages/test-fixtures/src/index.ts"
     ],
-    "note": "Golden expectations and deterministic ledger fixture exist; this is not counted as an application pass until the real posting/reporting stack executes the scenario."
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "T-48",
@@ -369,44 +368,37 @@
   {
     "id": "S-01",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "pending",
     "evidence": [
-      "supabase/tests/database/01_tenant_isolation.test.sql",
-      "tests/application/commands.test.ts",
-      "supabase/tests/database/05_company_context.test.sql",
-      "tests/browser/company-switching.spec.ts"
+      "tests/application/commands.test.ts"
     ],
-    "note": "Tenant isolation, active company listing, live context validation and permission-safe organization denial have real evidence; guessed source/account/file UUID paths remain future feature surfaces, so this case is still partial."
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-02",
     "kind": "security_concurrency",
-    "status": "covered",
-    "evidence": [
-      "supabase/tests/database/01_tenant_isolation.test.sql"
-    ],
-    "note": "Covered by real PostgreSQL/RLS/composite-FK acceptance tests."
+    "status": "pending",
+    "evidence": [],
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-03",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "pending",
     "evidence": [
       "packages/permissions/src/index.ts",
-      "supabase/tests/database/06_role_permissions.test.sql",
       "tests/application/permissions.test.ts"
     ],
-    "note": "Billing has a real live sales-scoped capability set and is denied protected role-management reads; broad P&L/AP/private-bank/vendor-evidence endpoints do not exist yet, so S-03 is not overstated as fully covered."
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-04",
     "kind": "security_concurrency",
-    "status": "covered",
+    "status": "pending",
     "evidence": [
-      "tests/application/auth-security.test.ts",
-      "scripts/test-auth-integration.mjs"
+      "tests/application/auth-security.test.ts"
     ],
-    "note": "Real verified Auth metadata escalation is ignored; live membership RPC returns DB capabilities only."
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-05",
@@ -429,12 +421,9 @@
   {
     "id": "S-07",
     "kind": "security_concurrency",
-    "status": "covered",
-    "evidence": [
-      "scripts/test-auth-integration.mjs",
-      "apps/web/server/auth/supabase-membership.ts"
-    ],
-    "note": "A real valid Supabase session is denied after the membership is made inactive; the next actor resolution returns NOT_FOUND."
+    "status": "pending",
+    "evidence": [],
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-08",
@@ -474,14 +463,9 @@
   {
     "id": "S-13",
     "kind": "security_concurrency",
-    "status": "covered",
-    "evidence": [
-      "supabase/tests/database/04_atomic_onboarding.test.sql",
-      "supabase/tests/database/06_role_permissions.test.sql",
-      "scripts/test-onboarding-race.sh",
-      "scripts/test-role-race.sh"
-    ],
-    "note": "Covered by DB routines that deny self/over-grants plus an independent two-connection last-owner removal race; one concurrent mutation succeeds at most and at least one active Owner remains."
+    "status": "pending",
+    "evidence": [],
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-14",
@@ -493,13 +477,12 @@
   {
     "id": "S-15",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "pending",
     "evidence": [
       "tests/application/company-context.test.ts",
-      "tests/browser/company-switching.spec.ts",
       "apps/web/server/tenant-scope.ts"
     ],
-    "note": "A real browser switch invalidates a previously loaded tenant shell and all cache/query/download key primitives include organization scope. The future finance dashboard named by S-15 does not exist yet, so the case is not counted as covered."
+    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
   },
   {
     "id": "S-16",

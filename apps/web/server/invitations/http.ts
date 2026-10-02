@@ -1,5 +1,5 @@
 import { parseOrganizationId } from "@ams/contracts";
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import { assertMutationOrigin } from "../auth/mutation-origin.ts";
 import { resolveActorContext } from "../auth/resolve-actor.ts";
 import { commandErrorBody, CommandError, normalizeCommandError } from "../commands/errors.ts";

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 
 export interface ActiveCompanyMembership {
@@ -20,7 +20,7 @@ type MembershipListRow = {
 };
 
 export async function listActiveMemberships(
-  client: Pick<SupabaseClient, "rpc">
+  client: Pick<RequestClient, "rpc">
 ): Promise<ActiveCompanyMembership[]> {
   const { data, error } = await client.rpc("list_active_memberships");
 

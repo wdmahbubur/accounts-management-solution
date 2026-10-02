@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/database/server.ts";
 import { CompanyOnboardingWizard } from "./wizard.tsx";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -19,10 +19,10 @@ export default async function CompanyOnboardingPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/onboarding/company");

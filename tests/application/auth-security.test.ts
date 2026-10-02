@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  createSupabaseIdentityVerifier
-} from "../../apps/web/server/auth/supabase-identity.ts";
+import { createIdentityVerifier } from "../../apps/web/server/auth/identity-verifier.ts";
 import {
   hasRecentAuthentication,
   requireRecentAuthentication,
@@ -45,9 +42,9 @@ test("S-04 verified identity ignores editable metadata authority claims", async 
         };
       }
     }
-  } as unknown as Pick<SupabaseClient, "auth">;
+  } as unknown as Parameters<typeof createIdentityVerifier>[0];
 
-  const verifier = createSupabaseIdentityVerifier(client);
+  const verifier = createIdentityVerifier(client);
   assert.deepEqual(await verifier.verifyIdentity(), { userId: USER });
 });
 
