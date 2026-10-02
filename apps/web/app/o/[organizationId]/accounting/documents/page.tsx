@@ -34,11 +34,13 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
 
   let rows: DirectoryRow[] | undefined;
   let canAdjust = false;
+  let canWriteJournal = false;
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     if (!actor.capabilities.includes("documents.read")) throw CommandError.forbidden();
     canAdjust = actor.capabilities.includes("dues.adjust");
+    canWriteJournal = actor.capabilities.includes("journal.write");
     rows = await readDocumentDirectory(runtime.client, organizationId);
   } catch (error) {
     failure = error;
@@ -60,6 +62,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
       <p className={styles.hint}>Drafts are saved without ledger effect. Posting, settlement and delivery stay separate actions.</p>
       <section className={`panel ${styles.panel}`}>
         <h2>Create a draft</h2>
+        {canWriteJournal && <p><Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=manual_journal`}>New manual journal</Link></p>}
         <div className={styles.toolbar}>
           {draftTypes.map(([type, label]) => (
             <Link key={type} className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=${type}`}>
