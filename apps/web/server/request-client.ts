@@ -45,6 +45,7 @@ const procedures = new Set([
   "read_receipt_allocation_options",
   "read_receipt_register",
   "read_receipt_lifecycle",
+  "read_bill_register",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
