@@ -49,9 +49,6 @@ The test layers are intentionally separate:
 npm run test:application
 npm run test:reference   # retained Python reference model; not app evidence
 npm run test:spec        # static source/spec checks; not app evidence
-npm run test:database    # transitional harness; requires a local test database
-npm run test:race        # transitional harness; requires a local test database
-npm run test:browser     # Playwright Chromium harness
 ```
 
 See [US-005 test harness](docs/16-test-harness.md) and

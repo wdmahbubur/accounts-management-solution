@@ -21,14 +21,9 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:application": "node --test tests/application/*.test.mjs tests/application/*.test.ts",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
-    "test:spec": "cd docs && python verification/check_spec.py",
-    "test:database": "supabase test db",
-    "test:race": "bash scripts/test-race-harness.sh",
-    "test:browser": "playwright test"
+    "test:spec": "cd docs && python verification/check_spec.py"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "@supabase/supabase-js": "2.117.1",
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
