@@ -8,7 +8,7 @@ type AuditCursor = { created_at: string; id: Uuid };
 type AuditFilters = { actor?: string; action?: string; entity?: string; from?: string; to?: string; cursor?: string };
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const forbiddenKey = /(password|secret|token|credential|authorization|cookie|file[_-]?content|other[_-]?organization|email|phone|address|tax[_-]?identifier|credit[_-]?limit)/i;
+const forbiddenKey = /(password|secret|token|credential|authorization|cookie|file[_-]?content|other[_-]?organization|email|phone|address|tax[_-]?identifier|credit[_-]?limit|display[_-]?name|legal[_-]?name|personal[_-]?name)/i;
 
 function dateValue(value: string | undefined, field: string) {
   if (!value) return undefined;
@@ -89,6 +89,13 @@ export function auditSourceHref(organizationId: string, row: { entity_type: unkn
   switch (row.entity_type) {
     case "business_document": return capabilities.includes("documents.read") ? `${root}/accounting/documents/${id}` : null;
     case "journal_entry": return capabilities.includes("ledger.read") ? `${root}/accounting/journals/${id}` : null;
+    case "accounting_period": return capabilities.includes("accounting.read") ? `${root}/accounting/periods` : null;
+    case "account": return capabilities.includes("accounting.read") ? `${root}/accounting/accounts` : null;
+    case "cash_account": return capabilities.includes("banking.read") ? `${root}/banking/accounts/${id}` : null;
+    case "cost_center": return capabilities.includes("catalog.read") ? `${root}/catalog/cost-centers` : null;
+    case "tax_code": return capabilities.includes("tax.read") ? `${root}/settings/taxes` : null;
+    case "approval_policy": return capabilities.includes("approvals.read") || capabilities.includes("approvals.manage") ? `${root}/settings/approvals` : null;
+    case "invitation": return capabilities.includes("users.read") ? `${root}/settings/users` : null;
     case "organization_member": case "member_role": return capabilities.includes("users.read") ? `${root}/settings/users` : null;
     case "attachment": return capabilities.includes("attachments.read") ? `${root}/documents` : null;
     default: return null;
