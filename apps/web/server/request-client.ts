@@ -30,12 +30,12 @@ const procedures = new Set([
 
 export type DatabaseError = { code?: string; message?: string };
 export type RpcResult = { data: unknown; error: DatabaseError | null };
-export type RequestUser = { id: string; email: string | null; last_sign_in_at: string | null };
+export type RequestUser = { id: string; email?: string | null; last_sign_in_at?: string | null };
 
 export interface RequestClient {
   auth: {
     // PromiseLike keeps provider-independent service adapters easy to mock while Auth.js remains the implementation.
-    getUser(): PromiseLike<any>;
+    getUser(): PromiseLike<{ data: { user: RequestUser | null }; error: DatabaseError | null }>;
   };
   rpc(name: string, args?: Record<string, unknown>): PromiseLike<RpcResult>;
 }
