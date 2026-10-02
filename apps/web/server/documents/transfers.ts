@@ -1,0 +1,11 @@
+import { parseMoneyString,parseOrganizationId,parseUuid,type OrganizationId,type Uuid } from "@ams/contracts";
+import type { RequestClient } from "../request-client.ts";
+import { CommandError } from "../commands/errors.ts";
+import type { ActorContext } from "../auth/types.ts";
+import { record } from "./contracts.ts";
+export interface TransferRow{id:Uuid;organizationId:OrganizationId;state:string;documentNumber:string|null;accountingDate:string;fromAccount:string;toAccount:string;amount:string;feeAmount:string;totalAmount:string;externalReference:string|null}
+export async function readTransferRegister(client:Pick<RequestClient,"rpc">,actor:ActorContext,search:string|null):Promise<TransferRow[]>{
+ if(!actor.capabilities.includes("banking.read"))throw CommandError.forbidden();if(search!==null&&search.length>100)throw CommandError.validation({search:"Use up to 100 characters."});
+ const r=await client.rpc("read_transfer_register",{p_organization_id:actor.organizationId,p_search:search,p_after:null,p_limit:101});if(r.error){if(r.error.code==="42501")throw CommandError.forbidden();if(r.error.code==="P0002")throw CommandError.notFound();throw new Error("Transfer register could not be loaded.");}
+ if(!Array.isArray(r.data)||r.data.length>101)throw new Error("Invalid transfer register response.");return r.data.map((value:unknown)=>{const row=record(value,"transfer");if(row.organization_id!==actor.organizationId||typeof row.state!=="string"||(row.document_number!==null&&typeof row.document_number!=="string")||typeof row.accounting_date!=="string"||typeof row.from_account!=="string"||typeof row.to_account!=="string"||typeof row.amount!=="string"||typeof row.fee_amount!=="string"||typeof row.total_amount!=="string"||(row.external_reference!==null&&typeof row.external_reference!=="string"))throw new Error("Invalid transfer row.");return{id:parseUuid(row.id),organizationId:parseOrganizationId(row.organization_id),state:row.state,documentNumber:row.document_number,accountingDate:row.accounting_date,fromAccount:row.from_account,toAccount:row.to_account,amount:parseMoneyString(row.amount),feeAmount:parseMoneyString(row.fee_amount),totalAmount:parseMoneyString(row.total_amount),externalReference:row.external_reference};});
+}

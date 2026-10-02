@@ -51,6 +51,7 @@ const procedures = new Set([
   "save_cash_account",
   "archive_cash_account",
   "read_cash_account_ledger",
+  "read_transfer_register",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
