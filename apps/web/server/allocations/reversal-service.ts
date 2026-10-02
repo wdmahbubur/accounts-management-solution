@@ -1,10 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { capability } from "@ams/permissions";
 import { CommandError, retryableTransactionError } from "../commands/errors.ts";
 import type { OrganizationCommandDefinition } from "../commands/types.ts";
 import { parseAllocationReversalReceipt, validateAllocationReversalInput, type AllocationReversalInput, type AllocationReversalReceipt } from "./reversal-contracts.ts";
 
-type RpcClient=Pick<SupabaseClient,"rpc">;
+type RpcClient=Pick<RequestClient,"rpc">;
 function databaseError(error:{code?:string;message?:string}){
   const retry=retryableTransactionError(error);if(retry)return retry;
   if(error.code==="42501")return CommandError.forbidden();if(error.code==="28000")return CommandError.unauthenticated();
