@@ -90,6 +90,10 @@ export default async function OrganizationContextPage({
               <Link href={`/o/${organizationId}/settings/users`}>Users</Link>
               <Link href={`/o/${organizationId}/settings/roles`}>Roles</Link>
             </>}
+            {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/accounts`}>Chart of accounts</Link>}
+            {membership.capabilities.includes("approvals.manage") && <Link href={`/o/${organizationId}/settings/approvals`}>Approval policies</Link>}
+            {membership.capabilities.includes("approvals.read") && <Link href={`/o/${organizationId}/approvals`}>Approval inbox</Link>}
+            {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/periods`}>Fiscal periods</Link>}
             <Link href="/settings/profile">Profile preferences</Link>
             <Link href="/settings/security">Review session security</Link>
           </nav>
