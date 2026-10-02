@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { Pool } from "@neondatabase/serverless";
+import "./load-local-env.mjs";
 
 const connectionString = process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
 if (!connectionString) {

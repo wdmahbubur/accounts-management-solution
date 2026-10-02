@@ -12,12 +12,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "node --env-file-if-exists=.env.local node_modules/next/dist/bin/next dev apps/web",
+    "dev": "node scripts/run-next.mjs dev apps/web",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run test:application",
-    "build": "node --env-file-if-exists=.env.local node_modules/next/dist/bin/next build apps/web",
-    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
+    "build": "node scripts/run-next.mjs build apps/web",
+    "db:migrate": "node scripts/db-migrate.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:application": "node --test tests/application/*.test.mjs tests/application/*.test.ts",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
