@@ -55,5 +55,5 @@ export async function switchCompanyAction(formData: FormData) {
   cookieStore.set(CURRENT_ORGANIZATION_COOKIE, organizationId, options);
   cookieStore.set(COMPANY_CONTEXT_COOKIE, nonce, options);
 
-  redirect(`/o/${organizationId}`);
+  redirect(`/o/${organizationId}/dashboard`);
 }
