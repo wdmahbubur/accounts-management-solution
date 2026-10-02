@@ -68,7 +68,7 @@ BEGIN
       RAISE EXCEPTION 'used cash account mapping and kind are protected; archive and create another account' USING ERRCODE='23514'; END IF;
     UPDATE finance.cash_accounts ca SET name=btrim(p_name),kind=p_kind,institution=NULLIF(btrim(p_institution),''),
       masked_account_number=NULLIF(btrim(p_masked_account_number),''),is_cash_equivalent=p_is_cash_equivalent,
-      account_id=p_gl_account_id,row_version=ca.row_version+1
+      account_id=p_gl_account_id,allow_negative_balance=CASE WHEN p_kind='bank' THEN ca.allow_negative_balance ELSE false END,row_version=ca.row_version+1
       WHERE ca.organization_id=p_organization_id AND ca.id=p_account_id RETURNING * INTO v_row;
   END IF;
   PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'cash_account.save','cash_account',v_row.id,p_request_id,
