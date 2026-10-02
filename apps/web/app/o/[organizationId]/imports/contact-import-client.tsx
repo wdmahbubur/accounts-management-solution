@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -40,10 +41,10 @@ export function ContactImportClient({ organizationId, nonce, jobs, canRun }: { o
     {message && <p role="status">{message}</p>}
     <section className="panel"><h2>Your contact imports</h2>
       {!jobs.length ? <p>No contact imports yet.</p> : jobs.map((job) => <article key={job.id} className="panel">
-        <h3>{job.filename}</h3><p>{job.status} · {job.valid_count} valid · {job.invalid_count} invalid · {job.row_count} total</p>
+        <h3><Link href={`/o/${organizationId}/imports/${job.id}`}>{job.filename}</Link></h3><p>{job.status} · {job.valid_count} valid · {job.invalid_count} invalid · {job.row_count} total</p>
         <p>Created {new Date(job.created_at).toLocaleString("en-GB", { timeZone: "Asia/Dhaka" })}</p>
-        {job.rows.some((row) => row.errors.length) && <div className="table-scroll"><table><thead><tr><th>CSV row</th><th>Name</th><th>Validation issues</th><th>Status</th></tr></thead><tbody>
-          {job.rows.filter((row) => row.errors.length || row.status === "failed").map((row) => <tr key={row.row_no}><th>{row.row_no}</th><td>{String(row.input_data.display_name ?? "")}</td><td>{row.errors.join(" ")}</td><td>{row.status}</td></tr>)}
+        {job.rows.length > 0 && <div className="table-scroll"><table><thead><tr><th>CSV row</th><th>Name</th><th>Customer</th><th>Vendor</th><th>Issues</th><th>Status</th></tr></thead><tbody>
+          {job.rows.map((row) => <tr key={row.row_no}><th>{row.row_no}</th><td>{String(row.input_data.display_name ?? "")}</td><td>{row.input_data.is_customer ? "Yes" : "No"}</td><td>{row.input_data.is_vendor ? "Yes" : "No"}</td><td>{row.errors.join(" ") || "—"}</td><td>{row.status}</td></tr>)}
         </tbody></table></div>}
         {job.rows.some((row) => row.errors.length) && <a href={`/api/v1/organizations/${organizationId}/imports/${job.id}/errors`}>Download row error CSV</a>}
         {canRun && ["ready", "running"].includes(job.status) && job.invalid_count === 0 && <button disabled={busy} onClick={() => commit(job)}>Commit {job.valid_count} valid contact(s)</button>}
