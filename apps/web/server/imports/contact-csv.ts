@@ -35,33 +35,35 @@ function bool(value: string | undefined): boolean | null {
   return null;
 }
 export const CONTACT_IMPORT_FIELDS = ["display_name", "legal_name", "is_customer", "is_vendor", "email", "phone", "payment_terms_days", "credit_limit", "external_key", "is_active"] as const;
+export const ITEM_IMPORT_FIELDS = ["sku", "name", "unit", "default_unit_price", "sales_account_id", "purchase_account_id", "tax_code_id", "is_active"] as const;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function mappedColumns(header: string[], requestedMapping: unknown, fields: readonly string[], required: readonly string[]) {
+  if (requestedMapping !== undefined && requestedMapping !== null && (typeof requestedMapping !== "object" || Array.isArray(requestedMapping))) {
+    throw new Error("The column mapping must be an object.");
+  }
+  const requested = requestedMapping && typeof requestedMapping === "object" && !Array.isArray(requestedMapping) ? requestedMapping as Record<string, unknown> : {};
+  if (Object.keys(requested).some((field) => !fields.includes(field))) throw new Error("The column mapping contains an unsupported field.");
+  const mapping: Record<string, string> = {};
+  for (const field of fields) {
+    const value = requested[field] ?? header.find((name) => name.toLowerCase() === field) ?? null;
+    if (value === null || value === "") continue;
+    if (typeof value !== "string" || !header.includes(value)) throw new Error(`Choose a CSV column for ${field}.`);
+    mapping[field] = value;
+  }
+  if (!required.every((field) => mapping[field])) throw new Error(`Map ${required.join(", ")} to CSV columns before validation.`);
+  if (new Set(Object.values(mapping)).size !== Object.values(mapping).length) throw new Error("Each CSV column can map to only one field.");
+  return mapping;
+}
 export function parseContactCsv(source: string, requestedMapping?: unknown): CsvResult {
   const bytes = Buffer.from(source, "utf8");
   if (!bytes.length || bytes.length > MAX_CONTACT_IMPORT_BYTES) throw new Error("CSV must be between 1 byte and 5 MiB.");
+  if (source.includes("\0")) throw new Error("CSV cannot contain NUL characters.");
   const parsed = parseCsv(source.replace(/^\uFEFF/, ""));
   const header = (parsed.shift() ?? []).map((value) => value.trim());
   if (!header.length || header.some((name) => !name.trim() || name.length > 100) || new Set(header.map((name) => name.trim().toLowerCase())).size !== header.length) {
     throw new Error("CSV column headers must be nonempty, unique and at most 100 characters.");
   }
-  if (requestedMapping !== undefined && requestedMapping !== null && (typeof requestedMapping !== "object" || Array.isArray(requestedMapping))) {
-    throw new Error("The column mapping must be an object.");
-  }
-  const requested = requestedMapping && typeof requestedMapping === "object" && !Array.isArray(requestedMapping)
-    ? requestedMapping as Record<string, unknown> : {};
-  if (Object.keys(requested).some((field) => !CONTACT_IMPORT_FIELDS.includes(field as typeof CONTACT_IMPORT_FIELDS[number]))) {
-    throw new Error("The column mapping contains an unsupported contact field.");
-  }
-  const mapping: Record<string, string> = {};
-  for (const field of CONTACT_IMPORT_FIELDS) {
-    const value = requested[field] ?? header.find((name) => name.trim().toLowerCase() === field) ?? null;
-    if (value === null || value === "") continue;
-    if (typeof value !== "string" || !header.some((name) => name === value)) throw new Error(`Choose a CSV column for ${field}.`);
-    mapping[field] = value;
-  }
-  if (!["display_name", "is_customer", "is_vendor"].every((field) => mapping[field])) {
-    throw new Error("Map display_name, is_customer and is_vendor to CSV columns before validation.");
-  }
-  if (new Set(Object.values(mapping)).size !== Object.values(mapping).length) throw new Error("Each CSV column can map to only one contact field.");
+  const mapping = mappedColumns(header, requestedMapping, CONTACT_IMPORT_FIELDS, ["display_name", "is_customer", "is_vendor"]);
   if (!parsed.length || parsed.length > MAX_CONTACT_IMPORT_ROWS) throw new Error("CSV must contain 1-500 contact rows.");
   const rows = parsed.map((values, index) => {
     const errors: string[] = [];
@@ -88,5 +90,37 @@ export function parseContactCsv(source: string, requestedMapping?: unknown): Csv
       payment_terms_days: terms, credit_limit: credit, external_key: data.external_key || null,
       is_active: data.is_active ? bool(data.is_active) : true }, errors, status: errors.length ? "invalid" as const : "valid" as const };
   });
+  if (Buffer.byteLength(JSON.stringify(rows), "utf8") > 4 * 1024 * 1024) throw new Error("Validated contact rows exceed the 4 MiB staging limit.");
+  return { rows, sha256: createHash("sha256").update(bytes).digest("hex"), bytes, mapping };
+}
+
+export function parseItemCsv(source: string, requestedMapping?: unknown): CsvResult {
+  const bytes = Buffer.from(source, "utf8");
+  if (!bytes.length || bytes.length > MAX_CONTACT_IMPORT_BYTES) throw new Error("CSV must be between 1 byte and 5 MiB.");
+  if (source.includes("\0")) throw new Error("CSV cannot contain NUL characters.");
+  const parsed = parseCsv(source.replace(/^\uFEFF/, ""));
+  const header = (parsed.shift() ?? []).map((value) => value.trim());
+  if (!header.length || header.some((name) => !name || name.length > 100) || new Set(header.map((name) => name.toLowerCase())).size !== header.length) {
+    throw new Error("CSV column headers must be nonempty, unique and at most 100 characters.");
+  }
+  const mapping = mappedColumns(header, requestedMapping, ITEM_IMPORT_FIELDS, ["name", "unit", "default_unit_price"]);
+  if (!parsed.length || parsed.length > MAX_CONTACT_IMPORT_ROWS) throw new Error("CSV must contain 1-500 catalogue rows.");
+  const rows = parsed.map((values, index) => {
+    const errors: string[] = []; if (values.length !== header.length) errors.push("Column count does not match the header.");
+    const data: Record<string, string> = {};
+    for (const [field, sourceHeader] of Object.entries(mapping)) data[field] = (values[header.indexOf(sourceHeader)] ?? "").trim();
+    if (!data.name?.trim() || data.name.length > 160) errors.push("name is required and limited to 160 characters.");
+    if (!data.unit?.trim() || data.unit.length > 40) errors.push("unit is required and limited to 40 characters.");
+    if (!data.default_unit_price || !/^(0|[1-9]\d{0,13})(?:\.\d{1,6})?$/.test(data.default_unit_price)) errors.push("default_unit_price must be a nonnegative rate with up to six decimals.");
+    if ((data.sku?.length ?? 0) > 80) errors.push("sku is limited to 80 characters.");
+    for (const field of ["sales_account_id", "purchase_account_id", "tax_code_id"]) if (data[field] && !UUID.test(data[field])) errors.push(`${field} must be a UUID.`);
+    if (!data.sales_account_id && !data.purchase_account_id) errors.push("Map a sales or purchase account default.");
+    if (data.is_active && bool(data.is_active) === null) errors.push("is_active must be a boolean when provided.");
+    return { row_no: index + 2, input_data: { sku: data.sku || null, name: data.name, unit: data.unit,
+      default_unit_price: data.default_unit_price, sales_account_id: data.sales_account_id || null,
+      purchase_account_id: data.purchase_account_id || null, tax_code_id: data.tax_code_id || null,
+      is_active: data.is_active ? bool(data.is_active) : true }, errors, status: errors.length ? "invalid" as const : "valid" as const };
+  });
+  if (Buffer.byteLength(JSON.stringify(rows), "utf8") > 4 * 1024 * 1024) throw new Error("Validated item rows exceed the 4 MiB staging limit.");
   return { rows, sha256: createHash("sha256").update(bytes).digest("hex"), bytes, mapping };
 }

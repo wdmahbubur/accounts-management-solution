@@ -1,11 +1,12 @@
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
+import { createHash } from "node:crypto";
 import { assertMutationOrigin } from "../../../../../../server/auth/mutation-origin.ts";
 import { createSupabaseIdentityVerifier } from "../../../../../../server/auth/supabase-identity.ts";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError, commandErrorBody, normalizeCommandError } from "../../../../../../server/commands/errors.ts";
 import { generateRequestId } from "../../../../../../server/commands/request-context.ts";
 import { assertFreshCompanySubmission, StaleCompanyContextError } from "../../../../../../server/company-context.ts";
-import { parseContactCsv, MAX_CONTACT_IMPORT_BYTES } from "../../../../../../server/imports/contact-csv.ts";
+import { parseContactCsv, parseItemCsv, MAX_CONTACT_IMPORT_BYTES } from "../../../../../../server/imports/contact-csv.ts";
 import { PRIVATE_ARTIFACT_BUCKET } from "../../../../../../server/artifacts/download.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 
@@ -20,7 +21,11 @@ export async function GET(_request: Request, context: { params: Promise<{ organi
     const organizationId = parseOrganizationId((await context.params).organizationId); const runtime = await roleRuntime();
     const result = await runtime.client.rpc("read_contact_import", { p_organization_id: organizationId, p_import_job_id: null });
     if (result.error) throw result.error;
-    return Response.json({ data: result.data ?? [], meta: { request_id: generateRequestId(), replayed: false } }, { headers: noStore });
+    const items = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: null });
+    if (items.error) throw items.error;
+    const jobs = [...(Array.isArray(result.data) ? result.data : []), ...(Array.isArray(items.data) ? items.data : [])];
+    jobs.sort((left, right) => Date.parse(String((right as Record<string, unknown>).created_at)) - Date.parse(String((left as Record<string, unknown>).created_at)));
+    return Response.json({ data: jobs, meta: { request_id: generateRequestId(), replayed: false } }, { headers: noStore });
   } catch (error) { return failure(error); }
 }
 export async function POST(request: Request, context: { params: Promise<{ organizationId: string }> }) {
@@ -44,22 +49,35 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     let raw: Record<string, unknown>;
     try { raw = JSON.parse(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total).toString("utf8")) as Record<string, unknown>; }
     catch { throw CommandError.validation({ body: "Expected valid JSON containing a CSV filename and contents." }); }
-    if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some((key) => !["filename", "csv", "mapping"].includes(key)) ||
-      typeof raw.filename !== "string" || typeof raw.csv !== "string") throw CommandError.validation({ body: "Provide a CSV filename and contents." });
+    if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some((key) => !["filename", "csv", "mapping", "type"].includes(key)) ||
+      typeof raw.filename !== "string" || typeof raw.csv !== "string" || (raw.type !== "contacts" && raw.type !== "items")) {
+      throw CommandError.validation({ body: "Provide a supported import type, CSV filename and contents." });
+    }
     const filename = raw.filename.trim();
     if (!filename || filename.length > 180 || /[\x00-\x1f\x7f/\\]/.test(filename) || !filename.toLowerCase().endsWith(".csv")) {
       throw CommandError.validation({ filename: "Use a .csv filename without path separators or control characters." });
     }
     let parsed;
-    try { parsed = parseContactCsv(raw.csv, raw.mapping); } catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "CSV could not be read." }); }
+    try { parsed = raw.type === "contacts" ? parseContactCsv(raw.csv, raw.mapping) : parseItemCsv(raw.csv, raw.mapping); }
+    catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "CSV could not be read." }); }
     const requestId = generateRequestId();
-    const created = await runtime.client.rpc("create_contact_import", { p_organization_id: organizationId, p_filename: filename,
+    const created = await runtime.client.rpc(raw.type === "contacts" ? "create_contact_import" : "create_item_import", { p_organization_id: organizationId, p_filename: filename,
       p_size: parsed.bytes.length, p_sha256: parsed.sha256, p_rows: parsed.rows, p_mapping: parsed.mapping, p_request_id: requestId });
     if (created.error || !Array.isArray(created.data) || created.data.length !== 1) throw created.error ?? new Error("Import could not be staged.");
     const row = created.data[0] as { import_job_id?: unknown; object_key?: unknown };
     const jobId = parseUuid(row.import_job_id, "import_job_id"); const key = `${organizationId}/imports/${parseUuid(String(row.object_key).split("/").at(-1), "intent_id")}`;
     if (row.object_key !== key) throw new Error("Import storage scope is invalid.");
     const upload = await runtime.client.storage.from(PRIVATE_ARTIFACT_BUCKET).upload(key, parsed.bytes, { contentType: "text/csv; charset=utf-8", cacheControl: "0", upsert: false });
+    const stored = await runtime.client.storage.from(PRIVATE_ARTIFACT_BUCKET).download(key);
+    if (stored.error || !stored.data || stored.data.size !== parsed.bytes.length) {
+      if (!upload.error) await runtime.client.storage.from(PRIVATE_ARTIFACT_BUCKET).remove([key]);
+      throw CommandError.validation({ file: "Stored CSV bytes do not match the import source. Retry the same file." });
+    }
+    const storedBytes = Buffer.from(await stored.data.arrayBuffer());
+    if (createHash("sha256").update(storedBytes).digest("hex") !== parsed.sha256) {
+      await runtime.client.storage.from(PRIVATE_ARTIFACT_BUCKET).remove([key]);
+      throw CommandError.validation({ file: "Stored CSV digest does not match the import source. Retry the same file." });
+    }
     // A prior request may have stored the immutable object and failed before the
     // database transition. Completion verifies the pending intent and object.
     const completed = await runtime.client.rpc("complete_contact_import_upload", { p_organization_id: organizationId,
@@ -68,7 +86,7 @@ export async function POST(request: Request, context: { params: Promise<{ organi
       if (!upload.error) await runtime.client.storage.from(PRIVATE_ARTIFACT_BUCKET).remove([key]);
       throw completed.error ?? new Error(upload.error ? "Private CSV storage failed. Retry the same file to resume the upload." : "Import upload could not be completed.");
     }
-    return Response.json({ data: { id: jobId, status: "ready", row_count: parsed.rows.length,
+    return Response.json({ data: { id: jobId, type: raw.type, status: "ready", row_count: parsed.rows.length,
       valid_count: parsed.rows.filter((item) => item.status === "valid").length,
       invalid_count: parsed.rows.filter((item) => item.status === "invalid").length },
       meta: { request_id: requestId, replayed: false } }, { status: 201, headers: noStore });

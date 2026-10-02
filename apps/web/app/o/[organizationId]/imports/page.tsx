@@ -16,11 +16,15 @@ export default async function ImportsPage({ params }: { params: Promise<{ organi
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     const result = await runtime.client.rpc("read_contact_import", { p_organization_id: organizationId, p_import_job_id: null });
     if (result.error) throw result.error;
-    const jobs = (Array.isArray(result.data) ? result.data : []) as Parameters<typeof ContactImportClient>[0]["jobs"];
-    return <main className="content"><p className="eyebrow">Data tools</p><h1>Contact imports</h1>
-      <p>Upload a CSV to validate contact rows before you explicitly create them. Invalid rows block commit. Uploads and previews are company scoped.</p>
+    const items = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: null });
+    if (items.error) throw items.error;
+    const jobs = ([...(Array.isArray(result.data) ? result.data : []), ...(Array.isArray(items.data) ? items.data : [])]
+      .sort((left, right) => Date.parse(String((right as Record<string, unknown>).created_at)) - Date.parse(String((left as Record<string, unknown>).created_at)))) as Parameters<typeof ContactImportClient>[0]["jobs"];
+    return <main className="content"><p className="eyebrow">Data tools</p><h1>Import jobs</h1>
+      <p>Stage, map and review contact or service-item CSV rows before explicitly committing them. Imports stay scoped to this company and your account.</p>
       <ContactImportClient organizationId={organizationId} nonce={runtime.current.nonce} jobs={jobs}
-        canRun={actor.capabilities.includes("imports.run") && actor.capabilities.includes("contacts.write")} />
+        canImportContacts={actor.capabilities.includes("imports.run") && actor.capabilities.includes("contacts.write")}
+        canImportItems={actor.capabilities.includes("imports.run") && actor.capabilities.includes("catalog.write")} />
     </main>;
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");

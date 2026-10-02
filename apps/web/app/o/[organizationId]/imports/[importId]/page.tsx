@@ -17,13 +17,19 @@ export default async function ContactImportDetailPage({ params }: { params: Prom
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     const result = await runtime.client.rpc("read_contact_import", { p_organization_id: organizationId, p_import_job_id: importId });
-    if (result.error || !Array.isArray(result.data) || result.data.length !== 1) notFound();
-    const jobs = result.data as Parameters<typeof ContactImportClient>[0]["jobs"];
-    return <main className="content"><p className="eyebrow">Data tools</p><h1>Contact import preview</h1>
+    let values = Array.isArray(result.data) ? result.data : [];
+    if (!values.length) {
+      const itemResult = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: importId });
+      if (itemResult.error || !Array.isArray(itemResult.data) || !itemResult.data.length) notFound();
+      values = itemResult.data;
+    }
+    const jobs = values as Parameters<typeof ContactImportClient>[0]["jobs"];
+    return <main className="content"><p className="eyebrow">Data tools</p><h1>Import job preview</h1>
       <p>Review staged rows and any row-level validation or command errors before retrying.</p>
       <p><Link href={`/o/${organizationId}/imports`}>Back to imports</Link></p>
       <ContactImportClient organizationId={organizationId} nonce={runtime.current.nonce} jobs={jobs}
-        canRun={actor.capabilities.includes("imports.run") && actor.capabilities.includes("contacts.write")} />
+        canImportContacts={actor.capabilities.includes("imports.run") && actor.capabilities.includes("contacts.write")}
+        canImportItems={actor.capabilities.includes("imports.run") && actor.capabilities.includes("catalog.write")} />
     </main>;
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");
