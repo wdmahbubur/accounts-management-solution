@@ -15,14 +15,19 @@ export async function GET(_request: Request, context: { params: Promise<{ organi
     let values = Array.isArray(result.data) ? result.data : [];
     if (!values.length) {
       const itemResult = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: importId });
-      if (itemResult.error || !Array.isArray(itemResult.data) || !itemResult.data.length) return new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } });
-      values = itemResult.data;
+      if (itemResult.error) return new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } });
+      values = Array.isArray(itemResult.data) ? itemResult.data : [];
+      if (!values.length) {
+        const draftResult = await runtime.client.rpc("read_financial_draft_import", { p_organization_id: organizationId, p_import_job_id: importId });
+        if (draftResult.error || !Array.isArray(draftResult.data) || !draftResult.data.length) return new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } });
+        values = draftResult.data;
+      }
     }
     const job = values[0] as { rows?: Array<{ row_no: number; input_data: Record<string, unknown>; errors: string[]; status: string }> };
     const failed = (job.rows ?? []).filter((row) => row.errors?.length);
     const lines: unknown[][] = [["CSV row", "Record", "Details", "Status", "Errors"],
-      ...failed.map((row) => [row.row_no, row.input_data?.display_name ?? row.input_data?.name ?? row.input_data?.sku,
-        row.input_data?.email ?? row.input_data?.default_unit_price ?? row.input_data?.unit, row.status, row.errors.join("; ")])];
+      ...failed.map((row) => [row.row_no, row.input_data?.display_name ?? row.input_data?.name ?? row.input_data?.description ?? row.input_data?.sku,
+        row.input_data?.email ?? row.input_data?.default_unit_price ?? row.input_data?.external_reference ?? row.input_data?.unit, row.status, row.errors.join("; ")])];
     const csv = `\uFEFF${lines.map((line) => line.map(cell).join(",")).join("\r\n")}\r\n`;
     return new Response(csv, { status: 200, headers });
   } catch { return new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } }); }

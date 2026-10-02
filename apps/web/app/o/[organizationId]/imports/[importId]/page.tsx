@@ -20,8 +20,13 @@ export default async function ContactImportDetailPage({ params }: { params: Prom
     let values = Array.isArray(result.data) ? result.data : [];
     if (!values.length) {
       const itemResult = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: importId });
-      if (itemResult.error || !Array.isArray(itemResult.data) || !itemResult.data.length) notFound();
-      values = itemResult.data;
+      if (itemResult.error) throw itemResult.error;
+      values = Array.isArray(itemResult.data) ? itemResult.data : [];
+      if (!values.length) {
+        const draftResult = await runtime.client.rpc("read_financial_draft_import", { p_organization_id: organizationId, p_import_job_id: importId });
+        if (draftResult.error || !Array.isArray(draftResult.data) || !draftResult.data.length) notFound();
+        values = draftResult.data;
+      }
     }
     const jobs = values as Parameters<typeof ContactImportClient>[0]["jobs"];
     return <main className="content"><p className="eyebrow">Data tools</p><h1>Import job preview</h1>
@@ -29,7 +34,9 @@ export default async function ContactImportDetailPage({ params }: { params: Prom
       <p><Link href={`/o/${organizationId}/imports`}>Back to imports</Link></p>
       <ContactImportClient organizationId={organizationId} nonce={runtime.current.nonce} jobs={jobs}
         canImportContacts={actor.capabilities.includes("imports.run") && actor.capabilities.includes("contacts.write")}
-        canImportItems={actor.capabilities.includes("imports.run") && actor.capabilities.includes("catalog.write")} />
+        canImportItems={actor.capabilities.includes("imports.run") && actor.capabilities.includes("catalog.write")}
+        canImportInvoices={actor.capabilities.includes("imports.run") && actor.capabilities.includes("documents.read") && actor.capabilities.includes("sales.write")}
+        canImportBills={actor.capabilities.includes("imports.run") && actor.capabilities.includes("documents.read") && actor.capabilities.includes("purchases.write")} />
     </main>;
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");

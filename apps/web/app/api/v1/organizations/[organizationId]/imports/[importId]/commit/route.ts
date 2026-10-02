@@ -8,6 +8,7 @@ import { generateRequestId } from "../../../../../../../../server/commands/reque
 import { assertFreshCompanySubmission, StaleCompanyContextError } from "../../../../../../../../server/company-context.ts";
 import { saveContactCommand } from "../../../../../../../../server/contacts/service.ts";
 import { saveItemCommand } from "../../../../../../../../server/catalog/service.ts";
+import { createDraftCommand } from "../../../../../../../../server/documents/service.ts";
 import { roleRuntime } from "../../../../../../../../server/roles/runtime.ts";
 
 const noStore = { "Cache-Control": "private, no-store" };
@@ -28,13 +29,19 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     let rawJob = Array.isArray(loaded.data) ? loaded.data[0] : null;
     if (!rawJob) {
       const itemLoad = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: importId });
-      if (itemLoad.error || !Array.isArray(itemLoad.data) || itemLoad.data.length !== 1) throw itemLoad.error ?? CommandError.notFound();
-      rawJob = itemLoad.data[0];
+      if (Array.isArray(itemLoad.data) && itemLoad.data.length === 1) rawJob = itemLoad.data[0];
+      else {
+        const draftLoad = await runtime.client.rpc("read_financial_draft_import", { p_organization_id: organizationId, p_import_job_id: importId });
+        if (draftLoad.error || !Array.isArray(draftLoad.data) || draftLoad.data.length !== 1) throw draftLoad.error ?? itemLoad.error ?? CommandError.notFound();
+        rawJob = draftLoad.data[0];
+      }
     }
     if (loaded.error && !rawJob) throw loaded.error;
     const job = rawJob as { id: string; type?: string; status: string; rows: Array<{ row_no: number; input_data: Record<string, unknown>; errors: string[]; status: string; contact_id?: string | null; result_id?: string | null }> };
-    const type = job.type === "items" ? "items" : "contacts";
-    if (!actor.capabilities.includes(type === "contacts" ? "contacts.write" : "catalog.write")) throw CommandError.forbidden();
+    const type = job.type === "items" || job.type === "invoice_drafts" || job.type === "bill_drafts" ? job.type : "contacts";
+    const financialDraft = type === "invoice_drafts" || type === "bill_drafts";
+    const writeCapability = type === "contacts" ? "contacts.write" : type === "items" ? "catalog.write" : type === "invoice_drafts" ? "sales.write" : "purchases.write";
+    if (!actor.capabilities.includes(writeCapability) || (financialDraft && !actor.capabilities.includes("documents.read"))) throw CommandError.forbidden();
     if (!["ready", "running"].includes(job.status)) throw CommandError.conflict("IMPORT_NOT_READY");
     if (job.rows.some((row) => row.status === "invalid")) throw CommandError.validation({ rows: "Fix or remove invalid rows before committing this import." });
     const pendingRows = job.rows.filter((row) => row.status === "valid");
@@ -42,23 +49,27 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     const outcomes: Array<{ row_no: number; status: "imported" | "failed"; record_id?: string; error?: string }> = [];
     for (const row of batchRows) {
       const key = createHash("sha256").update(`${organizationId}:${importId}:${row.row_no}`).digest("base64url");
-      const command = await executeOrganizationCommand({ definition: type === "contacts" ? saveContactCommand(runtime.client, null) : saveItemCommand(runtime.client, null), organizationId,
-        rawInput: type === "contacts" ? { expected_version: null, contact: row.input_data } : { expected_version: null, item: row.input_data },
+      const definition = type === "contacts" ? saveContactCommand(runtime.client, null) : type === "items" ? saveItemCommand(runtime.client, null) : createDraftCommand(runtime.client);
+      const command = await executeOrganizationCommand({ definition, organizationId,
+        rawInput: type === "contacts" ? { expected_version: null, contact: row.input_data } : type === "items" ? { expected_version: null, item: row.input_data } : row.input_data,
         headers: { get(name: string) { return name.toLowerCase() === "idempotency-key" ? key : null; } }, dependencies: runtime.dependencies });
       if (command.status !== 200) {
         const error = (command.body as { error?: { message?: string } }).error;
         const message = error?.message ?? "The imported record could not be saved.";
-        const recorded = await runtime.client.rpc(type === "contacts" ? "record_contact_import_row_error" : "record_item_import_row_error", { p_organization_id: organizationId,
+        const recordErrorFunction = type === "contacts" ? "record_contact_import_row_error" : type === "items" ? "record_item_import_row_error" : "record_financial_draft_import_row_error";
+        const recorded = await runtime.client.rpc(recordErrorFunction, { p_organization_id: organizationId,
           p_import_job_id: importId, p_row_no: row.row_no, p_message: message.slice(0, 240), p_request_id: generateRequestId() });
         if (recorded.error || recorded.data !== true) throw recorded.error ?? new Error("Import row error could not be saved.");
         outcomes.push({ row_no: row.row_no, status: "failed", error: message }); continue;
       }
-      const saved = (command.body as { data: { id: string } }).data;
-      const marked = await runtime.client.rpc(type === "contacts" ? "mark_contact_import_row" : "mark_item_import_row", {
+      const saved = (command.body as { data: { id?: string; documentId?: string } }).data;
+      const recordId = parseUuid(financialDraft ? saved.documentId : saved.id);
+      const markFunction = type === "contacts" ? "mark_contact_import_row" : type === "items" ? "mark_item_import_row" : "mark_financial_draft_import_row";
+      const marked = await runtime.client.rpc(markFunction, {
         p_organization_id: organizationId, p_import_job_id: importId, p_row_no: row.row_no,
-        ...(type === "contacts" ? { p_contact_id: parseUuid(saved.id) } : { p_item_id: parseUuid(saved.id) }), p_request_id: generateRequestId() });
+        ...(type === "contacts" ? { p_contact_id: recordId } : type === "items" ? { p_item_id: recordId } : { p_document_id: recordId }), p_request_id: generateRequestId() });
       if (marked.error || marked.data !== true) throw marked.error ?? new Error("Import row progress could not be saved.");
-      outcomes.push({ row_no: row.row_no, status: "imported", record_id: saved.id });
+      outcomes.push({ row_no: row.row_no, status: "imported", record_id: recordId });
     }
     const failed = outcomes.filter((item) => item.status === "failed").length;
     const imported = job.rows.filter((row) => row.status === "imported").length + outcomes.filter((item) => item.status === "imported").length;

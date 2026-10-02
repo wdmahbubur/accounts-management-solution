@@ -6,7 +6,7 @@ import { resolveActorContext } from "../../../../../../server/auth/resolve-actor
 import { CommandError, commandErrorBody, normalizeCommandError } from "../../../../../../server/commands/errors.ts";
 import { generateRequestId } from "../../../../../../server/commands/request-context.ts";
 import { assertFreshCompanySubmission, StaleCompanyContextError } from "../../../../../../server/company-context.ts";
-import { parseContactCsv, parseItemCsv, MAX_CONTACT_IMPORT_BYTES } from "../../../../../../server/imports/contact-csv.ts";
+import { parseContactCsv, parseItemCsv, parseFinancialDraftCsv, MAX_CONTACT_IMPORT_BYTES } from "../../../../../../server/imports/contact-csv.ts";
 import { PRIVATE_ARTIFACT_BUCKET } from "../../../../../../server/artifacts/download.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 
@@ -23,7 +23,9 @@ export async function GET(_request: Request, context: { params: Promise<{ organi
     if (result.error) throw result.error;
     const items = await runtime.client.rpc("read_item_import", { p_organization_id: organizationId, p_import_job_id: null });
     if (items.error) throw items.error;
-    const jobs = [...(Array.isArray(result.data) ? result.data : []), ...(Array.isArray(items.data) ? items.data : [])];
+    const drafts = await runtime.client.rpc("read_financial_draft_import", { p_organization_id: organizationId, p_import_job_id: null });
+    if (drafts.error) throw drafts.error;
+    const jobs = [...(Array.isArray(result.data) ? result.data : []), ...(Array.isArray(items.data) ? items.data : []), ...(Array.isArray(drafts.data) ? drafts.data : [])];
     jobs.sort((left, right) => Date.parse(String((right as Record<string, unknown>).created_at)) - Date.parse(String((left as Record<string, unknown>).created_at)));
     return Response.json({ data: jobs, meta: { request_id: generateRequestId(), replayed: false } }, { headers: noStore });
   } catch (error) { return failure(error); }
@@ -50,19 +52,28 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     try { raw = JSON.parse(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total).toString("utf8")) as Record<string, unknown>; }
     catch { throw CommandError.validation({ body: "Expected valid JSON containing a CSV filename and contents." }); }
     if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some((key) => !["filename", "csv", "mapping", "type"].includes(key)) ||
-      typeof raw.filename !== "string" || typeof raw.csv !== "string" || (raw.type !== "contacts" && raw.type !== "items")) {
+      typeof raw.filename !== "string" || typeof raw.csv !== "string" || !["contacts", "items", "invoice_drafts", "bill_drafts"].includes(String(raw.type))) {
       throw CommandError.validation({ body: "Provide a supported import type, CSV filename and contents." });
+    }
+    const requiredCapability = raw.type === "contacts" ? "contacts.write" : raw.type === "items" ? "catalog.write" :
+      raw.type === "invoice_drafts" ? "sales.write" : "purchases.write";
+    if (!actor.capabilities.includes(requiredCapability) || (raw.type === "invoice_drafts" || raw.type === "bill_drafts") && !actor.capabilities.includes("documents.read")) {
+      throw CommandError.forbidden();
     }
     const filename = raw.filename.trim();
     if (!filename || filename.length > 180 || /[\x00-\x1f\x7f/\\]/.test(filename) || !filename.toLowerCase().endsWith(".csv")) {
       throw CommandError.validation({ filename: "Use a .csv filename without path separators or control characters." });
     }
     let parsed;
-    try { parsed = raw.type === "contacts" ? parseContactCsv(raw.csv, raw.mapping) : parseItemCsv(raw.csv, raw.mapping); }
+    try { parsed = raw.type === "contacts" ? parseContactCsv(raw.csv, raw.mapping) : raw.type === "items" ? parseItemCsv(raw.csv, raw.mapping) :
+      parseFinancialDraftCsv(raw.csv, raw.type === "invoice_drafts" ? "invoice" : "bill", raw.mapping); }
     catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "CSV could not be read." }); }
     const requestId = generateRequestId();
-    const created = await runtime.client.rpc(raw.type === "contacts" ? "create_contact_import" : "create_item_import", { p_organization_id: organizationId, p_filename: filename,
-      p_size: parsed.bytes.length, p_sha256: parsed.sha256, p_rows: parsed.rows, p_mapping: parsed.mapping, p_request_id: requestId });
+    const common = { p_organization_id: organizationId, p_filename: filename, p_size: parsed.bytes.length,
+      p_sha256: parsed.sha256, p_rows: parsed.rows, p_mapping: parsed.mapping, p_request_id: requestId };
+    const created = raw.type === "contacts" ? await runtime.client.rpc("create_contact_import", common) : raw.type === "items" ?
+      await runtime.client.rpc("create_item_import", common) : await runtime.client.rpc("create_financial_draft_import", {
+        ...common, p_document_type: raw.type === "invoice_drafts" ? "invoice" : "bill" });
     if (created.error || !Array.isArray(created.data) || created.data.length !== 1) throw created.error ?? new Error("Import could not be staged.");
     const row = created.data[0] as { import_job_id?: unknown; object_key?: unknown };
     const jobId = parseUuid(row.import_job_id, "import_job_id"); const key = `${organizationId}/imports/${parseUuid(String(row.object_key).split("/").at(-1), "intent_id")}`;
