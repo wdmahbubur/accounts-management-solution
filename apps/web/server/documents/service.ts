@@ -45,7 +45,12 @@ export function updateAllocationPlanCommand(client:RpcClient,documentId:string):
   }};}
 export async function readFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string){
   const r=await client.rpc("read_financial_document",{p_organization_id:actor.organizationId,p_document_id:documentId});if(r.error)throw documentDatabaseError(r.error);
-  return record(r.data,"document");
+  const document=record(r.data,"document");if(Array.isArray(document.lines)&&document.lines.length){
+    const snapshots=await client.rpc("read_line_item_snapshots",{p_organization_id:actor.organizationId,p_document_id:documentId});if(snapshots.error)throw documentDatabaseError(snapshots.error);
+    const byLine=new Map<string,{item:Record<string,unknown>|null;costCenter:Record<string,unknown>|null}>();if(Array.isArray(snapshots.data))for(const raw of snapshots.data){const row=record(raw,"line_snapshot");if(typeof row.line_id==="string")byLine.set(row.line_id,{item:row.snapshot&&typeof row.snapshot==="object"?record(row.snapshot,"item_snapshot"):null,costCenter:row.cost_center_snapshot&&typeof row.cost_center_snapshot==="object"?record(row.cost_center_snapshot,"cost_center_snapshot"):null});}
+    document.lines=document.lines.map((raw)=>{const line=record(raw,"line");const snapshot=byLine.get(String(line.id));return{...line,item_snapshot:snapshot?.item??null,cost_center_snapshot:snapshot?.costCenter??null};});
+  }
+  return document;
 }
 export async function readDraftOptions(client:RpcClient,actor:ActorContext,documentType:string,accountingDate:string){
   const permission=typeCapability[documentType]??"journal.write";if(!actor.capabilities.includes(permission))throw CommandError.forbidden();

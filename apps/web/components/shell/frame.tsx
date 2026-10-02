@@ -9,7 +9,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;
 }) {
   const path = usePathname(); const online = useOnline(); const root = `/o/${organizationId}`;
-  const current = path.includes("/sales/customers") ? "Customers" : path.includes("/purchases/vendors") ? "Suppliers" : path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : path.endsWith("/settings/taxes") ? "Tax configuration" : path.endsWith("/settings/approvals") ? "Approval policies" : path.endsWith("/approvals") ? "Approval inbox" : path.endsWith("/accounting/periods") ? "Fiscal periods" : path.endsWith("/accounting/accounts") ? "Chart of accounts" : path.includes("/accounting/documents") ? "Financial documents" : "Dashboard";
+  const current = path.includes("/sales/customers") ? "Customers" : path.includes("/purchases/vendors") ? "Suppliers" : path.includes("/catalog/") ? "Service catalogue" : path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : path.endsWith("/settings/taxes") ? "Tax configuration" : path.endsWith("/settings/approvals") ? "Approval policies" : path.endsWith("/approvals") ? "Approval inbox" : path.endsWith("/accounting/periods") ? "Fiscal periods" : path.endsWith("/accounting/accounts") ? "Chart of accounts" : path.includes("/accounting/documents") ? "Financial documents" : "Dashboard";
   const dashboard = `${root}/dashboard`;
   const nav = [{ href: dashboard, label: "Dashboard" }, ...(capabilities.includes("users.read") ? [
     { href: `${root}/settings/users`, label: "Manage users" }, { href: `${root}/settings/roles`, label: "Manage roles" }
@@ -22,6 +22,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   if (capabilities.includes("approvals.manage")) nav.push({ href: `${root}/settings/approvals`, label: "Approval policies" });
   if (capabilities.includes("approvals.read")) nav.push({ href: `${root}/approvals`, label: "Approval inbox" });
   if (capabilities.includes("documents.read")) nav.push({ href: `${root}/accounting/documents`, label: "Financial documents" });
+  if (capabilities.includes("catalog.read")) nav.push({ href: `${root}/catalog/items`, label: "Service catalogue" });
   if (capabilities.includes("sales.read")) nav.push({ href: `${root}/sales/customers`, label: "Customers" });
   if (capabilities.includes("purchases.read")) nav.push({ href: `${root}/purchases/vendors`, label: "Suppliers" });
   return <div className={styles.shell}>

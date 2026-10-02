@@ -19,7 +19,9 @@ function draftOptions(value: Record<string, unknown>): DraftOptions {
     parties: Array.isArray(value.parties) ? value.parties as DraftOptions["parties"] : [],
     cash_accounts: Array.isArray(value.cash_accounts) ? value.cash_accounts as DraftOptions["cash_accounts"] : [],
     rounding_accounts: Array.isArray(value.rounding_accounts) ? value.rounding_accounts as DraftOptions["rounding_accounts"] : [],
-    tax_codes: Array.isArray(value.tax_codes) ? value.tax_codes as DraftOptions["tax_codes"] : []
+    tax_codes: Array.isArray(value.tax_codes) ? value.tax_codes as DraftOptions["tax_codes"] : [],
+    items: Array.isArray(value.items) ? value.items as DraftOptions["items"] : [],
+    cost_centers: Array.isArray(value.cost_centers) ? value.cost_centers as DraftOptions["cost_centers"] : []
   };
 }
 
@@ -89,6 +91,7 @@ export default async function DocumentDetailPage({ params }: {
           <h1>{typeof document.document_number === "string" ? document.document_number : "Draft"}</h1>
           <p>State: {String(document.state)} · Accounting date: {String(document.accounting_date)}</p>
           <p>Total (BDT): {String(document.total_amount)}</p>
+          {Array.isArray(document.lines) && document.lines.map((line, index) => <p key={index}>{String((line as Record<string, unknown>).description)} · {String((line as Record<string, unknown>).quantity)} × {String((line as Record<string, unknown>).unit_price)}</p>)}
           <p>This source is read-only in its current state.</p>
         </section>{canPost && <PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}
           {canReverse && <ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} />}</>

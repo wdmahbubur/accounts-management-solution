@@ -15,7 +15,9 @@ function draftOptions(value: Record<string, unknown>): DraftOptions {
     parties: Array.isArray(value.parties) ? value.parties as DraftOptions["parties"] : [],
     cash_accounts: Array.isArray(value.cash_accounts) ? value.cash_accounts as DraftOptions["cash_accounts"] : [],
     rounding_accounts: Array.isArray(value.rounding_accounts) ? value.rounding_accounts as DraftOptions["rounding_accounts"] : [],
-    tax_codes: Array.isArray(value.tax_codes) ? value.tax_codes as DraftOptions["tax_codes"] : []
+    tax_codes: Array.isArray(value.tax_codes) ? value.tax_codes as DraftOptions["tax_codes"] : [],
+    items: Array.isArray(value.items) ? value.items as DraftOptions["items"] : [],
+    cost_centers: Array.isArray(value.cost_centers) ? value.cost_centers as DraftOptions["cost_centers"] : []
   };
 }
 
