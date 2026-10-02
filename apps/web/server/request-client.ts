@@ -40,6 +40,8 @@ const procedures = new Set([
   "list_service_catalog",
   "save_service_item",
   "save_cost_center",
+  "read_invoice_register",
+  "read_invoice_lifecycle",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
