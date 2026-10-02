@@ -13,7 +13,7 @@ of this bootstrap.
 
 Requirements:
 
-- Node.js `24.21.0`
+- Node.js `24.x`
 - npm `11.19.0`
 - Python `3.10+` for the retained specification/reference checks
 
