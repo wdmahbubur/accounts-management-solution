@@ -1,0 +1,1 @@
+import {redirect} from "next/navigation";export default async function VendorCreditDetailPage({params}:{params:Promise<{organizationId:string;documentId:string}>}){const {organizationId,documentId}=await params;redirect(`/o/${organizationId}/accounting/documents/${documentId}`);}
