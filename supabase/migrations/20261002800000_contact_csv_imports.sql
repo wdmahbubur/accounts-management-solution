@@ -150,7 +150,7 @@ BEGIN
  SELECT * INTO j FROM finance.import_jobs WHERE organization_id=p_organization_id AND id=p_import_job_id FOR UPDATE;
  IF NOT FOUND OR j.created_by_member_id<>v_actor OR j.status NOT IN ('ready','running') THEN RAISE EXCEPTION 'import unavailable' USING ERRCODE='P0002'; END IF;
  UPDATE finance.import_jobs SET status='running' WHERE organization_id=p_organization_id AND id=j.id AND status='ready';
- UPDATE finance.import_rows SET status='imported',result_contact_id=p_contact_id WHERE organization_id=p_organization_id
+ UPDATE finance.import_rows SET status='imported',result_contact_id=p_contact_id,errors='[]'::jsonb WHERE organization_id=p_organization_id
   AND job_id=p_import_job_id AND row_no=p_row_no AND status IN ('valid','imported')
   AND (result_contact_id IS NULL OR result_contact_id=p_contact_id);
  IF NOT FOUND THEN RAISE EXCEPTION 'import row unavailable' USING ERRCODE='P0002'; END IF;
@@ -163,6 +163,22 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.mark_contact_import_row(uuid,uuid,integer,uuid,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.mark_contact_import_row(uuid,uuid,integer,uuid,text) TO authenticated;
+
+CREATE FUNCTION public.record_contact_import_row_error(p_organization_id uuid,p_import_job_id uuid,p_row_no integer,p_message text,p_request_id text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_actor uuid; j finance.import_jobs%ROWTYPE;
+BEGIN
+ v_actor:=finance_private.require_capability(p_organization_id,'imports.run'); PERFORM finance_private.validate_request_id(p_request_id);
+ SELECT * INTO j FROM finance.import_jobs WHERE organization_id=p_organization_id AND id=p_import_job_id FOR UPDATE;
+ IF NOT FOUND OR j.created_by_member_id<>v_actor OR j.status NOT IN ('ready','running') OR p_message IS NULL OR length(p_message)>240 THEN
+  RAISE EXCEPTION 'import row unavailable' USING ERRCODE='P0002'; END IF;
+ UPDATE finance.import_rows SET errors=jsonb_build_array(p_message) WHERE organization_id=p_organization_id
+  AND job_id=p_import_job_id AND row_no=p_row_no AND status='valid';
+ IF NOT FOUND THEN RAISE EXCEPTION 'import row unavailable' USING ERRCODE='P0002'; END IF;
+ RETURN true;
+END $$;
+REVOKE ALL ON FUNCTION public.record_contact_import_row_error(uuid,uuid,integer,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.record_contact_import_row_error(uuid,uuid,integer,text,text) TO authenticated;
 
 NOTIFY pgrst,'reload schema';
 COMMIT;

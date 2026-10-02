@@ -45,6 +45,7 @@ export function ContactImportClient({ organizationId, nonce, jobs, canRun }: { o
         {job.rows.some((row) => row.errors.length) && <div className="table-scroll"><table><thead><tr><th>CSV row</th><th>Name</th><th>Validation issues</th><th>Status</th></tr></thead><tbody>
           {job.rows.filter((row) => row.errors.length || row.status === "failed").map((row) => <tr key={row.row_no}><th>{row.row_no}</th><td>{String(row.input_data.display_name ?? "")}</td><td>{row.errors.join(" ")}</td><td>{row.status}</td></tr>)}
         </tbody></table></div>}
+        {job.rows.some((row) => row.errors.length) && <a href={`/api/v1/organizations/${organizationId}/imports/${job.id}/errors`}>Download row error CSV</a>}
         {canRun && ["ready", "running"].includes(job.status) && job.invalid_count === 0 && <button disabled={busy} onClick={() => commit(job)}>Commit {job.valid_count} valid contact(s)</button>}
       </article>)}
     </section>

@@ -37,7 +37,11 @@ export async function POST(request: Request, context: { params: Promise<{ organi
         headers: { get(name: string) { return name.toLowerCase() === "idempotency-key" ? key : null; } }, dependencies: runtime.dependencies });
       if (command.status !== 200) {
         const error = (command.body as { error?: { message?: string } }).error;
-        outcomes.push({ row_no: row.row_no, status: "failed", error: error?.message ?? "Contact could not be saved." }); continue;
+        const message = error?.message ?? "Contact could not be saved.";
+        const recorded = await runtime.client.rpc("record_contact_import_row_error", { p_organization_id: organizationId,
+          p_import_job_id: importId, p_row_no: row.row_no, p_message: message.slice(0, 240), p_request_id: generateRequestId() });
+        if (recorded.error || recorded.data !== true) throw recorded.error ?? new Error("Import row error could not be saved.");
+        outcomes.push({ row_no: row.row_no, status: "failed", error: message }); continue;
       }
       const saved = (command.body as { data: { id: string } }).data;
       const marked = await runtime.client.rpc("mark_contact_import_row", { p_organization_id: organizationId,
