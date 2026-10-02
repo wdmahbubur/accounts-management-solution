@@ -1,9 +1,9 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { CommandError } from "../commands/errors.ts";
 import type { ActorContext } from "../auth/types.ts";
 import { parseOpenItemList, type ControlKind } from "./contracts.ts";
 
-type RpcClient=Pick<SupabaseClient,"rpc">;
+type RpcClient=Pick<RequestClient,"rpc">;
 export async function readOpenItems(client:RpcClient,actor:ActorContext,input:{asOf:string;cutoff:string;partyId:string|null;controlKind:ControlKind|null;limit:number}){
   if(!actor.capabilities.includes("dues.read"))throw CommandError.forbidden();
   const result=await client.rpc("list_open_items",{p_organization_id:actor.organizationId,p_as_of:input.asOf,p_cutoff:input.cutoff,
