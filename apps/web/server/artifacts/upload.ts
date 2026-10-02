@@ -71,8 +71,12 @@ export async function createAttachmentUploadIntent(request: Request, rawOrganiza
     if (!row || typeof row.intent_id !== "string" || typeof row.object_key !== "string" || typeof row.expires_at !== "string") {
       throw new Error("Invalid upload intent response.");
     }
-    return Response.json({ data: { intentId: parseUuid(row.intent_id), expiresAt: row.expires_at,
-      uploadPath: `/api/v1/organizations/${organizationId}/attachments/${row.intent_id}/complete` },
+    const intentId = parseUuid(row.intent_id);
+    if (row.object_key !== `${organizationId}/attachments/${intentId}` || Number.isNaN(Date.parse(row.expires_at)) || Date.parse(row.expires_at) <= Date.now()) {
+      throw new Error("Invalid upload intent scope or expiration.");
+    }
+    return Response.json({ data: { intentId, expiresAt: row.expires_at,
+      uploadPath: `/api/v1/organizations/${organizationId}/attachments/${intentId}/complete` },
       meta: { request_id: generateRequestId(), replayed: false } }, { status: 201, headers: noStore });
   } catch (error) { return failure(error); }
 }
@@ -80,21 +84,35 @@ export async function completeAttachmentUpload(request: Request, rawOrganization
   try {
     const { organizationId, runtime } = await authorizeMutation(request, rawOrganizationId);
     const intentId = parseUuid(rawIntentId, "intent_id");
-    let form: FormData;
-    try { form = await request.formData(); } catch { throw CommandError.validation({ body: "Expected a multipart file upload." }); }
-    const file = form.get("file");
-    if (!(file instanceof File) || file.size < 1 || file.size > MAX_PRIVATE_ARTIFACT_BYTES) {
-      throw CommandError.validation({ file: "Choose an evidence file up to 10 MiB." });
+    const declaredLength = request.headers.get("content-length");
+    if (declaredLength !== null && (!/^\d+$/.test(declaredLength) || Number(declaredLength) < 1 || Number(declaredLength) > MAX_PRIVATE_ARTIFACT_BYTES)) {
+      throw CommandError.validation({ file: "Evidence must be between 1 byte and 10 MiB." });
     }
-    if ([...form.keys()].some((key) => key !== "file")) throw CommandError.validation({ body: "Unexpected upload field." });
     const intent = await runtime.client.rpc("read_attachment_upload_intent", { p_organization_id: organizationId, p_intent_id: intentId });
     if (intent.error || !Array.isArray(intent.data) || intent.data.length !== 1) throw CommandError.notFound();
     const row = body(intent.data[0]);
     if (typeof row.object_key !== "string" || row.object_key !== `${organizationId}/attachments/${intentId}` ||
       typeof row.declared_content_type !== "string" || typeof row.expected_size !== "number" ||
-      row.expected_size !== file.size || typeof row.original_filename !== "string" ||
+      row.expected_size < 1 || row.expected_size > MAX_PRIVATE_ARTIFACT_BYTES ||
+      (declaredLength !== null && Number(declaredLength) !== row.expected_size) || typeof row.original_filename !== "string" ||
       (row.state !== "pending" && row.state !== "completed")) throw CommandError.notFound();
-    const bytes = Buffer.from(await file.arrayBuffer());
+    if (request.headers.get("content-type")?.split(";",1)[0]?.trim().toLowerCase() !== "application/octet-stream") {
+      throw CommandError.validation({ content_type: "Upload the file bytes as application/octet-stream." });
+    }
+    if (!request.body) throw CommandError.validation({ file: "Evidence file body is missing." });
+    const reader = request.body.getReader(); const chunks: Uint8Array[] = []; let total = 0;
+    try {
+      while (true) {
+        const part = await reader.read(); if (part.done) break;
+        total += part.value.byteLength;
+        if (total > row.expected_size || total > MAX_PRIVATE_ARTIFACT_BYTES) {
+          await reader.cancel(); throw CommandError.validation({ file: "Uploaded bytes exceed the intent size limit." });
+        }
+        chunks.push(part.value);
+      }
+    } finally { reader.releaseLock(); }
+    if (total !== row.expected_size) throw CommandError.validation({ file: "Uploaded bytes do not match the declared size." });
+    const bytes = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total);
     const actualType = sniff(bytes);
     if (!actualType || actualType !== row.declared_content_type) throw CommandError.validation({ file: "The file content does not match the declared type." });
     const sha256 = createHash("sha256").update(bytes).digest("hex");

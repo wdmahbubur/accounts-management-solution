@@ -37,7 +37,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
      OR (d.document_type IN ('bill','vendor_credit','vendor_payment','vendor_refund','vendor_advance','paid_expense')
        AND finance_private.has_permission(p_org,'purchases.write'))
      OR (d.document_type IN ('manual_journal','transfer','opening_balance','reversal')
-       AND finance_private.has_permission(p_org,'journal.write'))))
+       AND finance_private.has_permission(p_org,'journal.write'))
+     OR (d.document_type IN ('controlled_adjustment','write_off')
+       AND finance_private.has_permission(p_org,'dues.adjust'))))
 $$;
 REVOKE ALL ON FUNCTION finance_private.attachment_source_writable(uuid,uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION finance_private.attachment_source_writable(uuid,uuid) TO authenticated;

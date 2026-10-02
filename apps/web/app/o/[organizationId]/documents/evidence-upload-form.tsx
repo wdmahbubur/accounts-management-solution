@@ -15,8 +15,9 @@ export function EvidenceUploadForm({ organizationId, nonce, drafts }: { organiza
         size: file.size }) });
       const intent = await intentResponse.json();
       if (!intentResponse.ok || typeof intent.data?.uploadPath !== "string") throw new Error(intent.error?.message ?? "Upload permission could not be created.");
-      const bytes = new FormData(); bytes.set("file", file);
-      const completeResponse = await fetch(intent.data.uploadPath, { method: "POST", headers: { "x-company-context": nonce }, body: bytes });
+      const completeResponse = await fetch(intent.data.uploadPath, { method: "POST", headers: {
+        "x-company-context": nonce, "Content-Type": "application/octet-stream"
+      }, body: file });
       const completed = await completeResponse.json();
       if (!completeResponse.ok) throw new Error(completed.error?.message ?? "Upload could not be completed.");
       setMessage("Evidence received and quarantined. It remains unavailable until an approved scanner marks it clean.");

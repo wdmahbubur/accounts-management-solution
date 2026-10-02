@@ -7,7 +7,7 @@ This supplement adds draft evidence intake on top of the private, permission-che
 Migration `20261002130000_private_attachment_uploads.sql` adds the operational `finance.attachment_upload_intents` table. The row is organization-scoped, points to one same-company draft source, belongs to the live uploader, and expires after ten minutes. The object key is generated from the company and intent UUID; callers cannot supply a storage path. Files are limited to PDF, JPEG and PNG, at no more than 10 MiB.
 
 - `POST /api/v1/organizations/{organizationId}/attachments/upload-intents` validates source and metadata and returns an intent.
-- `POST /api/v1/organizations/{organizationId}/attachments/{intentId}/complete` accepts one file, checks its declared type against a file signature, hashes the exact bytes, uploads with the user's JWT and finalizes the attachment and source link atomically.
+- `POST /api/v1/organizations/{organizationId}/attachments/{intentId}/complete` accepts a raw byte stream, enforces the intent's maximum size while reading, checks its declared type against a file signature, hashes the exact bytes, uploads with the user's JWT and finalizes the attachment and source link atomically.
 - `GET /o/{organizationId}/documents` shows evidence only for source documents the current member may read. Search covers filename, source and uploader; date filtering uses the upload date. Only clean evidence offers a download action.
 - Existing `GET /api/v1/organizations/{organizationId}/attachments/{attachmentId}/download` rechecks the current membership and source scope for each byte request. It returns bytes directly; it issues no public or signed URL.
 
