@@ -25,6 +25,8 @@ const procedures = new Set([
   "list_approval_policies",
   "list_approval_policy_roles",
   "save_approval_policy",
+  "submit_financial_document",
+  "decide_financial_approval",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
