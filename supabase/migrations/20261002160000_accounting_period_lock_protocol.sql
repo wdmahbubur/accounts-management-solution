@@ -70,7 +70,8 @@ BEGIN
   END IF;
   SELECT * INTO v_period FROM finance.accounting_periods p WHERE p.organization_id=p_organization_id
     AND p.id=p_period_id FOR UPDATE;
-  IF v_period.status<>'open' OR v_period.row_version<>p_expected_version THEN
+  IF v_period.status<>'open' OR p_expected_version IS NULL OR p_expected_version<1
+    OR v_period.row_version<>p_expected_version THEN
     RAISE EXCEPTION 'period is locked or version is stale' USING ERRCODE='40001';
   END IF;
   SELECT jsonb_build_object('draft_documents',count(*) FILTER(WHERE d.state='draft'),
@@ -109,7 +110,8 @@ BEGIN
   END IF;
   SELECT * INTO v_period FROM finance.accounting_periods p WHERE p.organization_id=p_organization_id
     AND p.id=p_period_id FOR UPDATE;
-  IF v_period.status<>'locked' OR v_period.row_version<>p_expected_version THEN
+  IF v_period.status<>'locked' OR p_expected_version IS NULL OR p_expected_version<1
+    OR v_period.row_version<>p_expected_version THEN
     RAISE EXCEPTION 'period is open or version is stale' USING ERRCODE='40001';
   END IF;
   UPDATE finance.accounting_periods p SET status='open',locked_at=NULL,locked_by_member_id=NULL,
