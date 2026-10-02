@@ -44,17 +44,17 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     let raw: Record<string, unknown>;
     try { raw = JSON.parse(Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), total).toString("utf8")) as Record<string, unknown>; }
     catch { throw CommandError.validation({ body: "Expected valid JSON containing a CSV filename and contents." }); }
-    if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some((key) => !["filename", "csv"].includes(key)) ||
+    if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some((key) => !["filename", "csv", "mapping"].includes(key)) ||
       typeof raw.filename !== "string" || typeof raw.csv !== "string") throw CommandError.validation({ body: "Provide a CSV filename and contents." });
     const filename = raw.filename.trim();
     if (!filename || filename.length > 180 || /[\x00-\x1f\x7f/\\]/.test(filename) || !filename.toLowerCase().endsWith(".csv")) {
       throw CommandError.validation({ filename: "Use a .csv filename without path separators or control characters." });
     }
     let parsed;
-    try { parsed = parseContactCsv(raw.csv); } catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "CSV could not be read." }); }
+    try { parsed = parseContactCsv(raw.csv, raw.mapping); } catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "CSV could not be read." }); }
     const requestId = generateRequestId();
     const created = await runtime.client.rpc("create_contact_import", { p_organization_id: organizationId, p_filename: filename,
-      p_size: parsed.bytes.length, p_sha256: parsed.sha256, p_rows: parsed.rows, p_request_id: requestId });
+      p_size: parsed.bytes.length, p_sha256: parsed.sha256, p_rows: parsed.rows, p_mapping: parsed.mapping, p_request_id: requestId });
     if (created.error || !Array.isArray(created.data) || created.data.length !== 1) throw created.error ?? new Error("Import could not be staged.");
     const row = created.data[0] as { import_job_id?: unknown; object_key?: unknown };
     const jobId = parseUuid(row.import_job_id, "import_job_id"); const key = `${organizationId}/imports/${parseUuid(String(row.object_key).split("/").at(-1), "intent_id")}`;

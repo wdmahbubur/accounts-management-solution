@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 export const MAX_CONTACT_IMPORT_BYTES = 5 * 1024 * 1024;
 export const MAX_CONTACT_IMPORT_ROWS = 500;
-type CsvResult = { rows: Array<{ row_no: number; input_data: Record<string, unknown>; errors: string[]; status: "valid" | "invalid" }>; sha256: string; bytes: Buffer };
+type CsvResult = { rows: Array<{ row_no: number; input_data: Record<string, unknown>; errors: string[]; status: "valid" | "invalid" }>; sha256: string; bytes: Buffer; mapping: Record<string, string> };
 
 function parseCsv(source: string): string[][] {
   const rows: string[][] = []; let row: string[] = []; let cell = ""; let quoted = false;
@@ -34,22 +34,42 @@ function bool(value: string | undefined): boolean | null {
   if (value === "false" || value === "no" || value === "0") return false;
   return null;
 }
-export function parseContactCsv(source: string): CsvResult {
+export const CONTACT_IMPORT_FIELDS = ["display_name", "legal_name", "is_customer", "is_vendor", "email", "phone", "payment_terms_days", "credit_limit", "external_key", "is_active"] as const;
+export function parseContactCsv(source: string, requestedMapping?: unknown): CsvResult {
   const bytes = Buffer.from(source, "utf8");
   if (!bytes.length || bytes.length > MAX_CONTACT_IMPORT_BYTES) throw new Error("CSV must be between 1 byte and 5 MiB.");
   const parsed = parseCsv(source.replace(/^\uFEFF/, ""));
-  const header = (parsed.shift() ?? []).map((value) => value.trim().toLowerCase());
-  const allowed = ["display_name", "legal_name", "is_customer", "is_vendor", "email", "phone", "payment_terms_days", "credit_limit", "external_key", "is_active"];
-  if (!header.length || header.some((name) => !name || !allowed.includes(name)) || new Set(header).size !== header.length ||
-    !["display_name", "is_customer", "is_vendor"].every((name) => header.includes(name))) {
-    throw new Error("CSV headers must be unique and include display_name, is_customer and is_vendor. Supported: " + allowed.join(", "));
+  const header = (parsed.shift() ?? []).map((value) => value.trim());
+  if (!header.length || header.some((name) => !name.trim() || name.length > 100) || new Set(header.map((name) => name.trim().toLowerCase())).size !== header.length) {
+    throw new Error("CSV column headers must be nonempty, unique and at most 100 characters.");
   }
+  if (requestedMapping !== undefined && requestedMapping !== null && (typeof requestedMapping !== "object" || Array.isArray(requestedMapping))) {
+    throw new Error("The column mapping must be an object.");
+  }
+  const requested = requestedMapping && typeof requestedMapping === "object" && !Array.isArray(requestedMapping)
+    ? requestedMapping as Record<string, unknown> : {};
+  if (Object.keys(requested).some((field) => !CONTACT_IMPORT_FIELDS.includes(field as typeof CONTACT_IMPORT_FIELDS[number]))) {
+    throw new Error("The column mapping contains an unsupported contact field.");
+  }
+  const mapping: Record<string, string> = {};
+  for (const field of CONTACT_IMPORT_FIELDS) {
+    const value = requested[field] ?? header.find((name) => name.trim().toLowerCase() === field) ?? null;
+    if (value === null || value === "") continue;
+    if (typeof value !== "string" || !header.some((name) => name === value)) throw new Error(`Choose a CSV column for ${field}.`);
+    mapping[field] = value;
+  }
+  if (!["display_name", "is_customer", "is_vendor"].every((field) => mapping[field])) {
+    throw new Error("Map display_name, is_customer and is_vendor to CSV columns before validation.");
+  }
+  if (new Set(Object.values(mapping)).size !== Object.values(mapping).length) throw new Error("Each CSV column can map to only one contact field.");
   if (!parsed.length || parsed.length > MAX_CONTACT_IMPORT_ROWS) throw new Error("CSV must contain 1-500 contact rows.");
   const rows = parsed.map((values, index) => {
     const errors: string[] = [];
     if (values.length !== header.length) errors.push("Column count does not match the header.");
     const data: Record<string, string> = {};
-    header.forEach((key, column) => { data[key] = (values[column] ?? "").trim(); });
+    for (const [field, sourceHeader] of Object.entries(mapping)) {
+      const column = header.indexOf(sourceHeader); data[field] = (values[column] ?? "").trim();
+    }
     const customer = bool(data.is_customer); const vendor = bool(data.is_vendor);
     if (!data.display_name?.trim() || data.display_name.length > 200) errors.push("display_name is required and limited to 200 characters.");
     if (customer === null || vendor === null || (!customer && !vendor)) errors.push("is_customer and is_vendor must be booleans and at least one must be true.");
@@ -68,5 +88,5 @@ export function parseContactCsv(source: string): CsvResult {
       payment_terms_days: terms, credit_limit: credit, external_key: data.external_key || null,
       is_active: data.is_active ? bool(data.is_active) : true }, errors, status: errors.length ? "invalid" as const : "valid" as const };
   });
-  return { rows, sha256: createHash("sha256").update(bytes).digest("hex"), bytes };
+  return { rows, sha256: createHash("sha256").update(bytes).digest("hex"), bytes, mapping };
 }

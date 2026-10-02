@@ -60,16 +60,26 @@ CREATE POLICY import_rows_read ON finance.import_rows FOR SELECT TO authenticate
    AND m.user_id=auth.uid() AND m.status='active'));
 
 CREATE FUNCTION public.create_contact_import(p_organization_id uuid,p_filename text,p_size bigint,p_sha256 text,
- p_rows jsonb,p_request_id text)
+ p_rows jsonb,p_mapping jsonb,p_request_id text)
 RETURNS TABLE(import_job_id uuid,object_key text)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE v_actor uuid; v_job uuid:=gen_random_uuid(); v_intent uuid:=gen_random_uuid(); v_key text; v_existing finance.import_jobs%ROWTYPE;
 BEGIN
  v_actor:=finance_private.require_capability(p_organization_id,'imports.run');
  PERFORM finance_private.validate_request_id(p_request_id);
+ IF p_rows IS NULL OR jsonb_typeof(p_rows) IS DISTINCT FROM 'array' OR
+   p_mapping IS NULL OR jsonb_typeof(p_mapping) IS DISTINCT FROM 'object' THEN
+  RAISE EXCEPTION 'invalid contact import structure' USING ERRCODE='22023'; END IF;
  IF p_filename IS NULL OR length(p_filename) NOT BETWEEN 5 AND 180 OR p_filename !~* '\\.csv$' OR p_filename ~ '[[:cntrl:]/\\\\]'
-  OR p_size IS NULL OR p_size NOT BETWEEN 1 AND 5242880 OR p_sha256 !~ '^[0-9a-f]{64}$'
-  OR jsonb_typeof(p_rows) IS DISTINCT FROM 'array' OR jsonb_array_length(p_rows) NOT BETWEEN 1 AND 500
+  OR p_size IS NULL OR p_size NOT BETWEEN 1 AND 5242880 OR p_sha256 IS NULL OR p_sha256 !~ '^[0-9a-f]{64}$'
+  OR jsonb_array_length(p_rows) NOT BETWEEN 1 AND 500
+  OR (p_mapping-ARRAY['display_name','legal_name','is_customer','is_vendor','email','phone','payment_terms_days','credit_limit','external_key','is_active'])<>'{}'::jsonb
+  OR jsonb_typeof(p_mapping->'display_name') IS DISTINCT FROM 'string'
+  OR jsonb_typeof(p_mapping->'is_customer') IS DISTINCT FROM 'string'
+  OR jsonb_typeof(p_mapping->'is_vendor') IS DISTINCT FROM 'string'
+  OR EXISTS(SELECT 1 FROM jsonb_each(p_mapping) kv WHERE jsonb_typeof(kv.value) IS DISTINCT FROM 'string'
+    OR length(kv.value#>>'{}') NOT BETWEEN 1 AND 100)
+  OR (SELECT count(DISTINCT kv.value) FROM jsonb_each(p_mapping) kv)<>(SELECT count(*) FROM jsonb_each(p_mapping))
   OR octet_length(p_rows::text)>4194304 THEN
   RAISE EXCEPTION 'invalid contact import source' USING ERRCODE='22023'; END IF;
  IF EXISTS(SELECT 1 FROM jsonb_array_elements(p_rows) e WHERE jsonb_typeof(e) IS DISTINCT FROM 'object'
@@ -91,7 +101,7 @@ BEGIN
  v_key:=p_organization_id||'/imports/'||v_intent;
  INSERT INTO finance.import_jobs(id,organization_id,import_type,file_sha256,file_object_key,mapping,status,created_by_member_id,
    result_summary,source_sha256,source_filename,source_size)
- VALUES(v_job,p_organization_id,'contacts',p_sha256,v_key,'{}','uploaded',v_actor,
+ VALUES(v_job,p_organization_id,'contacts',p_sha256,v_key,p_mapping,'uploaded',v_actor,
    jsonb_build_object('row_count',jsonb_array_length(p_rows)),p_sha256,p_filename,p_size);
  INSERT INTO finance.import_rows(organization_id,job_id,row_no,input_data,errors,status)
  SELECT p_organization_id,v_job,(r->>'row_no')::integer,r->'input_data',r->'errors',r->>'status'
@@ -100,8 +110,8 @@ BEGIN
  VALUES(v_intent,p_organization_id,v_actor,v_key,p_filename,p_size,v_job);
  RETURN QUERY SELECT v_job,v_key;
 END $$;
-REVOKE ALL ON FUNCTION public.create_contact_import(uuid,text,bigint,text,jsonb,text) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.create_contact_import(uuid,text,bigint,text,jsonb,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.create_contact_import(uuid,text,bigint,text,jsonb,jsonb,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.create_contact_import(uuid,text,bigint,text,jsonb,jsonb,text) TO authenticated;
 
 CREATE FUNCTION public.complete_contact_import_upload(p_organization_id uuid,p_import_job_id uuid,p_sha256 text,p_request_id text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -130,7 +140,7 @@ CREATE FUNCTION public.read_contact_import(p_organization_id uuid,p_import_job_i
 RETURNS SETOF jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$
 BEGIN
  IF NOT finance_private.has_permission(p_organization_id,'imports.read') THEN RAISE EXCEPTION 'import unavailable' USING ERRCODE='42501'; END IF;
- RETURN QUERY SELECT jsonb_build_object('id',j.id,'status',j.status,'filename',j.source_filename,'created_at',j.created_at,
+ RETURN QUERY SELECT jsonb_build_object('id',j.id,'status',j.status,'filename',j.source_filename,'mapping',j.mapping,'created_at',j.created_at,
    'row_count',j.result_summary->'row_count','valid_count',(SELECT count(*) FROM finance.import_rows r WHERE r.organization_id=j.organization_id AND r.job_id=j.id AND r.status IN ('valid','imported')),
    'invalid_count',(SELECT count(*) FROM finance.import_rows r WHERE r.organization_id=j.organization_id AND r.job_id=j.id AND r.status='invalid'),
    'rows',COALESCE((SELECT jsonb_agg(jsonb_build_object('row_no',r.row_no,'input_data',r.input_data,'errors',r.errors,'status',r.status,
