@@ -16,6 +16,7 @@ function validateSaveEnvelope(raw:unknown){const r=record(raw);if(Object.keys(r)
 async function save(client:RpcClient,actor:ActorContext,request:{requestId:string;idempotencyKey:string|null;requestHash:string},draft:DraftDocument,documentId:string|null,expectedVersion:number|null):Promise<SaveDraftReceipt>{
   const required=typeCapability[draft.documentType]??"journal.write";if(!actor.capabilities.includes(required))throw CommandError.forbidden();
   if(draft.allocationPlan.length&&!actor.capabilities.includes("dues.read"))throw CommandError.forbidden();
+  if(draft.documentType==="customer_refund"&&(!actor.capabilities.includes("banking.write")||!actor.capabilities.includes("dues.allocate")))throw CommandError.forbidden();
   if(!request.idempotencyKey)throw CommandError.validation({idempotency_key:"A stable idempotency key is required."});
   const r=await client.rpc("save_financial_document",{p_organization_id:actor.organizationId,p_document_id:documentId,p_expected_version:expectedVersion,
     p_request_id:request.requestId,p_idempotency_key:request.idempotencyKey,p_request_hash:request.requestHash,p_payload:{document_type:draft.documentType,
@@ -35,7 +36,7 @@ export function updateDraftCommand(client:RpcClient,documentId:string):Organizat
   execute:(context,input)=>save(client,context.actor,context,input.draft,documentId,input.expectedVersion)};}
 export function updateAllocationPlanCommand(client:RpcClient,documentId:string):OrganizationCommandDefinition<AllocationPlanInput,SaveDraftReceipt>{return{operation:`documents.allocation-plan:${documentId}`,capability:capability("documents.read"),idempotency:"required",validate:validateAllocationPlanInput,
   async execute(context,input){const source=await readFinancialDocument(client,context.actor,documentId);const type=String(source.document_type);const required=typeCapability[type];
-    if(!required||!context.actor.capabilities.includes(required)||!context.actor.capabilities.includes("dues.read"))throw CommandError.forbidden();
+    if(!required||!context.actor.capabilities.includes(required)||!context.actor.capabilities.includes("dues.read")||(type==="customer_refund"&&(!context.actor.capabilities.includes("banking.write")||!context.actor.capabilities.includes("dues.allocate"))))throw CommandError.forbidden();
     const r=await client.rpc("save_document_allocation_plan",{p_organization_id:context.actor.organizationId,p_document_id:documentId,p_expected_version:input.expectedVersion,
       p_request_id:context.requestId,p_idempotency_key:context.idempotencyKey,p_request_hash:context.requestHash,
       p_allocation_plan:input.allocationPlan.map((p)=>({target_open_item_id:p.targetOpenItemId,amount:p.amount}))});

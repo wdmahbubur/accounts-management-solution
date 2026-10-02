@@ -1,0 +1,24 @@
+import { parseOrganizationId, parseMoneyString, parseUuid } from "@ams/contracts";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts";
+import { CommandError } from "../../../../../server/commands/errors.ts";
+import { record } from "../../../../../server/documents/contracts.ts";
+import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+export const dynamic="force-dynamic";export const revalidate=0;
+const tabs=["all","drafts","awaiting_approval","posted"] as const;
+export default async function RefundRegisterPage({params,searchParams}:{params:Promise<{organizationId:string}>;searchParams:Promise<{tab?:string;search?:string}>}){
+ let organizationId;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}
+ const query=await searchParams;const tab=tabs.includes(query.tab as typeof tabs[number])?query.tab as typeof tabs[number]:"all";const search=typeof query.search==="string"?query.search.trim().slice(0,100):"";
+ const runtime=await roleRuntime();if(!runtime.current||runtime.current.organizationId!==organizationId)redirect("/companies?error=context_mismatch");
+ try{const actor=await resolveActorContext(organizationId,runtime.dependencies);if(!actor.capabilities.includes("sales.read")||!actor.capabilities.includes("banking.read"))throw CommandError.forbidden();
+  const result=await runtime.client.rpc("read_customer_refund_register",{p_organization_id:organizationId,p_status:tab,p_search:search||null,p_after:null,p_limit:50});if(result.error)throw new Error("Customer refund register could not be loaded.");if(!Array.isArray(result.data)||result.data.length>50)throw new Error("Invalid refund register response.");
+  const rows=result.data.map((v:unknown)=>{const r=record(v,"refund");if(typeof r.state!=="string"||typeof r.customer_name!=="string"||typeof r.accounting_date!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.accounting_date)||(r.document_number!==null&&typeof r.document_number!=="string")||(r.cash_account_name!==null&&typeof r.cash_account_name!=="string")||(r.method!==null&&typeof r.method!=="string")||(r.reference!==null&&typeof r.reference!=="string")||typeof r.total_amount!=="string")throw new Error("Invalid refund row.");return{id:parseUuid(r.id),state:r.state,customer:r.customer_name,date:r.accounting_date,number:r.document_number,amount:parseMoneyString(r.total_amount),account:r.cash_account_name,method:r.method,reference:r.reference};});
+  const href=(next:string)=>{const p=new URLSearchParams({tab:next});if(search)p.set("search",search);return`/o/${organizationId}/sales/refunds?${p}`;};
+  return <main className="content"><p className="eyebrow">Sales</p><h1>Customer refunds</h1><p>Record a refund already paid against eligible posted customer credits or unused advances. Posting reduces the selected balance and cash once.</p><div className="toolbar"><Link className="primary" href={`/o/${organizationId}/sales/refunds/new`}>Record refund already paid</Link><Link className="secondary" href={`/o/${organizationId}/sales/credits`}>Customer credits</Link></div>
+   <nav className="toolbar" aria-label="Refund status">{tabs.map(t=><Link key={t} className={tab===t?"primary":"secondary"} aria-current={tab===t?"page":undefined} href={href(t)}>{t.replaceAll("_"," ")}</Link>)}</nav>
+   <form className="panel toolbar" action={`/o/${organizationId}/sales/refunds`} method="get"><input type="hidden" name="tab" value={tab}/><label>Search refunds<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, customer or reference"/></label><button type="submit">Search</button></form>
+   <section className="panel"><h2>Refund records</h2>{rows.length===0?<p>No refunds match these filters.</p>:<div className="table-scroll"><table><thead><tr><th>Number</th><th>Customer</th><th>Date</th><th>Amount (BDT)</th><th>Refund account</th><th>Method / reference</th><th>State</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><Link href={`/o/${organizationId}/sales/refunds/${r.id}`}>{r.number??"Draft"}</Link></td><td>{r.customer}</td><td>{r.date}</td><td>{r.amount}</td><td>{r.account??"—"}</td><td>{[r.method,r.reference].filter(Boolean).join(" · ")||"—"}</td><td>{r.state.replaceAll("_"," ")}</td></tr>)}</tbody></table></div>}</section>
+  </main>;
+ }catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");if(error instanceof CommandError&&error.code==="FORBIDDEN")return <main className="content"><h1>Access denied</h1><p>You need sales.read and banking.read to view customer refunds.</p></main>;throw error;}
+}

@@ -5,6 +5,7 @@ import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
 import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
 import { readReceiptAllocationOptions } from "../../../../../../server/documents/customer-receipts.ts";
+import { readRefundAllocationOptions } from "../../../../../../server/documents/customer-refunds.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 
@@ -17,6 +18,7 @@ export default async function NewDraftPage({params,searchParams}:{params:Promise
   const options={accounts:Array.isArray(raw.accounts)?raw.accounts as DraftOptions["accounts"]:[],parties:Array.isArray(raw.parties)?raw.parties as DraftOptions["parties"]:[],cash_accounts:Array.isArray(raw.cash_accounts)?raw.cash_accounts as DraftOptions["cash_accounts"]:[],rounding_accounts:Array.isArray(raw.rounding_accounts)?raw.rounding_accounts as DraftOptions["rounding_accounts"]:[],tax_codes:Array.isArray(raw.tax_codes)?raw.tax_codes as DraftOptions["tax_codes"]:[],items:Array.isArray(raw.items)?raw.items as DraftOptions["items"]:[],cost_centers:Array.isArray(raw.cost_centers)?raw.cost_centers as DraftOptions["cost_centers"]:[]};
   const selectedParty=query.party_id&&options.parties.some(p=>p.id===query.party_id)?query.party_id:null;
   const receiptInvoices=documentType==="receipt"&&selectedParty?await readReceiptAllocationOptions(runtime.client,actor,selectedParty,today):[];
+  const refundCredits=documentType==="customer_refund"&&selectedParty?await readRefundAllocationOptions(runtime.client,actor,selectedParty,today):[];
   let initial:Record<string,unknown>|undefined=selectedParty?{party_id:selectedParty}:undefined;let duplicate=false;
   if(query.original_document_id){const original=await readFinancialDocument(runtime.client,actor,query.original_document_id);if(original.document_type!=="invoice"||!(["customer_credit"] as string[]).includes(documentType))throw CommandError.notFound();
    initial={...(initial??{}),trade:{original_document_id:query.original_document_id}};
@@ -27,6 +29,6 @@ export default async function NewDraftPage({params,searchParams}:{params:Promise
     trade:{...sourceTrade,original_document_id:null,performance_confirmed:false},
     lines:rows.map((value)=>{const line=value&&typeof value==="object"?value as Record<string,unknown>:{};return{...line,id:null,original_line_id:null};})};duplicate=true;
   }
-  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices}/>;
+  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices} refundCredits={refundCredits}/>;
  }catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");if(error instanceof CommandError&&error.code==="FORBIDDEN")return <main><h1>Access denied</h1><p>You do not have permission to create this source type.</p></main>;throw error;}
 }

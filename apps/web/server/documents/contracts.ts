@@ -57,7 +57,7 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   if(tradeTypes.includes(documentType)!==(trade!==null))throw CommandError.validation({trade:"Trade details are required only for trade documents."});
   if(movementTypes.includes(documentType)!==(movement!==null))throw CommandError.validation({movement:"Cash movement details are required for this source type."});
   if((documentType==="transfer")!==(transfer!==null))throw CommandError.validation({transfer:"Transfer details are required only for transfers."});
-  if(!["receipt","vendor_payment"].includes(documentType)&&allocationPlan.length)throw CommandError.validation({allocation_plan:"Only receipt and supplier payment drafts can propose open-item settlements."});
+  if(!["receipt","vendor_payment","customer_refund"].includes(documentType)&&allocationPlan.length)throw CommandError.validation({allocation_plan:"Only receipts, supplier payments, and customer refunds can propose settlements."});
   if(!["manual_journal","controlled_adjustment","opening_balance"].includes(documentType)&&journalRows.length>0)throw CommandError.validation({journal_rows:"Journal rows are only valid for journal sources."});
   if(!tradeTypes.includes(documentType)&&lines.length>0)throw CommandError.validation({lines:"Trade lines are only valid for trade sources."});
   if(tradeTypes.includes(documentType)&&lines.length===0)throw CommandError.validation({lines:"Add at least one trade line."});
