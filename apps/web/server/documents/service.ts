@@ -58,10 +58,25 @@ export async function readDraftOptions(client:RpcClient,actor:ActorContext,docum
   if(r.error)throw documentDatabaseError(r.error);return record(r.data,"draft_options");
 }
 export async function previewFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number){
-  const source=await readFinancialDocument(client,actor,documentId);const type=String(source.document_type);const required=typeCapability[type]??"journal.write";
-  if(!actor.capabilities.includes(required))throw CommandError.forbidden();if(Number(source.version)!==expectedVersion)throw CommandError.conflict("STALE_VERSION");
-  if(source.state==="posted"||source.state==="void")throw CommandError.validation({document:"Posted and void sources do not have an editable posting preview."});
-  const rows=Array.isArray(source.lines)?source.lines.map((raw)=>record(raw,"line")):[];
+    const source=await readFinancialDocument(client,actor,documentId);const type=String(source.document_type);const required=typeCapability[type]??"journal.write";
+    if(!actor.capabilities.includes(required))throw CommandError.forbidden();if(Number(source.version)!==expectedVersion)throw CommandError.conflict("STALE_VERSION");
+    if(source.state==="posted"||source.state==="void")throw CommandError.validation({document:"Posted and void sources do not have an editable posting preview."});
+    if(type==="transfer"){
+      const result=await client.rpc("read_transfer_lifecycle",{p_organization_id:actor.organizationId,p_document_id:documentId});
+      if(result.error)throw documentDatabaseError(result.error);const transfer=record(result.data,"transfer_lifecycle");
+      if(typeof transfer.principal_amount!=="string"||typeof transfer.fee_amount!=="string"||typeof transfer.from_account_name!=="string"||
+        typeof transfer.to_account_name!=="string"||typeof transfer.total_amount!=="string")throw new Error("Malformed transfer preview source.");
+      const principal=moneyUnits(transfer.principal_amount);const fee=moneyUnits(transfer.fee_amount);const total=principal+fee;
+      const internal=transfer.from_is_cash_equivalent===true&&transfer.to_is_cash_equivalent===true;
+      const investing=transfer.from_is_cash_equivalent!==transfer.to_is_cash_equivalent;const principalClass=internal?"internal":investing?"investing":"internal";
+      const lines=[{account:String(transfer.to_account_name),debit:formatMoney(principal),credit:"0.00",cash_flow_class:principalClass},
+        ...(fee>0n?[{account:String(transfer.fee_account_name??"Transfer fee expense"),debit:formatMoney(fee),credit:"0.00",cash_flow_class:"operating"}]:[]),
+        {account:String(transfer.from_account_name),debit:"0.00",credit:formatMoney(principal),cash_flow_class:principalClass},
+        ...(fee>0n?[{account:String(transfer.from_account_name),debit:"0.00",credit:formatMoney(fee),cash_flow_class:"operating"}]:[])];
+      return{documentId,documentVersion:expectedVersion,preview:{currency:"BDT",debit:formatMoney(total),credit:formatMoney(total),balanced:total>0n,lines},
+        warnings:["Transfer and fee legs post together. Cash-equivalent principal is internal; separately recorded fees remain operating.","Preview only. No journal, settlement or cash movement is created."]};
+    }
+    const rows=Array.isArray(source.lines)?source.lines.map((raw)=>record(raw,"line")):[];
   if(rows.length){
     const rounding=String(source.rounding_adjustment??"0.00");const preview=calculateDocument({currency:"BDT",lines:rows.map((line)=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
       discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
