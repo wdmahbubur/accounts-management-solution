@@ -13,6 +13,7 @@ import {
   findVerifiedIdentityId,
   issueIdentityToken,
   normalizeEmail,
+  reauthenticateIdentity,
   resetIdentityPassword
 } from "../../server/auth/identity.ts";
 import { safeNextPath } from "../../server/auth/redirects.ts";
@@ -106,16 +107,17 @@ export async function resetPasswordAction(formData: FormData) {
   await signOut({ redirectTo: route("/auth/sign-in", { status: "password_changed" }) });
 }
 
-export async function reauthenticateAction() {
+export async function reauthenticateAction(formData: FormData) {
   const session = await auth();
-  if (!session?.user?.id || !session.user.email) redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  if (!session?.user?.id || !session.user.sessionId) redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  let accepted = false;
   try {
-    const token = await issueIdentityToken(session.user.id, "reauthenticate");
-    await sendIdentityLink(session.user.email, "reauthenticate", token);
+    accepted = await reauthenticateIdentity(session.user.id, session.user.sessionId, field(formData, "current_password"));
   } catch {
     redirect(route("/settings/security", { error: "reauthentication_unavailable" }));
   }
-  redirect(route("/settings/security", { status: "reauth_requested" }));
+  if (!accepted) redirect(route("/settings/security", { error: "reauthentication_failed" }));
+  redirect(route("/settings/security", { status: "reauthenticated" }));
 }
 
 export async function updatePasswordAction(formData: FormData) {
@@ -124,7 +126,7 @@ export async function updatePasswordAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) redirect(route("/auth/sign-in", { next: "/settings/security" }));
   try {
-    await changeIdentityPassword(session.user.id, password);
+    await changeIdentityPassword(session.user.id, session.user.sessionId, password);
   } catch {
     redirect(route("/settings/security", { error: "recent_auth_required" }));
   }

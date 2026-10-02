@@ -29,16 +29,16 @@ export async function switchCompanyAction(formData: FormData) {
     redirect("/companies?error=not_found");
   }
 
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const resolver = createMembershipResolver(supabase);
+  const resolver = createMembershipResolver(database);
   const membership = await resolver.resolveActiveMembership({
     userId: parseUuid(user.id, "verified_user_id"),
     organizationId

@@ -46,7 +46,9 @@ export default async function SecurityPage({ searchParams }: { searchParams: Sea
           {error === "password_policy" ? (
             <p className="alert" role="alert">Use at least 10 characters with uppercase, lowercase and a number.</p>
           ) : error === "recent_auth_required" ? (
-            <p className="alert" role="alert">Confirm a recent sign-in from your verified email before changing the password.</p>
+            <p className="alert" role="alert">Confirm your current password again before changing it.</p>
+          ) : error === "reauthentication_failed" ? (
+            <p className="alert" role="alert">The current password was not accepted for this session.</p>
           ) : error ? (
             <p className="alert" role="alert">The security action could not be completed. Reauthenticate and try again.</p>
           ) : null}
@@ -61,8 +63,12 @@ export default async function SecurityPage({ searchParams }: { searchParams: Sea
             </label>
             <button type="submit">Update password</button>
           </form>
-          <form action={reauthenticateAction}>
-            <button type="submit" className="secondary">Send reauthentication code</button>
+          <form action={reauthenticateAction} className="settings-form">
+            <label className="field">
+              <span>Current password</span>
+              <input name="current_password" type="password" autoComplete="current-password" required />
+            </label>
+            <button type="submit" className="secondary">Confirm this session</button>
           </form>
         </section>
 

@@ -21,16 +21,16 @@ export default async function CompaniesPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const memberships = await listActiveMemberships(supabase);
+  const memberships = await listActiveMemberships(database);
   const cookieStore = await cookies();
   const preferred = readCompanyContext(cookieStore);
   const current =

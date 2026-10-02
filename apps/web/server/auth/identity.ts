@@ -5,7 +5,7 @@ import argon2 from "argon2";
 
 import { withDatabase, withDatabaseTransaction } from "../database.ts";
 
-export type IdentityTokenPurpose = "verify_email" | "reset_password" | "reauthenticate";
+export type IdentityTokenPurpose = "verify_email" | "reset_password";
 
 const passwordOptions = { type: argon2.argon2id, memoryCost: 65_536, timeCost: 3, parallelism: 1 } as const;
 let dummyHash: Promise<string> | undefined;
@@ -86,7 +86,8 @@ export async function verifyPasswordHash(hash: string | null, password: string):
     candidate = await dummyHash;
   }
   try {
-    return hash !== null && await argon2.verify(candidate, password);
+    const matches = await argon2.verify(candidate, password);
+    return hash !== null && matches;
   } catch {
     return false;
   }
@@ -94,7 +95,7 @@ export async function verifyPasswordHash(hash: string | null, password: string):
 
 export async function issueIdentityToken(userId: string, purpose: IdentityTokenPurpose): Promise<string> {
   const token = randomBytes(32).toString("base64url");
-  const lifetime = purpose === "verify_email" ? "24 hours" : purpose === "reset_password" ? "1 hour" : "10 minutes";
+  const lifetime = purpose === "verify_email" ? "24 hours" : "1 hour";
   await withDatabaseTransaction(async (client) => {
     await client.query(
       `UPDATE identity.verification_tokens SET consumed_at = now()
@@ -117,6 +118,25 @@ export async function findVerifiedIdentityId(email: string): Promise<string | nu
     [normalizeEmail(email)]
   ));
   return result.rows[0]?.id ?? null;
+}
+
+export async function reauthenticateIdentity(userId: string, sessionId: string, password: string): Promise<boolean> {
+  const user = await withDatabase((client) => client.query<{ password_hash: string }>(
+    "SELECT password_hash FROM identity.users WHERE id = $1::uuid AND disabled_at IS NULL AND email_verified_at IS NOT NULL",
+    [userId]
+  ));
+  if (!await verifyPasswordHash(user.rows[0]?.password_hash ?? null, password)) return false;
+  return withDatabaseTransaction(async (client) => {
+    const result = await client.query(
+      `UPDATE identity.auth_sessions s SET recent_auth_at = now()
+       FROM identity.users u
+       WHERE s.id = $1::uuid AND s.user_id = $2::uuid AND u.id = s.user_id
+         AND s.session_version = u.session_version AND s.revoked_at IS NULL AND s.expires_at > now()
+         AND u.disabled_at IS NULL AND u.email_verified_at IS NOT NULL`,
+      [sessionId, userId]
+    );
+    return result.rowCount === 1;
+  });
 }
 
 export async function findUnverifiedIdentityId(email: string): Promise<string | null> {
@@ -154,13 +174,6 @@ export async function consumeVerificationToken(
         [userId]
       );
     }
-    if (purpose === "reauthenticate" && expectedUserId) {
-      await client.query(
-        `UPDATE identity.auth_sessions SET recent_auth_at = now()
-         WHERE user_id = $1::uuid AND revoked_at IS NULL AND expires_at > now()`,
-        [userId]
-      );
-    }
     return userId;
   });
 }
@@ -193,16 +206,17 @@ export async function resetIdentityPassword(token: string, password: string): Pr
   });
 }
 
-export async function changeIdentityPassword(userId: string, password: string): Promise<void> {
+export async function changeIdentityPassword(userId: string, sessionId: string, password: string): Promise<void> {
   const passwordHash = await argon2.hash(password, passwordOptions);
   await withDatabaseTransaction(async (client) => {
     const result = await client.query(
       `UPDATE identity.users u SET password_hash = $2, session_version = session_version + 1, updated_at = now()
        WHERE u.id = $1::uuid AND u.disabled_at IS NULL
          AND EXISTS (SELECT 1 FROM identity.auth_sessions s
-                     WHERE s.user_id = u.id AND s.revoked_at IS NULL
+                     WHERE s.id = $3::uuid AND s.user_id = u.id AND s.session_version = u.session_version
+                       AND s.revoked_at IS NULL
                        AND s.recent_auth_at > now() - interval '24 hours')`,
-      [userId, passwordHash]
+      [userId, passwordHash, sessionId]
     );
     if (result.rowCount !== 1) throw new Error("Recent reauthentication is required.");
     await client.query(

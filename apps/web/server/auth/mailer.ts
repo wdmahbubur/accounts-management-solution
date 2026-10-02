@@ -5,15 +5,14 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import nodemailer from "nodemailer";
 
-export async function sendIdentityLink(email: string, purpose: "verify_email" | "reset_password" | "reauthenticate", token: string) {
+export async function sendIdentityLink(email: string, purpose: "verify_email" | "reset_password", token: string) {
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const target = new URL(purpose === "reset_password" ? "/auth/reset" : "/auth/verify", origin);
   target.searchParams.set("token", token);
   if (purpose !== "reset_password") target.searchParams.set("type", purpose);
 
   const subject = purpose === "verify_email" ? "Verify your Accounts Management account"
-    : purpose === "reset_password" ? "Reset your Accounts Management password"
-      : "Confirm your Accounts Management sign-in";
+    : "Reset your Accounts Management password";
   const text = `Use this single-use link within its expiry period: ${target.toString()}`;
   const smtpUrl = process.env.SMTP_URL;
   const from = process.env.SMTP_FROM;

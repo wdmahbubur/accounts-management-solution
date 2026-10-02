@@ -19,10 +19,10 @@ export default async function CompanyOnboardingPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/onboarding/company");

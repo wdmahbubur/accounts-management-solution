@@ -3,11 +3,14 @@ import "server-only";
 import { Pool, type PoolClient } from "@neondatabase/serverless";
 
 type DatabaseWork<T> = (client: PoolClient) => Promise<T>;
+let runtimePool: Pool | undefined;
 
 function openPool(): Pool {
+  if (runtimePool) return runtimePool;
   const connectionString = process.env.DATABASE_RUNTIME_URL;
   if (!connectionString) throw new Error("DATABASE_RUNTIME_URL is required for server-side database access.");
-  return new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
+  runtimePool = new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
+  return runtimePool;
 }
 
 export async function withDatabase<T>(work: DatabaseWork<T>): Promise<T> {
@@ -17,7 +20,6 @@ export async function withDatabase<T>(work: DatabaseWork<T>): Promise<T> {
     return await work(client);
   } finally {
     client.release();
-    await pool.end();
   }
 }
 
