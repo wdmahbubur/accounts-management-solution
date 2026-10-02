@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { executeOrganizationCommand } from "../../apps/web/server/commands/execute.ts";
 import { defaultRequestDependencies } from "../../apps/web/server/commands/request-context.ts";
@@ -15,7 +14,7 @@ function fixture(granted = ["users.manage", "users.read"]) {
   const calls: { name: string; args: Record<string, unknown> }[] = [];
   const client = { rpc: async (name: string, args: Record<string, unknown>) => {
     calls.push({ name, args }); return { data: role, error: null };
-  } } as unknown as Pick<SupabaseClient, "rpc">;
+  } } as unknown as Parameters<typeof roleCommand>[1];
   const dependencies = { ...defaultRequestDependencies,
     identityVerifier: { verifyIdentity: async () => ({ userId: user }) },
     membershipResolver: { resolveActiveMembership: async () => ({ memberId: member, organizationId: org, capabilities: granted }) }

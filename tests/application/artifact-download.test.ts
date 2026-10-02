@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { readPrivateArtifact, downloadHeaders } from "../../apps/web/server/artifacts/download.ts";
 const org = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", id = "aaaaaaaa-2222-4222-8222-aaaaaaaaaaaa";
 function fixture(options: { revokedAfterDownload?: boolean; wrongKey?: boolean; missingIdentity?: boolean; wrongSize?: boolean; storageDenied?: boolean } = {}) {
@@ -13,7 +12,7 @@ function fixture(options: { revokedAfterDownload?: boolean; wrongKey?: boolean; 
       calls.push("storage"); assert.equal(bucket, "ams-private-artifacts"); assert.equal(key, `${org}/attachments/${id}`);
       return { data: options.storageDenied ? null : new Blob(["TEST"]), error: options.storageDenied ? { message: "Denied" } : null };
     } }) }
-  } as unknown as Pick<SupabaseClient, "rpc" | "auth" | "storage">;
+  } as unknown as Parameters<typeof readPrivateArtifact>[0];
   return { client, calls };
 }
 test("private download uses ordinary identity, exact metadata key and a second live check, returning non-cacheable bytes", async () => {

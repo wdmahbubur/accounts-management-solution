@@ -6,4 +6,6 @@ coverage/
 .env
 .env.*
 !.env.example
+.local-mail-preview/
+**/.local-mail-preview/
 .DS_Store

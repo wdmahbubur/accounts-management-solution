@@ -1,25 +1,30 @@
 "use server";
 
-import type { SignOut } from "@supabase/supabase-js";
+import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
-import { authCallbackUrl, safeNextPath } from "../../server/auth/redirects.ts";
+import { auth, signIn, signOut } from "../../../../auth.ts";
+import { createRequestClient } from "../../server/request-client.ts";
+import { sendIdentityLink } from "../../server/auth/mailer.ts";
+import {
+  changeIdentityPassword,
+  createIdentityUser,
+  findUnverifiedIdentityId,
+  findVerifiedIdentityId,
+  issueIdentityToken,
+  normalizeEmail,
+  resetIdentityPassword
+} from "../../server/auth/identity.ts";
+import { safeNextPath } from "../../server/auth/redirects.ts";
 
-type SignOutScope = "global" | "local" | "others";
-
-function textField(formData: FormData, name: string): string {
+function field(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value.trim() : "";
 }
 
 function route(path: string, params: Record<string, string | undefined>): string {
   const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value) {
-      query.set(key, value);
-    }
-  }
+  for (const [key, value] of Object.entries(params)) if (value) query.set(key, value);
   const suffix = query.toString();
   return suffix ? `${path}?${suffix}` : path;
 }
@@ -29,178 +34,136 @@ function validEmail(email: string): boolean {
 }
 
 function strongPassword(password: string): boolean {
-  return (
-    password.length >= 10 &&
-    /[a-z]/.test(password) &&
-    /[A-Z]/.test(password) &&
-    /\d/.test(password)
-  );
+  return password.length >= 10 && password.length <= 1024 && /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) && /\d/.test(password);
 }
 
 export async function signInAction(formData: FormData) {
-  const email = textField(formData, "email");
-  const password = textField(formData, "password");
-  const next = safeNextPath(textField(formData, "next"));
+  const email = field(formData, "email");
+  const password = field(formData, "password");
+  const next = safeNextPath(field(formData, "next"), "/companies");
+  if (!validEmail(email) || !password) redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
 
-  if (!validEmail(email) || password.length === 0) {
-    redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
+  try {
+    await signIn("credentials", { email: normalizeEmail(email), password, redirectTo: next });
+  } catch (error) {
+    if (error instanceof AuthError) redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
+    throw error;
   }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error || !data.user || !data.user.email_confirmed_at) {
-    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
-    redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
-  }
-
-  redirect(next);
 }
 
 export async function signUpAction(formData: FormData) {
-  const email = textField(formData, "email");
-  const password = textField(formData, "password");
-  const displayName = textField(formData, "display_name");
+  const email = field(formData, "email");
+  const password = field(formData, "password");
+  const displayName = field(formData, "display_name").slice(0, 120);
+  if (!validEmail(email)) redirect(route("/auth/sign-up", { error: "invalid_input" }));
+  if (!strongPassword(password)) redirect(route("/auth/sign-up", { error: "password_policy" }));
 
-  if (!validEmail(email)) {
-    redirect(route("/auth/sign-up", { error: "invalid_input" }));
-  }
-  if (!strongPassword(password)) {
-    redirect(route("/auth/sign-up", { error: "password_policy" }));
-  }
-
-  const supabase = await createClient();
-  await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: authCallbackUrl("/"),
-      data: {
-        // Presentation metadata only. Authorization never reads this object.
-        display_name: displayName.slice(0, 120)
-      }
+  try {
+    const userId = await createIdentityUser(email, password, displayName);
+    if (userId) {
+      const token = await issueIdentityToken(userId, "verify_email");
+      await sendIdentityLink(normalizeEmail(email), "verify_email", token);
     }
-  });
-
-  // Always use the same result text so existing-account state is not disclosed.
+  } catch {
+    // Keep the response enumeration-safe and never expose mail or database errors.
+  }
   redirect(route("/auth/sign-up", { status: "check_email" }));
 }
 
 export async function resendVerificationAction(formData: FormData) {
-  const email = textField(formData, "email");
-
+  const email = field(formData, "email");
   if (validEmail(email)) {
-    const supabase = await createClient();
-    await supabase.auth.resend({
-      type: "signup",
-      email,
-      options: { emailRedirectTo: authCallbackUrl("/") }
-    });
+    try {
+      const userId = await findUnverifiedIdentityId(email);
+      if (userId) await sendIdentityLink(normalizeEmail(email), "verify_email", await issueIdentityToken(userId, "verify_email"));
+    } catch {
+      // Enumeration-safe public response.
+    }
   }
-
-  // Provider rate-limit and account-existence outcomes intentionally collapse.
   redirect(route("/auth/sign-up", { status: "verification_requested" }));
 }
 
 export async function recoverAction(formData: FormData) {
-  const email = textField(formData, "email");
-
+  const email = field(formData, "email");
   if (validEmail(email)) {
-    const supabase = await createClient();
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: authCallbackUrl("/settings/security")
-    });
+    try {
+      const userId = await findVerifiedIdentityId(email);
+      if (userId) await sendIdentityLink(normalizeEmail(email), "reset_password", await issueIdentityToken(userId, "reset_password"));
+    } catch {
+      // Enumeration-safe public response.
+    }
   }
-
-  // Supabase reset is enumeration-safe; keep our UI response enumeration-safe too.
   redirect(route("/auth/recover", { status: "recovery_requested" }));
 }
 
+export async function resetPasswordAction(formData: FormData) {
+  const token = field(formData, "token");
+  const password = field(formData, "password");
+  if (!strongPassword(password)) redirect(route("/auth/reset", { token, error: "password_policy" }));
+  const completed = await resetIdentityPassword(token, password).catch(() => false);
+  if (!completed) redirect(route("/auth/reset", { error: "invalid_token" }));
+  await signOut({ redirectTo: route("/auth/sign-in", { status: "password_changed" }) });
+}
+
 export async function reauthenticateAction() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  const session = await auth();
+  if (!session?.user?.id || !session.user.email) redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  try {
+    const token = await issueIdentityToken(session.user.id, "reauthenticate");
+    await sendIdentityLink(session.user.email, "reauthenticate", token);
+  } catch {
+    redirect(route("/settings/security", { error: "reauthentication_unavailable" }));
   }
-
-  await supabase.auth.reauthenticate();
   redirect(route("/settings/security", { status: "reauth_requested" }));
 }
 
 export async function updatePasswordAction(formData: FormData) {
-  const password = textField(formData, "password");
-  const nonce = textField(formData, "nonce");
-
-  if (!strongPassword(password)) {
-    redirect(route("/settings/security", { error: "password_policy" }));
+  const password = field(formData, "password");
+  if (!strongPassword(password)) redirect(route("/settings/security", { error: "password_policy" }));
+  const session = await auth();
+  if (!session?.user?.id) redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  try {
+    await changeIdentityPassword(session.user.id, password);
+  } catch {
+    redirect(route("/settings/security", { error: "recent_auth_required" }));
   }
-
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(route("/auth/sign-in", { next: "/settings/security" }));
-  }
-
-  const { error } = await supabase.auth.updateUser({
-    password,
-    ...(nonce ? { nonce } : {})
-  });
-
-  if (error) {
-    redirect(route("/settings/security", { error: "password_change_failed" }));
-  }
-
-  redirect(route("/settings/security", { status: "password_changed" }));
+  await signOut({ redirectTo: route("/auth/sign-in", { status: "password_changed" }) });
 }
 
 export async function updateProfileAction(formData: FormData) {
-  const displayName = textField(formData, "display_name").slice(0, 120);
-  const locale = textField(formData, "locale");
-  const timezone = textField(formData, "timezone");
-
+  const displayName = field(formData, "display_name").slice(0, 120);
+  const locale = field(formData, "locale");
+  const timezone = field(formData, "timezone");
   if (!displayName || !["en-BD", "bn-BD"].includes(locale) || !["Asia/Dhaka", "UTC"].includes(timezone)) {
     redirect(route("/settings/profile", { error: "invalid_profile" }));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(route("/auth/sign-in", { next: "/settings/profile" }));
-  }
-
-  const { error } = await supabase.rpc("update_own_profile", {
-    p_display_name: displayName,
-    p_locale: locale,
-    p_timezone: timezone
+  const result = await createRequestClient().rpc("update_own_profile", {
+    p_display_name: displayName, p_locale: locale, p_timezone: timezone
   });
-
-  if (error) {
-    redirect(route("/settings/profile", { error: "profile_update_failed" }));
-  }
-
+  if (result.error) redirect(route("/settings/profile", { error: "profile_update_failed" }));
   redirect(route("/settings/profile", { status: "profile_updated" }));
 }
 
 export async function signOutAction(formData: FormData) {
-  const requested = textField(formData, "scope");
-  const scope: SignOutScope =
-    requested === "global" || requested === "others" ? requested : "local";
-
-  const supabase = await createClient();
-  await supabase.auth.signOut({ scope } as SignOut);
-
-  if (scope === "others") {
-    redirect(route("/settings/security", { status: "other_sessions_revoked" }));
+  const session = await auth();
+  if (!session?.user?.id || !session.user.sessionId) {
+    await signOut({ redirectTo: route("/auth/sign-in", { status: "signed_out" }) });
+    return;
   }
-
-  redirect(route("/auth/sign-in", { status: "signed_out" }));
+  const scope = field(formData, "scope");
+  if (scope === "others" || scope === "global") {
+    const client = createRequestClient();
+    await client.auth.getUser();
+    const { withDatabase } = await import("../../server/database.ts");
+    await withDatabase((db) => db.query(
+      `UPDATE identity.auth_sessions SET revoked_at = now()
+       WHERE user_id = $1::uuid AND revoked_at IS NULL
+         AND ($2::boolean OR id <> $3::uuid)`,
+      [session.user.id, scope === "global", session.user.sessionId]
+    ));
+  }
+  if (scope === "others") redirect(route("/settings/security", { status: "other_sessions_revoked" }));
+  await signOut({ redirectTo: route("/auth/sign-in", { status: "signed_out" }) });
 }

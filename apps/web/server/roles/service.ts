@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { capability } from "@ams/permissions";
 import { parseUuid } from "@ams/contracts";
 import type { ActorContext } from "../auth/types.ts";
@@ -7,7 +7,7 @@ import type { OrganizationCommandDefinition } from "../commands/types.ts";
 import { parseMembers, parseRoles, validateRoleInput,
   type RoleInput, type RoleOperation, type RoleReceipt } from "./contracts.ts";
 
-type RpcClient = Pick<SupabaseClient, "rpc">;
+type RpcClient = Pick<RequestClient, "rpc">;
 export function roleDatabaseError(error: { code?: string; message?: string }): CommandError {
   if (error.code === "28000") return CommandError.unauthenticated();
   if (error.code === "42501") return new CommandError({ code: "FORBIDDEN",

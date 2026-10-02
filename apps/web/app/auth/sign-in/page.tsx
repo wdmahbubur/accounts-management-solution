@@ -11,7 +11,7 @@ function first(value: string | string[] | undefined): string | undefined {
 
 export default async function SignInPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const next = safeNextPath(first(params.next));
+  const next = safeNextPath(first(params.next), "/companies");
   const error = first(params.error);
   const status = first(params.status);
 
@@ -27,6 +27,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
           </p>
         ) : null}
         {status === "signed_out" ? <p className="alert">You have been signed out.</p> : null}
+        {status === "verified" ? <p className="alert" role="status">Email verified. Sign in to open your company workspace.</p> : null}
+        {status === "password_changed" ? <p className="alert" role="status">Password changed. Sign in with your new password.</p> : null}
         <form action={signInAction} className="auth-form">
           <input type="hidden" name="next" value={next} />
           <label className="field">

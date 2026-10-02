@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { invitationInput, recipientInput, invitationToken } from "../../apps/web/server/invitations/contracts.ts";
 import { createInvitationSecret, decryptInvitationDelivery, hashInvitationToken } from "../../apps/web/server/invitations/tokens.ts";
@@ -46,7 +45,7 @@ test("invitation input is strict, normalized and never trusts caller authority o
 });
 function fixture(capabilities = ["users.manage"]) {
   const calls: { name: string; args: Record<string, unknown> }[] = [];
-  const client = { rpc: async (name: string, args: Record<string, unknown>) => { calls.push({ name, args }); return { data: id, error: null }; } } as unknown as Pick<SupabaseClient, "rpc">;
+  const client = { rpc: async (name: string, args: Record<string, unknown>) => { calls.push({ name, args }); return { data: id, error: null }; } } as unknown as Parameters<typeof invitationCommand>[1];
   return { calls, client, dependencies: { ...defaultRequestDependencies,
     identityVerifier: { verifyIdentity: async () => ({ userId: user }) },
     membershipResolver: { resolveActiveMembership: async () => ({ memberId: member, organizationId: org, capabilities }) } } };
@@ -88,7 +87,7 @@ test("recipient response authenticates with getUser and does not send requested 
   const client = { auth: { getUser: async () => ({ data: { user: { id: user } }, error: null }) }, rpc: async (name: string, args: Record<string, unknown>) => {
     calls++; assert.equal(name, "respond_company_invitation"); assert.deepEqual(Object.keys(args).sort(), ["p_decision", "p_request_id", "p_token"]);
     return { data: [{ organization_id: org, member_id: member, invitation_status: "accepted" }], error: null };
-  } } as unknown as Pick<SupabaseClient, "rpc" | "auth">;
+  } } as unknown as Parameters<typeof respondToInvitation>[0];
   assert.equal((await respondToInvitation(client, { token: "x".repeat(43), decision: "accept" })).status, "accepted");
   assert.equal(calls, 1);
   const anonymous = { ...client, auth: { getUser: async () => ({ data: { user: null }, error: null }) } } as unknown as typeof client;

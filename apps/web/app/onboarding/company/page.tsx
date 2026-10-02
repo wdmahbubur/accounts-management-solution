@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/database/server.ts";
 import { CompanyOnboardingWizard } from "./wizard.tsx";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

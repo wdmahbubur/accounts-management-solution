@@ -1,0 +1,114 @@
+import "server-only";
+
+import { auth } from "../../../auth.ts";
+import { withActorTransaction } from "./database.ts";
+
+const procedures = new Set([
+  "authorize_artifact_download",
+  "create_company_atomic",
+  "create_custom_role",
+  "deactivate_member",
+  "get_own_profile",
+  "issue_company_invitation",
+  "list_active_memberships",
+  "list_company_invitations",
+  "list_members_for_management",
+  "list_roles_for_management",
+  "read_document_directory",
+  "resolve_active_membership",
+  "respond_company_invitation",
+  "reopen_accounting_period",
+  "resend_company_invitation",
+  "revoke_company_invitation",
+  "set_member_roles",
+  "transfer_ownership",
+  "update_custom_role",
+  "update_own_profile",
+  "list_accounting_periods",
+  "lock_accounting_period"
+]);
+
+export type DatabaseError = { code?: string; message?: string };
+export type RpcResult = { data: unknown; error: DatabaseError | null };
+export type RequestUser = { id: string; email: string | null; last_sign_in_at: string | null };
+
+export interface RequestClient {
+  auth: {
+    // PromiseLike keeps provider-independent service adapters easy to mock while Auth.js remains the implementation.
+    getUser(): PromiseLike<any>;
+  };
+  rpc(name: string, args?: Record<string, unknown>): PromiseLike<RpcResult>;
+}
+
+function quoteArgumentName(name: string): string {
+  if (!/^p_[a-z][a-z0-9_]*$/.test(name)) throw new Error("Unsupported database command argument.");
+  return `"${name}"`;
+}
+
+export function createRequestClient(): RequestClient {
+  return {
+    auth: {
+      async getUser() {
+        const session = await auth();
+        if (!session?.user?.id) return { data: { user: null }, error: null };
+        return {
+          data: {
+            user: {
+              id: session.user.id,
+              email: session.user.email ?? null,
+              last_sign_in_at: session.user.signedInAt || null
+            }
+          },
+          error: null
+        };
+      }
+    },
+    async rpc(name, args = {}) {
+      if (!procedures.has(name)) return { data: null, error: { code: "42883", message: "Unknown database command." } };
+      const session = await auth();
+      if (!session?.user?.id) return { data: null, error: { code: "28000", message: "Authentication required." } };
+
+      try {
+        return await withActorTransaction(session.user.id, async (client) => {
+          const names = Object.keys(args);
+          const signature = await client.query<{
+            returns_set: boolean;
+            argument_names: string[] | null;
+          }>(
+            `SELECT p.proretset AS returns_set,
+                    p.proargnames[1:p.pronargs] AS argument_names
+             FROM pg_catalog.pg_proc p
+             JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+             WHERE n.nspname = 'public' AND p.proname = $1 AND p.prokind = 'f'`,
+            [name]
+          );
+          const match = signature.rows.find((row) => {
+            const expected = row.argument_names ?? [];
+            return expected.length === names.length && expected.every((item) => names.includes(item));
+          });
+          if (!match) return { data: null, error: { code: "42883", message: "Database command signature not found." } };
+
+          const ordered = names.map((key) => [key, args[key]] as const);
+          const call = `public."${name}"(${ordered.map(([key], index) => `${quoteArgumentName(key)} => $${index + 1}`).join(", ")})`;
+          const values = ordered.map(([, value]) => value);
+          if (match.returns_set) {
+            const result = await client.query(`SELECT * FROM ${call}`, values);
+            return { data: result.rows, error: null };
+          }
+
+          const result = await client.query(`SELECT ${call} AS value`, values);
+          return { data: result.rows[0]?.value ?? null, error: null };
+        });
+      } catch (error) {
+        const databaseError = error as { code?: unknown; message?: unknown };
+        return {
+          data: null,
+          error: {
+            ...(typeof databaseError.code === "string" ? { code: databaseError.code } : {}),
+            ...(typeof databaseError.message === "string" ? { message: databaseError.message } : {})
+          }
+        };
+      }
+    }
+  };
+}

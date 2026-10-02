@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import { readCompanyContext } from "../../server/company-context.ts";
 import { listActiveMemberships } from "../../server/companies/memberships.ts";
 import { switchCompanyAction } from "./actions.ts";

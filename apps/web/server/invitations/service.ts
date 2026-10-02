@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { parseUuid } from "@ams/contracts";
 import { capability } from "@ams/permissions";
 import type { ActorContext } from "../auth/types.ts";
@@ -10,7 +10,7 @@ import { record } from "../roles/contracts.ts";
 import { invitationInput, invitationRows, invitationToken, recipientInput,
   type InvitationInput, type InvitationOperation, type InvitationReceipt, type RecipientReceipt } from "./contracts.ts";
 import { createInvitationSecret } from "./tokens.ts";
-type RpcClient = Pick<SupabaseClient, "rpc">;
+type RpcClient = Pick<RequestClient, "rpc">;
 export function invitationDatabaseError(error: { code?: string; message?: string }): CommandError {
   if (error.code === "28000") return CommandError.unauthenticated();
   if (error.code === "42501") return new CommandError({ code: "FORBIDDEN", message: "Use the intended verified account and a recent sign-in with sufficient permissions." });
@@ -52,7 +52,7 @@ export async function inspectInvitation(client: RpcClient, raw: unknown) {
   if (typeof row.organization_name !== "string" || typeof row.role_name !== "string" || typeof row.expires_at !== "string") throw new Error("Invalid invitation inspection.");
   return { organizationId: parseUuid(row.organization_id), organizationName: row.organization_name, roleName: row.role_name, expiresAt: row.expires_at };
 }
-export async function respondToInvitation(client: Pick<SupabaseClient, "rpc" | "auth">, raw: unknown): Promise<RecipientReceipt> {
+export async function respondToInvitation(client: Pick<RequestClient, "rpc" | "auth">, raw: unknown): Promise<RecipientReceipt> {
   const { data: { user }, error } = await client.auth.getUser();
   if (error || !user) throw CommandError.unauthenticated();
   const input = recipientInput(raw);

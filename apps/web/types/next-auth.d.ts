@@ -7,6 +7,8 @@ declare module "next-auth" {
       id: string;
       sessionId: string;
       sessionVersion: number;
+      signedInAt: string;
+      recentAuthAt: string;
     } & DefaultSession["user"];
   }
 }
@@ -15,5 +17,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     sid?: string;
     sv?: number;
+    signedInAt?: string;
+    recentAuthAt?: string;
   }
 }

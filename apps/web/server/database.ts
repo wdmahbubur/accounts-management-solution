@@ -21,6 +21,20 @@ export async function withDatabase<T>(work: DatabaseWork<T>): Promise<T> {
   }
 }
 
+export async function withDatabaseTransaction<T>(work: DatabaseWork<T>): Promise<T> {
+  return withDatabase(async (client) => {
+    await client.query("BEGIN");
+    try {
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    }
+  });
+}
+
 export async function withActorTransaction<T>(
   verifiedActorId: string,
   work: DatabaseWork<T>
@@ -29,16 +43,8 @@ export async function withActorTransaction<T>(
     throw new Error("A verified UUID actor is required.");
   }
 
-  return withDatabase(async (client) => {
-    await client.query("BEGIN");
-    try {
-      await client.query("SELECT set_config('ams.actor_user_id', $1, true)", [verifiedActorId]);
-      const result = await work(client);
-      await client.query("COMMIT");
-      return result;
-    } catch (error) {
-      await client.query("ROLLBACK").catch(() => undefined);
-      throw error;
-    }
+  return withDatabaseTransaction(async (client) => {
+    await client.query("SELECT set_config('ams.actor_user_id', $1, true)", [verifiedActorId]);
+    return work(client);
   });
 }

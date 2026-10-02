@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "../../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/database/server.ts";
 import { CommandError } from "../../../server/commands/errors.ts";
 import { invitationToken } from "../../../server/invitations/contracts.ts";
 import { inspectInvitation } from "../../../server/invitations/service.ts";

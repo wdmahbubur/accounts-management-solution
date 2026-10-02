@@ -4,8 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import styles from "./workspace.module.css";
 
-import { createClient } from "../../../lib/supabase/server.ts";
-import { createSupabaseMembershipResolver } from "../../../server/auth/supabase-membership.ts";
+import { createClient } from "../../../lib/database/server.ts";
+import { createMembershipResolver } from "../../../server/auth/membership-resolver.ts";
 import { listActiveMemberships } from "../../../server/companies/memberships.ts";
 import { readCompanyContext } from "../../../server/company-context.ts";
 import {
@@ -46,7 +46,7 @@ export default async function OrganizationContextPage({
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const resolver = createSupabaseMembershipResolver(supabase);
+  const resolver = createMembershipResolver(supabase);
   const membership = await resolver.resolveActiveMembership({
     userId: parseUuid(user.id, "verified_user_id"),
     organizationId

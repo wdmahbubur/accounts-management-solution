@@ -1,4 +1,4 @@
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import { commandErrorBody, normalizeCommandError } from "../commands/errors.ts";
 import { generateRequestId } from "../commands/request-context.ts";
 import { readPrivateArtifact } from "./download.ts";

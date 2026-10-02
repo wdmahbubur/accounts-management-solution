@@ -6,8 +6,8 @@ import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
-import { createSupabaseMembershipResolver } from "../../server/auth/supabase-membership.ts";
+import { createClient } from "../../lib/database/server.ts";
+import { createMembershipResolver } from "../../server/auth/membership-resolver.ts";
 import {
   COMPANY_CONTEXT_COOKIE,
   CURRENT_ORGANIZATION_COOKIE,
@@ -38,7 +38,7 @@ export async function switchCompanyAction(formData: FormData) {
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const resolver = createSupabaseMembershipResolver(supabase);
+  const resolver = createMembershipResolver(supabase);
   const membership = await resolver.resolveActiveMembership({
     userId: parseUuid(user.id, "verified_user_id"),
     organizationId

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import {
   CompanyOnboardingValidationError,
   parseCompanyOnboardingForm
