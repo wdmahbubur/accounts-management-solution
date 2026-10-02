@@ -7,10 +7,12 @@ import { sourceTypes, type SourceType } from "../../../../../../server/documents
 import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
 import { canPostDocument } from "../../../../../../server/documents/posting.ts";
 import { readInvoiceLifecycle } from "../../../../../../server/documents/invoice-register.ts";
+import { readReceiptLifecycle } from "../../../../../../server/documents/customer-receipts.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 import { PostingAction } from "../posting-action.tsx";
 import { ReverseDocumentAction } from "../reverse-document-action.tsx";
+import { AllocationUnapplyAction } from "../allocation-unapply-action.tsx";
 import { WriteOffSubmitAction } from "../write-off-submit-action.tsx";
 import styles from "../documents.module.css";
 
@@ -31,6 +33,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   let actor: Awaited<ReturnType<typeof resolveActorContext>> | undefined;
   let document: Record<string, unknown> | undefined;
   let invoiceLifecycle: Awaited<ReturnType<typeof readInvoiceLifecycle>> | null = null;
+  let receiptLifecycle: Awaited<ReturnType<typeof readReceiptLifecycle>> | null = null;
   let options: DraftOptions | undefined;
   let failure: unknown;
   try {
@@ -38,6 +41,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const type = String(document.document_type);
     if (type === "invoice") invoiceLifecycle = await readInvoiceLifecycle(runtime.client, actor, documentId);
+    if (type === "receipt") receiptLifecycle = await readReceiptLifecycle(runtime.client, actor, documentId);
     if (String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type)) {
       const raw = await readDraftOptions(runtime.client, actor, type, String(document.accounting_date));
       options = {
@@ -76,6 +80,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
         <p>Total (BDT): {String(document.total_amount)}</p>
         <p>{String(document.description ?? "")}</p>
         {type === "invoice" && invoiceLifecycle && <InvoiceSnapshot organizationId={organizationId} document={document} lifecycle={invoiceLifecycle} capabilities={actor.capabilities} />}
+        {type === "receipt" && receiptLifecycle && <section aria-label="Receipt settlement" className="panel"><h2>Receipt settlement</h2><p>Applied: BDT {String(receiptLifecycle.applied_amount)} · Unused credit: BDT {String(receiptLifecycle.residual_amount ?? "0.00")}</p>{Array.isArray(receiptLifecycle.allocations) && receiptLifecycle.allocations.map((value, index) => {const allocation = value as Record<string, unknown>;return <p key={String(allocation.id ?? index)}>{String(allocation.effective_date)} · BDT {String(allocation.amount)} · {String(allocation.counter_document_number ?? "Invoice")}{!allocation.reversed_on && actor.capabilities.includes("dues.allocate") && <AllocationUnapplyAction organizationId={organizationId} allocationId={String(allocation.id)} />}</p>;})}</section>}
         {Array.isArray(document.lines) && document.lines.length > 0 && <LineSnapshotTable rows={document.lines as Record<string, unknown>[]} />}
       </section>
       {type === "write_off" && document.state === "draft" && <WriteOffSubmitAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}

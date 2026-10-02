@@ -5,6 +5,7 @@ import { resolveActorContext } from "../../../../../../server/auth/resolve-actor
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
 import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
+import { readReceiptAllocationOptions } from "../../../../../../server/documents/customer-receipts.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 
@@ -25,6 +26,7 @@ export default async function NewDraftPage({ params, searchParams }: {
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
 
   let options: DraftOptions | undefined;
+  let receiptInvoices: Awaited<ReturnType<typeof readReceiptAllocationOptions>> = [];
   let initial: Record<string, unknown> | undefined = query.party_id ? { party_id: query.party_id } : undefined;
   let duplicate = false;
   let forbidden = false;
@@ -42,6 +44,8 @@ export default async function NewDraftPage({ params, searchParams }: {
       cost_centers: Array.isArray(raw.cost_centers) ? raw.cost_centers as DraftOptions["cost_centers"] : []
     };
     if (initial?.party_id && !options.parties.some(party => party.id === initial?.party_id)) initial = undefined;
+    const selectedParty = typeof initial?.party_id === "string" ? initial.party_id : null;
+    if (documentType === "receipt" && selectedParty) receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, selectedParty, bangladeshDate());
     if (query.original_document_id) {
       const original = await readFinancialDocument(runtime.client, actor, query.original_document_id);
       if (original.document_type !== "invoice" || documentType !== "customer_credit") throw CommandError.notFound();
@@ -76,5 +80,5 @@ export default async function NewDraftPage({ params, searchParams }: {
   if (forbidden) return <main><h1>Access denied</h1><p>You do not have permission to create this source type.</p></main>;
   if (failure) throw failure;
   if (!options) throw new Error("Document draft options were unavailable.");
-  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} />;
+  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices} />;
 }
