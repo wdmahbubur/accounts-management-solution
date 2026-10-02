@@ -54,7 +54,7 @@ CREATE FUNCTION public.lock_accounting_period(
 ) RETURNS TABLE(period_id uuid,row_version integer,locked_at timestamptz)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE v_actor uuid; v_year_id uuid; v_year_status text; v_period finance.accounting_periods%ROWTYPE;
-  v_snapshot jsonb; v_locked_at timestamptz:=clock_timestamp();
+  v_snapshot jsonb; v_locked_at timestamptz;
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_reason IS NULL OR length(btrim(p_reason))<10 OR length(btrim(p_reason))>1000
@@ -78,6 +78,7 @@ BEGIN
       'posted_documents',count(*) FILTER(WHERE d.state='posted')) INTO v_snapshot
     FROM finance.business_documents d WHERE d.organization_id=p_organization_id
       AND d.accounting_date BETWEEN v_period.starts_on AND v_period.ends_on;
+  v_locked_at:=clock_timestamp();
   UPDATE finance.accounting_periods p SET status='locked',locked_at=v_locked_at,
     locked_by_member_id=v_actor,row_version=p.row_version+1
     WHERE p.organization_id=p_organization_id AND p.id=p_period_id;
