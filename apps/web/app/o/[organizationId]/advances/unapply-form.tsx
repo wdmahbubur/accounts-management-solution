@@ -1,0 +1,9 @@
+"use client";
+import { useRef,useState } from "react";
+import { useRouter } from "next/navigation";
+
+export function UnapplyAdvanceApplication({organizationId,documentId}:{organizationId:string;documentId:string}){
+ const router=useRouter();const key=useRef(crypto.randomUUID());const [date,setDate]=useState(()=>new Date().toISOString().slice(0,10));const [reason,setReason]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");
+ async function submit(){setBusy(true);setError("");try{const response=await fetch(`/api/v1/organizations/${organizationId}/advances/actions/${documentId}/unapply`,{method:"POST",headers:{"Content-Type":"application/json","X-Request-Id":`advance-unapply-${crypto.randomUUID()}`,"Idempotency-Key":key.current},body:JSON.stringify({effective_date:date,reason})});const body=await response.json();if(!response.ok)throw new Error(body?.error?.message??"Advance application could not be unapplied.");router.push(`/o/${organizationId}/accounting/documents/${String(body.data.reversal_document_id)}`);router.refresh();}catch(e){setError(e instanceof Error?e.message:"Advance application could not be unapplied.");}finally{setBusy(false);}}
+ return <section className="panel"><h3>Unapply this advance application</h3><p>This records a dated reversing journal and reverses both settlement pairs. It does not reverse a refund or move cash.</p><label>Accounting date<input type="date" required value={date} onChange={e=>setDate(e.target.value)}/></label><label>Reason<textarea required minLength={10} maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)}/></label>{error&&<p role="alert">{error}</p>}<button type="button" disabled={busy||reason.trim().length<10} onClick={()=>void submit()}>{busy?"Recording…":"Record unapply"}</button></section>;
+}
