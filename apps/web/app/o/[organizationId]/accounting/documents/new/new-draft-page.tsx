@@ -19,10 +19,10 @@ export default async function NewDraftPage({params,searchParams}:{params:Promise
   if(query.original_document_id){const original=await readFinancialDocument(runtime.client,actor,query.original_document_id);if(original.document_type!=="invoice"||!(["customer_credit"] as string[]).includes(documentType))throw CommandError.notFound();
    initial={...(initial??{}),trade:{original_document_id:query.original_document_id}};
   }
-  if(query.copy){if(documentType!=="invoice")throw CommandError.validation({copy:"Only an invoice can be copied into a new invoice draft."});const source=await readFinancialDocument(runtime.client,actor,query.copy);if(source.document_type!=="invoice")throw CommandError.notFound();
+  if(query.copy){if(documentType!=="invoice"&&documentType!=="bill")throw CommandError.validation({copy:"Only invoices and supplier bills can be copied into a new draft."});const source=await readFinancialDocument(runtime.client,actor,query.copy);if(source.document_type!==documentType)throw CommandError.notFound();
    const rows=Array.isArray(source.lines)?source.lines:[];const sourceTrade=source.trade&&typeof source.trade==="object"?source.trade as Record<string,unknown>:{};
    initial={...source,id:undefined,document_number:undefined,state:"draft",posted_journal:undefined,
-    trade:{...sourceTrade,original_document_id:null,performance_confirmed:false},
+    trade:documentType==="invoice"?{...sourceTrade,original_document_id:null,performance_confirmed:false}:{...sourceTrade,original_document_id:null},
     lines:rows.map((value)=>{const line=value&&typeof value==="object"?value as Record<string,unknown>:{};return{...line,id:null,original_line_id:null};})};duplicate=true;
   }
   return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial}/>;
