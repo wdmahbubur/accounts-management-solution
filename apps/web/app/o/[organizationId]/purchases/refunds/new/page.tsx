@@ -1,0 +1,1 @@
+import {redirect} from "next/navigation";export default async function NewSupplierRefundPage({params}:{params:Promise<{organizationId:string}>}){const {organizationId}=await params;redirect(`/o/${organizationId}/accounting/documents/new?type=vendor_refund`);}
