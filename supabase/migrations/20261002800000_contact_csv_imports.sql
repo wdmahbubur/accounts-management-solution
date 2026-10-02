@@ -158,6 +158,9 @@ BEGIN
   UPDATE finance.import_jobs SET status='completed',committed_at=COALESCE(committed_at,now()),
    result_summary=result_summary||jsonb_build_object('completed',true)
    WHERE organization_id=p_organization_id AND id=p_import_job_id;
+  INSERT INTO finance.audit_events(organization_id,actor_member_id,actor_kind,action,entity_type,entity_id,request_id,redacted_change)
+   VALUES(p_organization_id,v_actor,'user','import.completed','import_job',j.id,p_request_id,
+    jsonb_build_object('type','contacts','rows',(j.result_summary->>'row_count')::integer));
  END IF;
  RETURN true;
 END $$;
