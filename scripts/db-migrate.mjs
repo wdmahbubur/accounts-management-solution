@@ -10,6 +10,7 @@ if (!connectionString) {
 }
 
 const migrationDirectory = join(import.meta.dirname, "..", "database", "migrations");
+const legacyMigrationChecksums = JSON.parse(await readFile(join(import.meta.dirname, "migration-history-overrides.json"), "utf8"));
 const migrationLockId = 1095580483n;
 const pool = new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
 const client = await pool.connect();
@@ -39,7 +40,8 @@ try {
     .sort();
 
   for (const file of files) {
-    const sql = await readFile(join(migrationDirectory, file), "utf8");
+    // Hash and execute canonical LF SQL so Windows checkouts produce the same migration identity.
+    const sql = (await readFile(join(migrationDirectory, file), "utf8")).replaceAll("\r\n", "\n");
     const digest = createHash("sha256").update(sql).digest("hex");
     await client.query("BEGIN");
     try {
@@ -51,7 +53,8 @@ try {
       );
 
       if (existing.rowCount) {
-        if (existing.rows[0].sha256.trim() !== digest) {
+        const recordedDigest = existing.rows[0].sha256.trim();
+        if (recordedDigest !== digest && recordedDigest !== legacyMigrationChecksums[file]) {
           throw new Error(`Applied migration was edited: ${file}`);
         }
         await client.query("COMMIT");
