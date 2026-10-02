@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { bangladeshDate } from "../../../../../lib/date.ts";
 import type { SourceType } from "../../../../../server/documents/contracts.ts";
 import styles from "./documents.module.css";
 
@@ -32,7 +33,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  return <main className={styles.main} data-company-context={nonce}><p className="eyebrow">Draft source</p><h1>{initial?"Edit draft · ":"New "}{labels[documentType]}</h1><p className={styles.hint}>Saving creates or updates a draft only. It does not create a journal or move money.</p>{error&&<p role="alert" className={styles.error}>{error}</p>}
  <form action={submit} className={styles.form}>
   {needsParty&&<label>Customer or supplier<select name="party_id" required defaultValue={field("party_id")}>{options.parties.map((p)=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select></label>}
-  <label>Issue date<input name="issue_date" type="date" required defaultValue={field("issue_date",new Date().toISOString().slice(0,10))}/></label><label>Accounting date<input name="accounting_date" type="date" required defaultValue={field("accounting_date",new Date().toISOString().slice(0,10))}/></label>
+  <label>Issue date<input name="issue_date" type="date" required defaultValue={field("issue_date",bangladeshDate())}/></label><label>Accounting date<input name="accounting_date" type="date" required defaultValue={field("accounting_date",bangladeshDate())}/></label>
   <label>Due date<input name="due_date" type="date" defaultValue={field("due_date")}/></label><label>External reference<input name="external_reference" maxLength={160} defaultValue={field("external_reference")}/></label><label>Description<input name="description" maxLength={2000} defaultValue={field("description")}/></label>
   {tradeTypes.includes(documentType)&&<>
    {documentType==="customer_credit"||documentType==="vendor_credit"?<label>Original posted document ID<input name="original_document_id" required defaultValue={String(trade.original_document_id??"")}/></label>:null}

@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { calculateLine } from "@ams/accounting";
+import { bangladeshDate } from "../../../../../lib/date.ts";
 import type { TaxCatalog, TaxCode, TaxKind } from "../../../../../server/taxes/contracts.ts";
 import styles from "./tax-settings.module.css";
 
@@ -56,7 +57,7 @@ export function TaxSettings({ organizationId, nonce, catalog, canManage }: Props
         <label>Purchase tax recovery<select name="recoverability" defaultValue="none"><option value="none">Nonrecoverable</option><option value="full">Fully recoverable</option></select></label>
         <label>Output-tax account<select name="output_account_id" defaultValue=""><option value="">No account</option>{outputAccounts.map((account) => <option key={account.id} value={account.id}>{account.code} · {account.name}</option>)}</select></label>
         <label>Input-tax account<select name="input_account_id" defaultValue=""><option value="">No account</option>{inputAccounts.map((account) => <option key={account.id} value={account.id}>{account.code} · {account.name}</option>)}</select></label>
-        <label>Effective from<input name="effective_from" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></label>
+        <label>Effective from<input name="effective_from" type="date" required defaultValue={bangladeshDate()} /></label>
         <label>Effective to (optional)<input name="effective_to" type="date" /></label>
         <label>Reason for this version<input name="reason" required minLength={10} maxLength={1000} /></label>
         <label>Current latest version (for an existing code)<select name="existing_code_version" value={existingVersion} onChange={(event) => { setExistingVersion(event.target.value); const code = [...latest.values()].find((item) => `${item.code}:${item.rowVersion}` === event.target.value); if (code) setVersionCode(code.code); }}>
