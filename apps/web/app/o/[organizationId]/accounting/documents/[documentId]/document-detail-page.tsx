@@ -21,7 +21,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
  let organizationId;let documentId;try{const p=await params;organizationId=parseOrganizationId(p.organizationId);documentId=parseUuid(p.documentId);}catch{redirect("/companies?error=not_found");}
  const runtime=await roleRuntime();if(!runtime.current||runtime.current.organizationId!==organizationId)redirect("/companies?error=context_mismatch");
  try{const actor=await resolveActorContext(organizationId,runtime.dependencies);const document=await readFinancialDocument(runtime.client,actor,documentId);
-  const type=String(document.document_type);const canEdit=String(document.state)==="draft"&&(sourceTypes as readonly string[]).includes(type);
+    const type=String(document.document_type);const canEdit=String(document.state)==="draft"&&(sourceTypes as readonly string[]).includes(type)&&(type!=="transfer"||actor.capabilities.includes("banking.write"));
   const invoiceLifecycle=type==="invoice"?await readInvoiceLifecycle(runtime.client,actor,documentId):null;
   const trade=document.trade&&typeof document.trade==="object"?document.trade as Record<string,unknown>:{};
   const partyId=typeof document.party_id==="string"?document.party_id:"";
