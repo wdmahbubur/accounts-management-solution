@@ -20,6 +20,7 @@ const procedures = new Set([
   "list_tax_codes",
   "list_tax_mapping_accounts",
   "list_open_items",
+  "allocate_open_items",
   "list_members_for_management",
   "list_roles_for_management",
   "read_document_directory",
