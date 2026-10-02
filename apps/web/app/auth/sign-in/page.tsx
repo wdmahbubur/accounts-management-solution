@@ -11,7 +11,7 @@ function first(value: string | string[] | undefined): string | undefined {
 
 export default async function SignInPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const next = safeNextPath(first(params.next));
+  const next = safeNextPath(first(params.next), "/companies");
   const error = first(params.error);
   const status = first(params.status);
 

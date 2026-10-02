@@ -40,7 +40,7 @@ function strongPassword(password: string): boolean {
 export async function signInAction(formData: FormData) {
   const email = textField(formData, "email");
   const password = textField(formData, "password");
-  const next = safeNextPath(textField(formData, "next"));
+  const next = safeNextPath(textField(formData, "next"), "/companies");
 
   if (!validEmail(email) || password.length === 0) {
     redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
@@ -74,7 +74,7 @@ export async function signUpAction(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: authCallbackUrl("/"),
+      emailRedirectTo: authCallbackUrl("/companies"),
       data: {
         // Presentation metadata only. Authorization never reads this object.
         display_name: displayName.slice(0, 120)

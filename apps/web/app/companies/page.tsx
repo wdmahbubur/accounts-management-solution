@@ -43,6 +43,9 @@ export default async function CompaniesPage({
 
   const params = await searchParams;
   const error = first(params.error);
+  if (current && !error) {
+    redirect(`/o/${current.organizationId}/dashboard`);
+  }
 
   return (
     <main className="auth-shell">
