@@ -4,16 +4,19 @@ Multi-tenant finance and accounting SaaS for companies.
 
 ## Project status
 
-US-002 establishes the reproducible Next.js/TypeScript modular-monolith
-scaffold and CI quality gate. Financial behavior, database migrations,
-authentication, Supabase project changes and production deployment are not part
-of this bootstrap.
+The approved V1 is a Bangladesh-focused, BDT-only accrual accounting SaaS for
+service and non-stock SMEs. A provider migration to Auth.js and Neon PostgreSQL
+is in progress. The Neon target currently has the complete 52-table finance
+schema and 97 row-level security policies applied through 11 checksum-tracked
+migrations. Auth.js credentials/session foundations are present. Existing web
+routes and storage still have transitional provider dependencies, so the
+application is not yet fully migrated or ready for financial use.
 
 ## Local setup
 
 Requirements:
 
-- Node.js `24.21.0`
+- Node.js `24.x`
 - npm `11.19.0`
 - Python `3.10+` for the retained specification/reference checks
 
@@ -25,8 +28,10 @@ npm ci
 npm run dev
 ```
 
-The environment example contains browser-safe placeholders only. Never commit
-Supabase service-role keys, provider secrets or real customer data.
+The environment example contains placeholders only. Never commit database
+URLs, Auth.js secrets, mail/provider credentials or real customer data. Use
+`DATABASE_URL` only for migrations and a separate restricted
+`DATABASE_RUNTIME_URL` for server-side app access.
 
 ## Quality and test commands
 
@@ -44,31 +49,31 @@ The test layers are intentionally separate:
 npm run test:application
 npm run test:reference   # retained Python reference model; not app evidence
 npm run test:spec        # static source/spec checks; not app evidence
-npm run test:database    # requires local Supabase DB
-npm run test:race        # requires local Supabase DB
+npm run test:database    # transitional harness; requires a local test database
+npm run test:race        # transitional harness; requires a local test database
 npm run test:browser     # Playwright Chromium harness
 ```
 
 See [US-005 test harness](docs/16-test-harness.md) and
 [acceptance traceability](tests/acceptance-matrix.json).
 
-## Local database migrations
+## PostgreSQL migrations
 
-US-003 uses Supabase CLI `2.118.0` and PostgreSQL 17. The committed `supabase/`
-configuration keeps the `finance` and `finance_private` schemas outside the
-Data API exposure list and keeps application seed data disabled.
+Ordered plain-PostgreSQL migrations live under `database/migrations/`. They are
+applied in transactions under a transaction-scoped advisory lock, and the
+runner rejects edits to already-applied migration checksums. It reads
+`DATABASE_URL` from `.env.local` by default; `MIGRATION_DATABASE_URL` can
+override it. Application requests use `DATABASE_RUNTIME_URL` and never the
+migration credential.
 
 ```bash
-supabase db start
-supabase db reset
-supabase test db
-bash scripts/test-migration-upgrade.sh
+npm run db:migrate
 ```
 
-`db reset` verifies a clean replay of all migrations. The upgrade script uses
-a second isolated database in the local Supabase PostgreSQL instance to verify
-the staged core-to-security migration path. See
-[the US-003 migration review](docs/14-migration-review.md).
+The Neon target was empty before migration. The 11 migrations now create
+application identity, company/accounting schema and security policies; no
+existing financial rows or objects were transferred. Fresh-install and
+upgrade verification on a disposable database remains part of this migration.
 
 CI runs on pull requests and on pushes to `master`. It installs the committed
 lockfile and fails on lint, typecheck, test or build failures. It contains no

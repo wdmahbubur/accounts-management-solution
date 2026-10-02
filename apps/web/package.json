@@ -12,11 +12,18 @@
     "@ams/contracts": "0.0.0",
     "@ams/permissions": "0.0.0",
     "@ams/reporting": "0.0.0",
+    "@neondatabase/serverless": "1.2.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.1",
+    "argon2": "0.45.1",
     "next": "16.3.7",
+    "next-auth": "5.0.0-beta.32",
+    "nodemailer": "10.0.13",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@types/nodemailer": "8.0.2"
+  }
 }
