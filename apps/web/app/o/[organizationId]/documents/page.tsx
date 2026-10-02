@@ -1,4 +1,5 @@
 import { parseOrganizationId, parseUuid, type OrganizationId } from "@ams/contracts";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../server/commands/errors.ts";
@@ -8,6 +9,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 type Search = Promise<Record<string, string | string[] | undefined>>;
 function first(value: string | string[] | undefined): string { return Array.isArray(value) ? value[0] ?? "" : value ?? ""; }
+function dhakaDate(value: unknown) {
+  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) return "";
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+}
 export default async function EvidenceLibrary({ params, searchParams }: { params: Promise<{ organizationId: string }>; searchParams: Search }) {
   let organizationId: OrganizationId;
   try { organizationId = parseOrganizationId((await params).organizationId); } catch { redirect("/companies?error=not_found"); }
@@ -33,7 +38,7 @@ export default async function EvidenceLibrary({ params, searchParams }: { params
     const row = value as Record<string, unknown>;
     if (typeof row.original_filename !== "string" || typeof row.document_type !== "string") return false;
     const matchesSearch = !search || `${row.original_filename} ${row.document_type} ${String(row.document_number ?? "")} ${String(row.uploader_name ?? "")}`.toLocaleLowerCase().includes(search);
-    const matchesDate = !validUploadedOn || (typeof row.uploaded_at === "string" && row.uploaded_at.slice(0, 10) === validUploadedOn);
+    const matchesDate = !validUploadedOn || dhakaDate(row.uploaded_at) === validUploadedOn;
     return matchesSearch && matchesDate;
   });
   const drafts = draftsResult.data.flatMap((value: unknown) => {
@@ -44,18 +49,21 @@ export default async function EvidenceLibrary({ params, searchParams }: { params
     catch { return []; }
   });
   return <main className="management-shell"><p className="eyebrow">Private company evidence</p><h1>Documents and evidence</h1>
-    <p>Files stay private, belong to a draft source document and cannot be downloaded while scanning is pending or rejected.</p>
+      <p>Files stay private, link to their source document, and cannot be downloaded while scanning is pending or rejected. Existing evidence stays on its original source when a correction is posted.</p>
     {actor.capabilities.includes("attachments.write") && <EvidenceUploadForm organizationId={organizationId} nonce={runtime.current.nonce} drafts={drafts} />}
     <section className="panel"><h2>Linked files</h2>
       <form method="get" role="search" className="settings-form"><label className="field"><span>Search filename, source or uploader</span><input name="q" type="search" maxLength={100} defaultValue={first(paramsValue.q)} /></label>
         <label className="field"><span>Uploaded on</span><input name="uploaded_on" type="date" defaultValue={validUploadedOn} /></label><button type="submit">Search</button></form>
       {rows.length === 0 ? <p>No matching linked evidence files.</p> : <div className="table-scroll"><table>
-        <caption>Financial evidence for documents you are allowed to read.</caption><thead><tr><th scope="col">File</th><th scope="col">Source</th><th scope="col">Uploaded by</th><th scope="col">Uploaded</th><th scope="col">Type</th><th scope="col">Size</th><th scope="col">Scan status</th><th scope="col">Action</th></tr></thead>
+        <caption>Financial evidence for documents you are allowed to read.</caption><thead><tr><th scope="col">File</th><th scope="col">Source</th><th scope="col">Category</th><th scope="col">Uploaded by</th><th scope="col">Uploaded</th><th scope="col">Content type</th><th scope="col">Size</th><th scope="col">Scan status</th><th scope="col">Action</th></tr></thead>
         <tbody>{rows.map((value: unknown) => {
           const row = value as Record<string, unknown>; const id = parseUuid(row.attachment_id);
+          const sourceId = parseUuid(row.document_id);
           const href = `/api/v1/organizations/${organizationId}/attachments/${id}/download`;
-          return <tr key={id}><th scope="row">{String(row.original_filename)}</th><td>{String(row.document_number ?? row.document_type)}</td>
-            <td>{String(row.uploader_name ?? "Member")}</td><td>{typeof row.uploaded_at === "string" ? row.uploaded_at.slice(0, 10) : ""}</td>
+          const sourceLabel = String(row.document_number ?? row.document_type);
+          return <tr key={id}><th scope="row">{String(row.original_filename)}</th><td>{actor.capabilities.includes("documents.read")
+            ? <Link href={`/o/${organizationId}/accounting/documents/${sourceId}`}>{sourceLabel}</Link> : sourceLabel}</td>
+            <td>{String(row.document_type)}</td><td>{String(row.uploader_name ?? "Member")}</td><td>{dhakaDate(row.uploaded_at)}</td>
             <td>{String(row.content_type)}</td><td>{String(row.byte_size)} bytes</td><td>{String(row.scan_status)}</td>
             <td>{row.scan_status === "clean" ? <a href={href}>Download</a> : <span>Unavailable until clean</span>}</td></tr>;
         })}</tbody>
