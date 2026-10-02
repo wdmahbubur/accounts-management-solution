@@ -1,11 +1,11 @@
-import type {SupabaseClient} from "@supabase/supabase-js";
+import type {RequestClient} from "../request-client.ts";
 import {capability} from "@ams/permissions";
 import type {ActorContext} from "../auth/types.ts";
 import {CommandError} from "../commands/errors.ts";
 import type {OrganizationCommandDefinition} from "../commands/types.ts";
 import {parsePeriods,periodDatabaseError,validatePeriodAction} from "./contracts.ts";
 
-type RpcClient=Pick<SupabaseClient,"rpc">;
+type RpcClient=Pick<RequestClient,"rpc">;
 export async function readPeriods(client:RpcClient,actor:ActorContext){if(!actor.capabilities.includes("accounting.read"))throw CommandError.forbidden();const r=await client.rpc("list_accounting_periods",{p_organization_id:actor.organizationId});if(r.error)throw periodDatabaseError(r.error);return parsePeriods(r.data);}
 type ActionInput=ReturnType<typeof validatePeriodAction>;
 export interface PeriodReceipt{periodId:string;rowVersion:number;lockedAt?:string}
