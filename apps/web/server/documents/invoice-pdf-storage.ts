@@ -140,7 +140,7 @@ export async function getIssuedInvoicePdf(client: RpcClient, actor: ActorContext
   const organizationId = parseOrganizationId(actor.organizationId);
   const documentId = parseUuid(rawDocumentId, "document_id");
   const available = await existingVersion(client, organizationId, documentId);
-  if (available) return { bytes: await readBytes(client, organizationId, documentId, available), filename: available.filename };
+  if (available) return { bytes: await readBytes(client, organizationId, documentId, available), filename: available.filename, pdfId: available.pdfId };
 
   const memberships = await listActiveMemberships(client);
   const company = memberships.find((item) => item.organizationId === organizationId);
@@ -164,5 +164,5 @@ export async function getIssuedInvoicePdf(client: RpcClient, actor: ActorContext
   const registered = parseVersion(result.data, organizationId);
   if (registered.pdfId !== pdfId) await deleteInvoicePdfObject(objectKey);
   const bytes = await readBytes(client, organizationId, documentId, registered);
-  return { bytes, filename: registered.filename };
+  return { bytes, filename: registered.filename, pdfId: registered.pdfId };
 }

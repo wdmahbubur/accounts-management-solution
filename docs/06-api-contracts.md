@@ -112,6 +112,7 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | POST O/attachments/upload-intents | attachments.write plus source-module write capability | Create a short-lived organization-bound quarantine upload intent |
 | POST O/attachments/uploads/{intentId}/complete | attachments.write plus source-module write capability | Verify private object digest and record a pending-scan evidence link |
 | GET O/invoices/{documentId}/pdf | sales.read | Retrieve or render an immutable PDF for the current posted invoice version |
+| POST O/documents/{documentId}/send | sales.write | Queue or resend email using the current immutable issued-invoice PDF version; requires an `Idempotency-Key` UUID |
 | POST O/exports | reports.export plus reports.read, accounting.read and ledger.read | Idempotently request a trial-balance CSV export |
 | GET O/exports | exports.read | List only the current requester's export job metadata |
 | POST /api/internal/exports | Internal export worker bearer secret | Render a bounded trial-balance batch under fenced leases and retry/backoff |
@@ -188,7 +189,7 @@ A repeated authorized request after an uncertain network response must return th
 
 ## 7. Workers and integrations
 
-Outbox events include document.posted, document.send_requested, report.export_requested, import.validation_requested and subscription.event_received. The financial transaction persists the event; a worker claims rows with a lease, uses an event deduplication key and records outcomes. Delivery is at-least-once, so handlers must be idempotent. An invoice can have several email attempts without several journals.
+Outbox events include document.posted, document.send_requested, report.export_requested, import.validation_requested and subscription.event_received. The financial transaction persists the event; a worker claims rows with a lease, uses an event deduplication key and records outcomes. Delivery is at-least-once, so handlers must be idempotent. An invoice can have several email attempts without several journals. An invoice send request records only the immutable PDF version ID and source version/digest in its event payload; the recipient stays in `notification_deliveries`. A lease-fenced worker lookup returns the recipient and exact PDF object metadata only while the event lease is current.
 
 Email/PDF: validate recipients, freeze issued content, store immutable rendered version/checksum, keep retry state outside document posting state. Billing: verify signature against the raw request body, compare provider event ID and company mapping, and process out-of-order events using a provider reconciliation check where needed. Never let a provider webhook change a tenant's business ledger automatically.
 

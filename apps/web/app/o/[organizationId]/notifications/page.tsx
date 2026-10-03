@@ -8,12 +8,12 @@ import { NotificationList } from "./notification-list.tsx";
 
 export const dynamic="force-dynamic";
 export const revalidate=0;
-type Item={kind:"approval"|"delivery_failure"|"export_failure";id:string;title:string;detail:string;occurred_at:string;is_read:boolean;document_id:string|null};
+type Item={kind:"approval"|"delivery_failure"|"export_failure"|"invoice_due"|"bill_due";id:string;title:string;detail:string;occurred_at:string;is_read:boolean;document_id:string|null};
 function parseItems(raw:unknown):Item[]{
   if(!Array.isArray(raw)||raw.length>100)throw new Error("Invalid notification list response.");
   return raw.map((entry)=>{if(!entry||typeof entry!=="object"||Array.isArray(entry))throw new Error("Invalid notification entry.");
     const row=entry as Record<string,unknown>;
-    if(!["approval","delivery_failure","export_failure"].includes(String(row.kind))||typeof row.id!=="string"||typeof row.title!=="string"||
+    if(!["approval","delivery_failure","export_failure","invoice_due","bill_due"].includes(String(row.kind))||typeof row.id!=="string"||typeof row.title!=="string"||
       typeof row.detail!=="string"||typeof row.occurred_at!=="string"||typeof row.is_read!=="boolean"||
       !(row.document_id===null||typeof row.document_id==="string"))throw new Error("Invalid notification entry.");
     return row as Item;
@@ -30,5 +30,6 @@ export default async function NotificationsPage({params}:{params:Promise<{organi
     else if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");else throw error;}
   if(forbidden)return <main><h1>Notifications</h1><p role="alert">You do not have permission to view notifications.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
   return <main><p className="eyebrow">Workspace</p><h1>Notifications</h1><p>Approvals and failed delivery or export activity you are authorized to view.</p>
+    <p><Link href={`/o/${organizationId}/notifications/preferences`}>Email preferences</Link></p>
     <NotificationList organizationId={organizationId} items={items}/></main>;
 }

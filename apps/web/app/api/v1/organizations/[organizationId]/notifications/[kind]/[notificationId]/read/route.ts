@@ -11,7 +11,7 @@ export async function POST(request:Request,{params}:{params:Promise<{organizatio
   try{
     assertMutationOrigin(request.headers);const {organizationId:rawOrg,kind,notificationId:rawId}=await params;
     const organizationId=parseOrganizationId(rawOrg);const id=parseUuid(rawId,"notification_id");
-    if(!["approval","delivery_failure","export_failure"].includes(kind))throw CommandError.notFound();
+    if(!["approval","delivery_failure","export_failure","invoice_due","bill_due"].includes(kind))throw CommandError.notFound();
     const runtime=await roleRuntime();const actor=await resolveActorContext(organizationId,runtime.dependencies);
     if(!actor.memberId)throw CommandError.notFound();
     const result=await runtime.client.rpc("mark_notification_read",{p_organization_id:organizationId,p_item_kind:kind,p_source_id:id});

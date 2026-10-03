@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-type Item={kind:"approval"|"delivery_failure"|"export_failure";id:string;title:string;detail:string;occurred_at:string;is_read:boolean;document_id:string|null};
+type Item={kind:"approval"|"delivery_failure"|"export_failure"|"invoice_due"|"bill_due";id:string;title:string;detail:string;occurred_at:string;is_read:boolean;document_id:string|null};
 export function NotificationList({organizationId,items}:{organizationId:string;items:Item[]}){
   const router=useRouter();const [busy,setBusy]=useState<string|null>(null);const [error,setError]=useState("");
   async function markRead(item:Item){setBusy(item.id);setError("");try{const response=await fetch(`/api/v1/organizations/${organizationId}/notifications/${item.kind}/${item.id}/read`,{method:"POST"});
