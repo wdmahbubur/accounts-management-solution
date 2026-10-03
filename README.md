@@ -41,6 +41,17 @@ function grants. After applying migrations, configure a local worker login with
 `npm run db:worker-credential`; production environments must provision an
 equivalent credential through their secret manager.
 
+Private attachment uploads remain quarantined until `/api/internal/attachments/scan`
+records a digest-matched clean result. Configure `ATTACHMENT_SCAN_WORKER_SECRET`,
+`CLAMAV_HOST`, and `CLAMAV_PORT` on the server, and
+schedule authenticated POST requests to that endpoint. Keep the ClamAV daemon
+on a private network because clamd's TCP protocol has no built-in authentication
+or encryption. Scanner outages retry with backoff; infected and exhausted files
+remain rejected and cannot be downloaded. Each completed scan records the
+engine and loaded signature database revision reported by clamd. A running ClamAV service, signature
+updates, scheduler, monitoring, and production scan evidence are deployment
+responsibilities and are not provisioned by this repo.
+
 ## Quality and test commands
 
 ```bash
