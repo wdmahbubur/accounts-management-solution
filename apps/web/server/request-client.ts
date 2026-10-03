@@ -75,7 +75,9 @@ const procedures = new Set([
   "update_custom_role",
   "update_own_profile",
   "list_accounting_periods",
-  "lock_accounting_period"
+  "lock_accounting_period",
+  "import_bank_statement_rows",
+  "count_statement_fingerprint_matches"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
