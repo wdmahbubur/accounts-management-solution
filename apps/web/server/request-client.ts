@@ -84,7 +84,10 @@ const procedures = new Set([
   "reverse_reconciliation_match",
   "list_operational_cash_accounts",
   "finalize_reconciliation",
-  "reopen_reconciliation"
+  "reopen_reconciliation",
+  "list_opening_cutover_options",
+  "save_opening_cutover_summary",
+  "read_opening_cutover_summary"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };

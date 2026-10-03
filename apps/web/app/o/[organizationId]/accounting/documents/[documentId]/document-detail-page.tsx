@@ -34,12 +34,18 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   let document: Record<string, unknown> | undefined;
   let invoiceLifecycle: Awaited<ReturnType<typeof readInvoiceLifecycle>> | null = null;
   let receiptLifecycle: Awaited<ReturnType<typeof readReceiptLifecycle>> | null = null;
+  let openingCutover: Record<string,unknown> | null = null;
   let options: DraftOptions | undefined;
   let failure: unknown;
   try {
     actor = await resolveActorContext(organizationId, runtime.dependencies);
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const type = String(document.document_type);
+    if (type === "opening_balance" && actor.capabilities.includes("accounting.read")) {
+      const result = await runtime.client.rpc("read_opening_cutover_summary", { p_organization_id: organizationId, p_document_id: documentId });
+      if (result.error) throw new Error("Opening cutover evidence could not be loaded.");
+      if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) openingCutover = result.data as Record<string,unknown>;
+    }
     if (type === "invoice") invoiceLifecycle = await readInvoiceLifecycle(runtime.client, actor, documentId);
     if (type === "receipt") receiptLifecycle = await readReceiptLifecycle(runtime.client, actor, documentId);
     if (String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type)) {
@@ -79,6 +85,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
         <p>State: {String(document.state)} · Accounting date: {String(document.accounting_date)}</p>
         <p>Total (BDT): {String(document.total_amount)}</p>
         <p>{String(document.description ?? "")}</p>
+        {type === "opening_balance" && openingCutover && <section className="panel"><h2>Cutover evidence</h2><p>Imported summary as of {String(openingCutover.cutover_date)} · Source: {String(openingCutover.evidence_reference)}</p><p>Pre-cutover nominal balances are retained as summary data without historic transaction drilldown.</p><a className="secondary" href={`/api/v1/organizations/${organizationId}/documents/${documentId}/opening-cutover`}>Download cutover evidence JSON</a></section>}
         {type === "invoice" && invoiceLifecycle && <InvoiceSnapshot organizationId={organizationId} document={document} lifecycle={invoiceLifecycle} capabilities={actor.capabilities} />}
         {type === "receipt" && receiptLifecycle && <section aria-label="Receipt settlement" className="panel"><h2>Receipt settlement</h2><p>Applied: BDT {String(receiptLifecycle.applied_amount)} · Unused credit: BDT {String(receiptLifecycle.residual_amount ?? "0.00")}</p>{Array.isArray(receiptLifecycle.allocations) && receiptLifecycle.allocations.map((value, index) => {const allocation = value as Record<string, unknown>;return <p key={String(allocation.id ?? index)}>{String(allocation.effective_date)} · BDT {String(allocation.amount)} · {String(allocation.counter_document_number ?? "Invoice")}{!allocation.reversed_on && actor.capabilities.includes("dues.allocate") && <AllocationUnapplyAction organizationId={organizationId} allocationId={String(allocation.id)} />}</p>;})}</section>}
         {Array.isArray(document.lines) && document.lines.length > 0 && <LineSnapshotTable rows={document.lines as Record<string, unknown>[]} />}

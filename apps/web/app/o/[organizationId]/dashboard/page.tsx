@@ -76,12 +76,12 @@ export default async function OrganizationDashboardPage({
             </>}
             {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/periods`}>Fiscal periods</Link>}
             {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/accounts`}>Chart of accounts</Link>}
+            {membership.capabilities.includes("journal.write") && <Link href={`/o/${organizationId}/settings/opening-balances`}>Opening balance cutover</Link>}
             {membership.capabilities.includes("tax.read") && <Link href={`/o/${organizationId}/settings/taxes`}>Tax configuration</Link>}
             {membership.capabilities.includes("documents.read") && <Link href={`/o/${organizationId}/accounting/documents`}>Financial documents</Link>}
             <Link href="/settings/profile">Profile preferences</Link>
             <Link href="/settings/security">Session security</Link>
           </nav>
-          <p className="muted">Financial activity is not available in this workspace yet.</p>
         </section>
       </div>
     </main>
