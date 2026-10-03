@@ -94,7 +94,8 @@ const procedures = new Set([
   "read_balance_sheet_snapshot",
   "read_aging_snapshot",
   "list_statement_parties",
-  "read_party_statement_snapshot"
+  "read_party_statement_snapshot",
+  "read_cash_flow_snapshot"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
