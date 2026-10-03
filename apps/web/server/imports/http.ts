@@ -56,6 +56,7 @@ function parseStagedRows(value: unknown): StagedCsvRow[] {
 
 export async function stageMasterDataImport(request: Request, rawOrganizationId: string) {
   const fallbackRequestId = generateRequestId();
+  let temporaryObjectKey: string | null = null;
   try {
     assertMutationOrigin(request.headers);
     const organizationId = parseOrganizationId(rawOrganizationId);
@@ -106,12 +107,17 @@ export async function stageMasterDataImport(request: Request, rawOrganizationId:
       if (!existing || createHash("sha256").update(existing).digest("hex") !== sha256)
         throw new Error("Private import storage is unavailable. Retry this upload with the same idempotency key.");
     }
+    temporaryObjectKey = job.object_key;
     const staged = rows.map(row => ({ ...row, command_idempotency_key: rowKey() }));
     const saved = await runtime.client.rpc("stage_import_rows", { p_organization_id: organizationId, p_job_id: job.id, p_rows: staged });
     if (saved.error) rpcError(saved.error, "Import rows could not be staged.");
     await deletePrivateImportObject(job.object_key);
+    temporaryObjectKey = null;
     return Response.json({ data: { id: job.id, import_type: type, status: "validating", row_count: rows.length, source_name: filename }, meta: { request_id: requestId, replayed: job.replayed === true } }, { status: 202, headers: noStore });
-  } catch (error) { return fail(error, fallbackRequestId); }
+  } catch (error) {
+    if (temporaryObjectKey) await deletePrivateImportObject(temporaryObjectKey);
+    return fail(error, fallbackRequestId);
+  }
 }
 
 export async function listOwnImports(rawOrganizationId: string) {

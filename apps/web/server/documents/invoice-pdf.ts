@@ -81,7 +81,7 @@ const BENGALI = /[\u0980-\u09ff]/;
 const MAX_TEXT = 2_000;
 
 function clean(value: string | null | undefined, fallback = "—"): string {
-  const normalized = value?.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, " ").trim();
+  const normalized = value?.replace(/[\u0000-\u001f\u007f]/g, " ").trim();
   return normalized ? normalized.slice(0, MAX_TEXT) : fallback;
 }
 
@@ -129,19 +129,28 @@ function mixedText(doc: PdfDoc, text: string, x: number, y: number, width: numbe
   const size = options.size ?? 9;
   const bold = options.bold ?? false;
   const runs = text.match(/[\u0980-\u09ff][\u0980-\u09ff\u200c\u200d\u0980-\u09ff\s.,:;()/-]*|[^\u0980-\u09ff]+/gu) ?? [text];
+  const lineHeight = size * 1.35;
+  const right = x + width;
   let cursor = x;
-  let bottom = y;
+  let lineY = y;
   for (const run of runs) {
     const isBengali = BENGALI.test(run);
     doc.font(bold ? (isBengali ? "ams-bold-bn" : "ams-bold-latin") : (isBengali ? "ams-regular-bn" : "ams-regular-latin"));
     doc.fontSize(size);
     if (options.color) doc.fillColor(options.color);
-    doc.text(run, cursor, y, { width: Math.max(1, width - (cursor - x)), lineBreak: true, continued: true, paragraphGap: 0 });
-    cursor += doc.widthOfString(run);
-    bottom = Math.max(bottom, doc.y);
+    const tokens = run.match(/\s+|\S+/gu) ?? [run];
+    for (const token of tokens) {
+      const tokenWidth = doc.widthOfString(token);
+      if (cursor > x && cursor + tokenWidth > right && token.trim()) { lineY += lineHeight; cursor = x; }
+      if (!(cursor === x && !token.trim())) {
+        doc.text(token, cursor, lineY, { lineBreak: false });
+        cursor += tokenWidth;
+      }
+    }
   }
-  doc.text("", x, y, { width, lineBreak: true, continued: false });
-  return Math.max(bottom, doc.y);
+  const bottom = lineY + lineHeight;
+  doc.y = bottom;
+  return bottom;
 }
 
 function wrap(value: string, maximum: number): string[] {
@@ -245,10 +254,10 @@ export async function renderIssuedInvoicePdf(snapshot: IssuedInvoicePdfSnapshot)
   const range = doc.bufferedPageRange();
   for (let pageIndex = range.start; pageIndex < range.start + range.count; pageIndex += 1) {
     doc.switchToPage(pageIndex);
-    const footerY = PAGE.height - PAGE.margin + 8;
+    const footerY = PAGE.height - PAGE.margin - 16;
     doc.moveTo(left, footerY - 8).lineTo(right, footerY - 8).strokeColor("#cbd7dc").stroke();
     mixedText(doc, "Issued invoice snapshot · This document does not record settlement.", left, footerY, bodyWidth - 100, { size: 7, color: "#60747d" });
-    doc.font("ams-regular-latin").fontSize(7).fillColor("#60747d").text(`Page ${pageIndex + 1} of ${range.count}`, right - 90, footerY, { width: 90, align: "right" });
+    doc.font("ams-regular-latin").fontSize(7).fillColor("#60747d").text(`Page ${pageIndex + 1} of ${range.count}`, right - 90, footerY, { width: 90, align: "right", lineBreak: false });
   }
   doc.end();
   const bytes = await completed;

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ExportJob = {
-  id: string; export_type: string; parameters: { as_of?: string }; ledger_cutoff_at: string;
+  id: string; export_type: string; parameters: Record<string, string>; ledger_cutoff_at: string;
   format: string; status: "queued" | "running" | "completed" | "failed" | "expired" | "cancelled";
   expires_at: string | null; error_code: string | null; created_at: string;
 };
@@ -14,13 +14,17 @@ type Envelope = { data?: ExportJob[]; error?: { message?: string; fields?: Recor
 const dateTime = (value: string | null) => value ? new Intl.DateTimeFormat("en-GB", {
   dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Dhaka"
 }).format(new Date(value)) + " BST" : "—";
+const reportLabels: Record<string, string> = { trial_balance: "Trial balance", profit_and_loss: "Profit and Loss", balance_sheet: "Balance Sheet", customer_statement: "Customer statement", vendor_statement: "Vendor statement" };
+function period(job: ExportJob) { return job.parameters.as_of ?? (job.parameters.from && job.parameters.to ? `${job.parameters.from} – ${job.parameters.to}` : job.parameters.to ?? "Date unavailable"); }
 const errorText: Record<string, string> = {
   EXPORT_EMPTY_REPORT: "No report rows were available for this cutoff. Choose another date.",
   EXPORT_INVALID_REPORT_DATA: "The report contained an invalid amount and could not be rendered.",
   EXPORT_STORAGE_FAILED: "Private storage did not accept the file. Retry by requesting a new export.",
   EXPORT_RENDER_FAILED: "The file could not be rendered. Request a new export or contact support.",
   EXPORT_RETRY_LIMIT: "Automatic retries ended. Request a new export.",
-  REQUESTER_ACCESS_REVOKED: "Your export access changed before the file was ready."
+  REQUESTER_ACCESS_REVOKED: "Your export access changed before the file was ready.",
+  EXPORT_OUTPUT_TOO_LARGE: "The file exceeds the 10 MiB private download limit.",
+  EXPORT_FONT_UNAVAILABLE: "The report PDF font files are unavailable. Request CSV or XLSX instead."
 };
 
 export function ExportJobs({ organizationId, canRequest }: { organizationId: string; canRequest: boolean }) {
@@ -103,9 +107,9 @@ export function ExportJobs({ organizationId, canRequest }: { organizationId: str
     <section className="panel"><div className="toolbar"><h2>Your exports</h2><button type="button" className="secondary" onClick={() => void refresh()} disabled={loading || busy}>Refresh jobs</button></div>
       {loading ? <p role="status">Loading export jobs…</p> : jobs.length === 0 ? <p>No export jobs yet.</p> :
         <div className="table-scroll"><table><thead><tr><th>Report and cutoff</th><th>Status</th><th>Requested</th><th>File expires</th><th>Details</th><th>Actions</th></tr></thead><tbody>
-          {jobs.map(job => <tr key={job.id}><td>Trial balance · {job.parameters.as_of ?? "Date unavailable"}<br /><small>Ledger cutoff: {dateTime(job.ledger_cutoff_at)}</small></td>
+          {jobs.map(job => <tr key={job.id}><td>{reportLabels[job.export_type] ?? "Report export"} · {period(job)}<br /><small>Ledger cutoff: {dateTime(job.ledger_cutoff_at)}</small></td>
             <td><span className={`status status-${job.status}`}>{job.status}</span></td><td>{dateTime(job.created_at)}</td><td>{dateTime(job.expires_at)}</td>
-            <td>{job.error_code ? errorText[job.error_code] ?? "The export failed. Request a new export." : job.status === "running" ? "Rendering a fixed report snapshot…" : "CSV · BDT"}</td>
+            <td>{job.error_code ? errorText[job.error_code] ?? "The export failed. Request a new export." : job.status === "running" ? "Rendering a fixed report snapshot…" : `${job.format.toUpperCase()} · BDT`}</td>
             <td>{job.status === "completed" ? <a className="secondary" href={`/api/v1/organizations/${organizationId}/exports/${job.id}/download`}>Download CSV</a> :
               job.status === "queued" && canRequest ? <button type="button" className="secondary" disabled={busy} onClick={() => void cancel(job.id)}>Cancel queued job</button> : "—"}</td>
           </tr>)}
