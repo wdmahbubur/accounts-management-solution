@@ -190,8 +190,10 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
       "SELECT finance_private.read_report_export_snapshot($1::uuid,$2::uuid) AS snapshot", [job.job_id, job.lease_token]
     ));
     let bytes: Uint8Array;
+    let format: "csv" | "pdf" | "xlsx" = "csv";
     if (report.rows[0]?.snapshot) {
       const snapshot = report.rows[0].snapshot;
+      format = snapshot.export_format;
       if (snapshot.export_format === "xlsx") bytes = await renderReportXlsx(snapshot);
       else if (snapshot.export_format === "pdf") bytes = await renderReportPdf(snapshot);
       else if (snapshot.export_format === "csv") bytes = renderReportCsv(snapshot);
@@ -211,7 +213,7 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
       [job.organization_id, job.job_id, job.lease_token]
     ));
     if (!registered.rows[0]?.registered) throw Object.assign(new Error("Export lease unavailable"), { safeCode: "EXPORT_LEASE_UNAVAILABLE" });
-    if (!await putPrivateExport(key, bytes)) {
+    if (!await putPrivateExport(key, bytes, format)) {
       const existing = await readPrivateObject(key);
       if (!existing || createHash("sha256").update(existing).digest("hex") !== digest) {
         throw Object.assign(new Error("Private export storage unavailable"), { safeCode: "EXPORT_STORAGE_FAILED" });

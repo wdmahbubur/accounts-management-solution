@@ -17,15 +17,17 @@ const contained = (root: string, target: string) => {
   return path !== "" && !path.startsWith("..") && !isAbsolute(path);
 };
 
-export async function putPrivateExport(key: string, bytes: Uint8Array): Promise<boolean> {
+export async function putPrivateExport(key: string, bytes: Uint8Array, format: "csv" | "pdf" | "xlsx" = "csv"): Promise<boolean> {
   if (!validKey(key) || bytes.byteLength < 1 || bytes.byteLength > maxBytes) return false;
+  const contentType = format === "pdf" ? "application/pdf" : format === "xlsx"
+    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv; charset=utf-8";
   const bucket = process.env.OBJECT_STORE_BUCKET;
   if (bucket) {
     const client = store();
     if (!client) return false;
     try {
       await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: bytes, ContentLength: bytes.byteLength,
-        ContentType: "text/csv; charset=utf-8", IfNoneMatch: "*", Metadata: { private: "true", format: "csv" } }));
+        ContentType: contentType, IfNoneMatch: "*", Metadata: { private: "true", format } }));
       return true;
     } catch { return false; }
     finally { client.destroy(); }
