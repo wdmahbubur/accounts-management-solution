@@ -92,7 +92,9 @@ const procedures = new Set([
   "list_profit_loss_options",
   "read_profit_loss_snapshot",
   "read_balance_sheet_snapshot",
-  "read_aging_snapshot"
+  "read_aging_snapshot",
+  "list_statement_parties",
+  "read_party_statement_snapshot"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
