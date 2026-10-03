@@ -109,6 +109,7 @@ const procedures = new Set([
   "save_opening_cutover_summary",
   "read_opening_cutover_summary",
   "read_report_snapshot",
+  "capture_report_export_snapshot",
   "list_profit_loss_options",
   "read_profit_loss_snapshot",
   "read_balance_sheet_snapshot",

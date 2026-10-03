@@ -26,9 +26,10 @@ export async function requestReportExport(request: Request, rawOrganizationId: s
     const exportType = body.export_type as ReportType;
     const format = body.format === undefined ? "csv" : body.format;
     if (!formats.includes(format as ExportFormat)) throw CommandError.validation({ format: "Choose CSV, PDF or XLSX." });
-    const allowed = exportType === "profit_and_loss" ? ["export_type", "format", "from", "to", "cost_center", "comparison_from", "comparison_to"] :
-      exportType === "balance_sheet" ? ["export_type", "format", "as_of", "comparison_as_of"] :
-      ["export_type", "format", "party_id", "from", "to"];
+    const allowed = exportType === "profit_and_loss" ? ["export_type", "format", "snapshot_id", "from", "to", "cost_center", "comparison_from", "comparison_to"] :
+      exportType === "balance_sheet" ? ["export_type", "format", "snapshot_id", "as_of", "comparison_as_of"] :
+      ["export_type", "format", "snapshot_id", "party_id", "from", "to"];
+    const snapshotId = parseUuid(body.snapshot_id, "snapshot_id");
     if (Object.keys(body).some((key) => !allowed.includes(key))) throw CommandError.validation({ body: "Unexpected report filter." });
     let parameters: Record<string, unknown>;
     if (exportType === "profit_and_loss") {
@@ -60,6 +61,7 @@ export async function requestReportExport(request: Request, rawOrganizationId: s
     if (!required.every((capability) => actor.capabilities.includes(capability))) throw CommandError.forbidden();
     if ((exportType === "customer_statement" && !actor.capabilities.includes("dues.read") && !actor.capabilities.includes("sales.read")) ||
       (exportType === "vendor_statement" && !actor.capabilities.includes("dues.read") && !actor.capabilities.includes("purchases.read"))) throw CommandError.forbidden();
+    parameters = { ...parameters, export_snapshot_id: snapshotId };
     const requestHash = hashCanonicalRequest({ operation: `export.${exportType}`, organizationId, payload: { format, parameters } });
     const result = await runtime.client.rpc("request_report_export", {
       p_organization_id: organizationId, p_request_id: parsed.requestId ?? requestFallback,

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export function ReportExportButton({ organizationId, exportType, filters }: {
+export function ReportExportButton({ organizationId, exportType, filters, snapshotId }: {
   organizationId: string; exportType: "profit_and_loss" | "balance_sheet" | "customer_statement" | "vendor_statement";
-  filters: Record<string, string>;
+  filters: Record<string, string>; snapshotId: string;
 }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -15,7 +15,7 @@ export function ReportExportButton({ organizationId, exportType, filters }: {
     try {
       const response = await fetch(`/api/v1/organizations/${organizationId}/exports`, {
         method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify({ export_type: exportType, format, ...filters })
+        body: JSON.stringify({ export_type: exportType, format, snapshot_id: snapshotId, ...filters })
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result?.error?.message ?? "Export could not be queued.");
