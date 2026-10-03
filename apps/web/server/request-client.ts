@@ -77,7 +77,12 @@ const procedures = new Set([
   "list_accounting_periods",
   "lock_accounting_period",
   "import_bank_statement_rows",
-  "count_statement_fingerprint_matches"
+  "count_statement_fingerprint_matches",
+  "create_reconciliation",
+  "read_reconciliation_workspace",
+  "add_reconciliation_match",
+  "reverse_reconciliation_match",
+  "list_operational_cash_accounts"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
