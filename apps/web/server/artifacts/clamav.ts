@@ -6,7 +6,11 @@ const responseLimit = 4096;
 const timeoutMs = 20_000;
 
 export class ClamAvError extends Error {
-  constructor(readonly code: "CLAMAV_UNAVAILABLE" | "SCAN_TIMEOUT" | "SCAN_PROTOCOL_ERROR", message: string) { super(message); }
+  readonly code: "CLAMAV_UNAVAILABLE" | "SCAN_TIMEOUT" | "SCAN_PROTOCOL_ERROR";
+  constructor(code: "CLAMAV_UNAVAILABLE" | "SCAN_TIMEOUT" | "SCAN_PROTOCOL_ERROR", message: string) {
+    super(message);
+    this.code = code;
+  }
 }
 
 /** Ask clamd for its loaded engine and signature database revision. */
