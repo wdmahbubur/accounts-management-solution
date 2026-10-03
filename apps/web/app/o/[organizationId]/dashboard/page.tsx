@@ -75,6 +75,7 @@ export default async function OrganizationDashboardPage({
               <Link href={`/o/${organizationId}/settings/roles`}>Roles and permissions</Link>
             </>}
             {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/periods`}>Fiscal periods</Link>}
+            {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/year-close`}>Fiscal year close</Link>}
             {membership.capabilities.includes("accounting.read") && <Link href={`/o/${organizationId}/accounting/accounts`}>Chart of accounts</Link>}
             {membership.capabilities.includes("journal.write") && <Link href={`/o/${organizationId}/settings/opening-balances`}>Opening balance cutover</Link>}
             {membership.capabilities.includes("tax.read") && <Link href={`/o/${organizationId}/settings/taxes`}>Tax configuration</Link>}

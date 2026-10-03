@@ -93,7 +93,9 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | GET O/exports/{id}/download | Current report/source scope | Recheck access and issue short-lived private URL |
 | POST O/periods/{id}/lock | periods.lock | Run checks, synchronize locks and save evidence |
 | POST O/periods/{id}/reopen | periods.reopen | Reauthentication and reason; audit, invalidate affected caches |
-| POST O/fiscal-years/{id}/close | Year-close capability | Close journal + close-run record; avoid duplicate retained earnings |
+| GET O/fiscal-years/{id}/close-preview | accounting.read | Nominal balance preview, period checklist and retained-earnings mapping |
+| POST O/fiscal-years/{id}/close | periods.lock + recent authentication | Close journal + immutable close-run snapshot; avoid duplicate retained earnings |
+| POST O/fiscal-years/{id}/reopen | periods.reopen + recent authentication | Open fiscal periods and post a linked close reversal while retaining prior evidence |
 | POST O/import-jobs | imports.run | Stage supported structured import |
 | POST O/import-jobs/{id}/validate | imports.run | Mapping checks and row error report |
 | POST O/import-jobs/{id}/commit | imports.run + relevant write/post | Idempotent typed import; opening batch atomic |

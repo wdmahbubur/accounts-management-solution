@@ -97,7 +97,11 @@ const procedures = new Set([
   "read_aging_snapshot",
   "list_statement_parties",
   "read_party_statement_snapshot",
-  "read_cash_flow_snapshot"
+  "read_cash_flow_snapshot",
+  "read_year_close_preview",
+  "list_year_close_workspace",
+  "close_fiscal_year",
+  "reopen_fiscal_year"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
