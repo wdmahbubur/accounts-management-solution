@@ -100,6 +100,20 @@ Added a server-side renderer and immutable PDF metadata bound to the posted invo
 
 ## US-083 — customer/vendor list search (in progress)
 
-Customer and vendor directories now accept bounded URL search/status filters, use the existing tenant-scoped database directory query and preserve filters across deterministic keyset pagination. Invalid query states, empty states and loading files are present. Saved per-user filters and keyboard shortcuts are not implemented. No migration was needed; the issue remains open pending acceptance evidence.
+Customer and vendor directories accept bounded URL search/status filters, preserve filters across deterministic keyset pagination, and provide saved per-user filters plus `/` and Escape shortcuts that respect editable fields and unsaved forms. No migration was needed; the issue remains open pending acceptance evidence.
 
 For these slices, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:migrate` (65 migrations) and `git diff --check` passed. The production build reports three private-storage filesystem tracing warnings. Automated test suites were not run at the product owner's instruction. The app smoke check returned HTTP 200 for `/` and `/auth/sign-in`, and HTTP 401 JSON for unauthenticated export/PDF requests; no authenticated financial workflow or provider integration was simulated.
+
+## US-067 — private evidence library (in progress)
+
+Added `/o/[organizationId]/documents` with bounded filename/source/uploader search, Dhaka upload-date filters, safe source/uploader metadata, scan state, pagination and clean-only download links. Migration `0066_scoped_evidence_library.sql` requires `attachments.read`, checks every linked source against current actor access, and returns no object keys, digests or bytes. No malware scanner is connected, so uploaded files remain pending and cannot be downloaded. The issue remains open.
+
+## US-072 — customer/vendor search, saved filters and keyboard access (in progress)
+
+Completed the customer/vendor list slice: URL-scoped search and status filters use the server's tenant-scoped keyset query. Saved filters are isolated by user, organization and directory in local storage; `/` focuses search and Escape clears it while respecting focused inputs and other unsaved forms. Invoice-list search and full cross-screen acceptance remain outstanding. No migration was needed; the issue remains open.
+
+## US-073 — in-app notification center (in progress)
+
+Added a member-scoped read-state table and notification list for pending approval actions, failed document-email delivery and the current user's failed exports. SQL checks source readability, hides confidential amounts and names for pending items, and generates only authorized source identifiers; a mark-read command rechecks visibility. Migration `0068_notification_center.sql` is applied. Reminder scheduling, preference-aware email, and delivery retry actions are not implemented. The issue remains open.
+
+For these additional slices, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:migrate` (67 migration files, including 0066 and 0068) and `git diff --check` passed. The same three filesystem tracing warnings remain; test suites were not run per instruction.

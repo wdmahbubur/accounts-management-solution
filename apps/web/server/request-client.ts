@@ -17,6 +17,7 @@ const procedures = new Set([
   "get_own_profile",
   "issue_company_invitation",
   "list_active_memberships",
+  "list_evidence_library",
   "list_accounts_for_management",
   "list_company_invitations",
   "list_tax_codes",
@@ -109,7 +110,9 @@ const procedures = new Set([
   "read_year_close_preview",
   "list_year_close_workspace",
   "close_fiscal_year",
-  "reopen_fiscal_year"
+  "reopen_fiscal_year",
+  "list_notification_center",
+  "mark_notification_read"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
