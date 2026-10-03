@@ -75,6 +75,8 @@ const procedures = new Set([
   "update_custom_role",
   "update_own_profile",
   "list_accounting_periods",
+  "read_period_close_checklist",
+  "list_period_close_events",
   "lock_accounting_period",
   "import_bank_statement_rows",
   "count_statement_fingerprint_matches",
