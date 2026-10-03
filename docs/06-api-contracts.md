@@ -107,6 +107,14 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | GET O/subscription | subscription.read | Platform plan/entitlements only |
 | POST O/subscription/checkout | subscription.manage | Approved provider adapter; no local success shortcut |
 | POST /api/v1/webhooks/billing/{provider} | Verified provider signature | Deduplicate raw provider event before entitlement change |
+| POST /api/internal/outbox | Internal worker bearer secret | Claim bounded invitation mail batch; leased, fenced delivery with retry/backoff; no financial posting |
+| GET /api/internal/outbox | Internal worker bearer secret | Read redacted failed-event metadata for operations |
+| POST O/attachments/upload-intents | attachments.write plus source-module write capability | Create a short-lived organization-bound quarantine upload intent |
+| POST O/attachments/uploads/{intentId}/complete | attachments.write plus source-module write capability | Verify private object digest and record a pending-scan evidence link |
+| GET O/invoices/{documentId}/pdf | sales.read | Retrieve or render an immutable PDF for the current posted invoice version |
+| POST O/exports | reports.export plus reports.read, accounting.read and ledger.read | Idempotently request a trial-balance CSV export |
+| GET O/exports | exports.read | List only the current requester's export job metadata |
+| POST /api/internal/exports | Internal export worker bearer secret | Render a bounded trial-balance batch under fenced leases and retry/backoff |
 
 These are proposed contracts, not deployed endpoints. Exact RPC names can follow the same domain verbs. All writes must be present in the permission catalogue; do not add an endpoint with an implicit “all authenticated users” grant.
 

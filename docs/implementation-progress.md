@@ -77,3 +77,29 @@ Migrations `0054_fiscal_year_close.sql` and `0055_year_close_transition_guards.s
 Replaced the company details landing page with a dynamic, Auth.js/Neon-backed dashboard. The new `read_finance_dashboard` routine composes the existing shared P&L, balance-sheet, cash-flow and aging snapshots, uses exact money strings in its output, and only includes report, receivable, payable and audit fields when the current actor has the corresponding capability. The page shows date-filtered accrual performance, cash-equivalent balance as of the selected date, assets, receivables/payables and overdue totals, upcoming bills, monthly post-cutover trend, provisional notices and safe report drilldowns. It identifies the ledger cutoff and empty state and does not cache tenant dashboard data. Pre-cutover YTD summaries remain in headline report totals and are not spread across chart months.
 
 Migrations `0056_ledger_dashboard.sql` and `0057_dashboard_cash_as_of.sql` were applied to configured development Neon. `npm run lint`, `npm run typecheck` and `npm run build` passed; the build reports the existing three private-storage filesystem tracing warnings. Automated golden-ledger, role-denial, tenant-switch/cache and browser acceptance checks were not run as requested, so the issue remains open and those acceptance outcomes are unverified.
+
+## US-066 — scoped audit search (in progress)
+
+Added a read-only audit trail page with actor, Dhaka date, entity and action filters and keyset pagination. Migration `0059_scoped_audit_search.sql` adds a tenant-scoped query, per-module read checks and recursive sensitive-field redaction. The issue's listed prerequisites and authorization/tenant acceptance cases remain unverified; the issue remains open.
+
+## US-068 — private attachment upload (in progress)
+
+Added organization-bound upload intents and multipart completion routes with filename, MIME/signature, 10 MiB size and SHA-256 checks. Objects are stored privately and linked as `pending` scan status. The authorized download path requires `clean` status and rechecks access around the read; no scanner is connected, so uploaded files remain unavailable for download. Migration `0061_private_attachment_uploads.sql` is applied. Automated security and tenant tests were not run as instructed; the issue remains open.
+
+## US-069 — leased outbox delivery (in progress)
+
+Added a bounded, fenced outbox worker for invitation email with exponential retry, sanitized errors and internal bearer authentication. Migration `0058_leased_outbox_worker.sql` adds leases and dead-letter queries; `0060_immutable_invitation_delivery_cancel.sql` preserves immutable encrypted invitation payloads. Development mail previews are written to an ignored private directory. This worker does not yet deliver invoice documents; provider configuration and scheduled invocation are not verified. Both migrations are applied; the issue remains open without delivery/race acceptance tests.
+
+## US-070 — export orchestration (in progress)
+
+Added idempotent trial-balance CSV export requests and a caller-owned job list, plus a leased worker that snapshots report rows at request time, writes formula-safe CSV to private storage and permits requester-only downloads for 24 hours. Migrations `0062_trial_balance_export_requests.sql` and `0064_leased_trial_balance_export_worker.sql` are applied. `0065_private_artifact_digest_downloads.sql` extends download authorization to PDF objects and checks stored SHA-256 and byte size before returning any private artifact. Cancellation, scheduled worker invocation and expired-object byte cleanup are not implemented; imports and export UI remain outstanding. The issue remains open.
+
+## US-071 — invoice PDF versions (in progress)
+
+Added a server-side renderer and immutable PDF metadata bound to the posted invoice version and material digest, with an authorized retrieval route and invoice-detail link. Migration `0063_immutable_invoice_pdf_versions.sql` is applied. Fonts for Bengali and Latin glyphs are embedded, but PDFKit's Bengali conjunct shaping is unverified. Sending/resending invoice email is not implemented because the outbox worker does not yet handle document delivery. The issue remains open.
+
+## US-083 — customer/vendor list search (in progress)
+
+Customer and vendor directories now accept bounded URL search/status filters, use the existing tenant-scoped database directory query and preserve filters across deterministic keyset pagination. Invalid query states, empty states and loading files are present. Saved per-user filters and keyboard shortcuts are not implemented. No migration was needed; the issue remains open pending acceptance evidence.
+
+For these slices, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:migrate` (65 migrations) and `git diff --check` passed. The production build reports three private-storage filesystem tracing warnings. Automated test suites were not run at the product owner's instruction. The app smoke check returned HTTP 200 for `/` and `/auth/sign-in`, and HTTP 401 JSON for unauthenticated export/PDF requests; no authenticated financial workflow or provider integration was simulated.

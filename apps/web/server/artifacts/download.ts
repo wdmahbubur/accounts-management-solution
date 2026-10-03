@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import type { RequestClient } from "../request-client.ts";
 import { CommandError } from "../commands/errors.ts";
@@ -11,7 +12,7 @@ export function downloadHeaders(filename: string) {
     "Content-Disposition": `attachment; filename="${safe}"`, "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
 }
 export async function readPrivateArtifact(client: Pick<RequestClient, "rpc" | "auth">,
-  rawOrg: string, kind: "attachments" | "exports", rawId: string) {
+  rawOrg: string, kind: "attachments" | "exports" | "invoice-pdfs", rawId: string) {
   const organizationId = parseOrganizationId(rawOrg); const artifactId = parseUuid(rawId);
   const args = { p_organization_id: organizationId, p_kind: kind, p_artifact_id: artifactId };
   const authorized = await client.rpc("authorize_artifact_download", args);
@@ -19,11 +20,13 @@ export async function readPrivateArtifact(client: Pick<RequestClient, "rpc" | "a
   const descriptor = record(authorized.data[0]);
   const key = `${organizationId}/${kind}/${artifactId}`;
   if (descriptor.object_key !== key || typeof descriptor.download_filename !== "string" ||
+    typeof descriptor.expected_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(descriptor.expected_sha256) ||
     (descriptor.expected_size !== null && (!Number.isSafeInteger(descriptor.expected_size) ||
       Number(descriptor.expected_size) <= 0 || Number(descriptor.expected_size) > MAX_PRIVATE_ARTIFACT_BYTES))) throw CommandError.notFound();
   const bytes = await readPrivateObject(key);
   if (!bytes || bytes.byteLength > MAX_PRIVATE_ARTIFACT_BYTES ||
-    (descriptor.expected_size !== null && bytes.byteLength !== Number(descriptor.expected_size))) throw CommandError.notFound();
+    (descriptor.expected_size !== null && bytes.byteLength !== Number(descriptor.expected_size)) ||
+    createHash("sha256").update(bytes).digest("hex") !== descriptor.expected_sha256) throw CommandError.notFound();
   const stillAllowed = await client.rpc("authorize_artifact_download", args);
   if (stillAllowed.error || !Array.isArray(stillAllowed.data) || stillAllowed.data.length !== 1) throw CommandError.notFound();
   return { bytes: new Blob([bytes as BlobPart]), headers: downloadHeaders(descriptor.download_filename) };

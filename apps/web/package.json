@@ -13,17 +13,20 @@
     "@ams/permissions": "0.0.0",
     "@ams/reporting": "0.0.0",
     "@aws-sdk/client-s3": "3.1145.0",
+    "@fontsource/noto-sans-bengali": "^5.3.0",
     "@neondatabase/serverless": "1.2.0",
     "argon2": "0.45.1",
     "exceljs": "^4.4.0",
     "next": "16.3.7",
     "next-auth": "5.0.0-beta.32",
     "nodemailer": "10.0.13",
+    "pdfkit": "^0.20.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "type": "module",
   "devDependencies": {
-    "@types/nodemailer": "8.0.2"
+    "@types/nodemailer": "8.0.2",
+    "@types/pdfkit": "^0.17.6"
   }
 }

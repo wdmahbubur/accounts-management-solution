@@ -1,0 +1,1 @@
+export default function CustomersLoading(){return <main className="content" aria-busy="true"><p className="eyebrow">Sales</p><h1>Customers</h1><p role="status">Loading customers…</p><div className="panel" aria-hidden="true">Search contacts · Loading records…</div></main>;}

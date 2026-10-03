@@ -5,6 +5,8 @@ import { withActorTransaction } from "./database.ts";
 
 const procedures = new Set([
   "authorize_artifact_download",
+  "create_attachment_upload_intent",
+  "complete_attachment_upload",
   "create_company_atomic",
   "save_financial_document",
   "save_document_allocation_plan",
@@ -42,6 +44,8 @@ const procedures = new Set([
   "save_cost_center",
   "read_invoice_register",
   "read_invoice_lifecycle",
+  "read_invoice_pdf_version",
+  "register_invoice_pdf_version",
   "read_receipt_allocation_options",
   "read_receipt_register",
   "read_receipt_lifecycle",
@@ -99,6 +103,9 @@ const procedures = new Set([
   "read_party_statement_snapshot",
   "read_cash_flow_snapshot",
   "read_finance_dashboard",
+  "request_trial_balance_export",
+  "list_own_export_jobs",
+  "search_audit_events",
   "read_year_close_preview",
   "list_year_close_workspace",
   "close_fiscal_year",
