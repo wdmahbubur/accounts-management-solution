@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ExportJob = {
@@ -37,12 +37,10 @@ const errorText: Record<string, string> = {
 export function ExportJobs({ organizationId, canRequest }: { organizationId: string; canRequest: boolean }) {
   const router = useRouter();
   const [jobs, setJobs] = useState<ExportJob[]>([]);
-  const [asOf, setAsOf] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" }));
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const idempotency = useRef(crypto.randomUUID());
 
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
@@ -73,22 +71,6 @@ export function ExportJobs({ organizationId, canRequest }: { organizationId: str
     return () => controller.abort();
   }, [organizationId]);
 
-  async function requestExport(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!canRequest) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const response = await fetch(`/api/v1/organizations/${organizationId}/exports`, {
-        method: "POST", headers: { "Content-Type": "application/json", "X-Request-Id": `export-${crypto.randomUUID()}`, "Idempotency-Key": idempotency.current },
-        body: JSON.stringify({ as_of: asOf })
-      });
-      const body = await response.json() as Envelope;
-      if (!response.ok) throw new Error(body.error?.fields?.as_of ?? body.error?.message ?? "Export could not be requested.");
-      idempotency.current = crypto.randomUUID(); setNotice("Trial balance export queued. The file will appear here when ready.");
-      await refresh(); router.refresh();
-    } catch (e) { setError(e instanceof Error ? e.message : "Export could not be requested."); }
-    finally { setBusy(false); }
-  }
-
   async function cancel(id: string) {
     setBusy(true); setError(""); setNotice("");
     try {
@@ -105,11 +87,7 @@ export function ExportJobs({ organizationId, canRequest }: { organizationId: str
   return <main className="content">
     <p className="eyebrow">Reports · Private files</p><h1>Export jobs</h1>
     <p>Each export captures the requested date and ledger cutoff. Files are private, available to the requester for 24 hours, and permission is checked again when downloaded.</p>
-    {canRequest && <form className="panel toolbar" onSubmit={requestExport}>
-      <label>Trial balance as of<input type="date" required value={asOf} onChange={event => setAsOf(event.target.value)} /></label>
-      <button type="submit" disabled={busy}>{busy ? "Working…" : "Request CSV export"}</button>
-      <Link className="secondary" href={`/o/${organizationId}/reports/trial-balance?as_of=${encodeURIComponent(asOf)}`}>View report</Link>
-    </form>}
+    {canRequest && <p className="panel">Exports use the snapshot currently shown by each report. <Link className="secondary" href={`/o/${organizationId}/reports/trial-balance`}>Open Trial Balance to export</Link></p>}
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     <section className="panel"><div className="toolbar"><h2>Your exports</h2><button type="button" className="secondary" onClick={() => void refresh()} disabled={loading || busy}>Refresh jobs</button></div>
       {loading ? <p role="status">Loading export jobs…</p> : jobs.length === 0 ? <p>No export jobs yet.</p> :

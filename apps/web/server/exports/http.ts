@@ -1,4 +1,4 @@
-import { parseMutationHeaders, parseOrganizationId } from "@ams/contracts";
+import { parseMutationHeaders, parseOrganizationId, parseUuid } from "@ams/contracts";
 import { assertMutationOrigin } from "../auth/mutation-origin.ts";
 import { resolveActorContext } from "../auth/resolve-actor.ts";
 import { CommandError, commandErrorBody, normalizeCommandError } from "../commands/errors.ts";
@@ -21,12 +21,16 @@ export async function requestTrialBalanceExport(request: Request, rawOrganizatio
     let raw: unknown;
     try { raw = await request.json(); } catch { throw CommandError.validation({ body: "Expected JSON." }); }
     const body = record(raw);
-    if (Object.keys(body).some((key) => key !== "as_of") || typeof body.as_of !== "string" ||
+    if (Object.keys(body).some((key) => !["as_of", "from", "snapshot_id"].includes(key)) || typeof body.as_of !== "string" ||
       !/^\d{4}-\d{2}-\d{2}$/.test(body.as_of) || !Number.isFinite(Date.parse(`${body.as_of}T00:00:00.000Z`)) ||
-      new Date(`${body.as_of}T00:00:00.000Z`).toISOString().slice(0, 10) !== body.as_of) {
+      new Date(`${body.as_of}T00:00:00.000Z`).toISOString().slice(0, 10) !== body.as_of ||
+      (body.from !== undefined && (typeof body.from !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.from) ||
+        !Number.isFinite(Date.parse(`${body.from}T00:00:00.000Z`)) ||
+        new Date(`${body.from}T00:00:00.000Z`).toISOString().slice(0, 10) !== body.from || body.from > body.as_of))) {
       throw CommandError.validation({ as_of: "Provide a valid as_of date (YYYY-MM-DD)." });
     }
-    const payload = { as_of: body.as_of, format: "csv" as const };
+    const snapshotId = parseUuid(body.snapshot_id, "snapshot_id");
+    const payload = { as_of: body.as_of, ...(typeof body.from === "string" ? { from: body.from } : {}), snapshot_id: snapshotId, format: "csv" as const };
     const parsed = parseMutationHeaders(request.headers, { idempotency: "required" });
     const requestId = parsed.requestId ?? fallbackRequestId;
     const idempotencyKey = parsed.idempotencyKey;
@@ -38,7 +42,8 @@ export async function requestTrialBalanceExport(request: Request, rawOrganizatio
     const requestHash = hashCanonicalRequest({ operation: "export.trial-balance", organizationId, payload });
     const result = await runtime.client.rpc("request_trial_balance_export", {
       p_organization_id: organizationId, p_request_id: requestId, p_idempotency_key: idempotencyKey,
-      p_request_hash: requestHash, p_as_of: payload.as_of, p_format: payload.format
+      p_request_hash: requestHash, p_as_of: payload.as_of, p_from: body.from ?? null,
+      p_snapshot_id: snapshotId, p_format: payload.format
     });
     if (result.error) {
       if (result.error.code === "28000") throw CommandError.unauthenticated();

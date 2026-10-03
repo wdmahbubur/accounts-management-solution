@@ -170,13 +170,12 @@ async function deliverReminder(event: ClaimedEvent): Promise<string | null> {
 }
 
 export async function processOutboxBatch(limit = 10) {
+  const batchLimit = Number.isFinite(limit) ? Math.max(1, Math.min(10, Math.floor(limit))) : 10;
   const claimed = await withWorkerDatabase(async client => client.query<ClaimedEvent>(
     "SELECT * FROM finance_private.claim_outbox_batch($1::text[], $2::integer, $3::integer)",
-    [["invitation.send", "document.send_requested", "financial.reminder"], limit, 120]
+    [["invitation.send", "document.send_requested", "financial.reminder"], batchLimit, 120]
   ));
-  let sent = 0;
-  let retried = 0;
-  for (const event of claimed.rows) {
+  const outcomes = await Promise.all(claimed.rows.map(async event => {
     try {
       const messageId = event.event_type === "invitation.send" ? await deliverInvitation(event) :
         event.event_type === "document.send_requested" ? await deliverInvoice(event) :
@@ -186,7 +185,7 @@ export async function processOutboxBatch(limit = 10) {
         "SELECT finance_private.complete_outbox_delivery($1::uuid,$2::uuid,$3::text)",
         [event.event_id, event.lease_token, messageId]
       ));
-      sent++;
+      return "sent" as const;
     } catch (error) {
       const safeCode = (error as { safeCode?: unknown }).safeCode;
       const errorCode = typeof safeCode === "string" && /^[A-Z][A-Z0-9_]{2,63}$/.test(safeCode)
@@ -196,13 +195,16 @@ export async function processOutboxBatch(limit = 10) {
           "SELECT finance_private.fail_outbox_delivery($1::uuid,$2::uuid,$3::text)",
           [event.event_id, event.lease_token, errorCode]
         ));
-        retried++;
+        return "retried" as const;
       } catch {
         // A reclaimed or expired lease belongs to another worker; never overwrite its result.
+        return "lease_lost" as const;
       }
     }
-  }
-  return { claimed: claimed.rowCount ?? claimed.rows.length, sent, retried };
+  }));
+  return { claimed: claimed.rowCount ?? claimed.rows.length,
+    sent: outcomes.filter(outcome => outcome === "sent").length,
+    retried: outcomes.filter(outcome => outcome === "retried").length };
 }
 
 export async function readOutboxDeadLetters(limit = 50) {
