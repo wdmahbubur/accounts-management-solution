@@ -115,14 +115,39 @@ function fontFile(name: string): Buffer {
 }
 const bengali = /[\u0980-\u09ff]/;
 
-function reportPdfText(doc: InstanceType<typeof PDFDocument>, text: string, bold = false) {
-  const runs = text.match(/[\u0980-\u09ff][\u0980-\u09ff\u200c\u200d\s.,:;()/-]*|[^\u0980-\u09ff]+/gu) ?? [text];
-  runs.forEach((run, index) => {
+function reportPdfText(doc: InstanceType<typeof PDFDocument>, text: string, bold = false, size = 9) {
+  const safe = text.replace(/[\u0000-\u001f\u007f]/g, " ");
+  const runs = safe.match(/[\u0980-\u09ff][\u0980-\u09ff\u200c\u200d\s.,:;()/-]*|[^\u0980-\u09ff]+/gu) ?? [safe];
+  const x = doc.page.margins.left;
+  const right = doc.page.width - doc.page.margins.right;
+  const lineHeight = size * 1.3;
+  let cursor = x;
+  let lineY = doc.y;
+  if (lineY + lineHeight > doc.page.height - doc.page.margins.bottom) {
+    doc.addPage();
+    lineY = doc.y;
+  }
+  for (const run of runs) {
     const bn = bengali.test(run);
     doc.font(bold ? (bn ? "ams-bold-bn" : "ams-bold-latin") : (bn ? "ams-regular-bn" : "ams-regular-latin"));
-    doc.text(run, { continued: index < runs.length - 1, lineGap: 1 });
-  });
-  if (!runs.length) doc.text(text);
+    const tokens = run.match(/\s+|\S+/gu) ?? [run];
+    for (const token of tokens) {
+      const tokenWidth = doc.widthOfString(token);
+      if (cursor > x && cursor + tokenWidth > right && token.trim()) {
+        lineY += lineHeight;
+        if (lineY + lineHeight > doc.page.height - doc.page.margins.bottom) {
+          doc.addPage();
+          lineY = doc.y;
+        }
+        cursor = x;
+      }
+      if (!(cursor === x && !token.trim())) {
+        doc.text(token, cursor, lineY, { lineBreak: false });
+        cursor += tokenWidth;
+      }
+    }
+  }
+  doc.y = lineY + lineHeight;
 }
 
 async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Array> {
@@ -137,16 +162,16 @@ async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Array> {
     doc.on("end", () => resolve(Buffer.concat(parts)));
     doc.on("error", reject);
   });
-  doc.fontSize(16); reportPdfText(doc, snapshot.report_type.replaceAll("_", " "), true);
+  doc.fontSize(16); reportPdfText(doc, snapshot.report_type.replaceAll("_", " "), true, 16);
   doc.moveDown(0.5); doc.fontSize(9);
   for (const [key, value] of [["Company", snapshot.company.name], ["Currency", "BDT"], ["Generated at", snapshot.generated_at],
     ["Ledger cutoff at", snapshot.ledger_cutoff_at], ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).map(([key, value]) => [`Filter: ${key}`, String(value ?? "")])]) {
-    reportPdfText(doc, `${key}: ${value}`); doc.moveDown(0.2);
+    reportPdfText(doc, `${key}: ${value}`, false, 9); doc.moveDown(0.2);
   }
-  doc.moveDown(0.5); doc.fontSize(10); reportPdfText(doc, "Snapshot details", true); doc.moveDown(0.3); doc.fontSize(8);
+  doc.moveDown(0.5); doc.fontSize(10); reportPdfText(doc, "Snapshot details", true, 10); doc.moveDown(0.3); doc.fontSize(8);
   for (const [key, value] of flatten(snapshot.data)) {
-    reportPdfText(doc, `${key}: ${value}`); doc.moveDown(0.15);
+    reportPdfText(doc, `${key}: ${value}`, false, 8); doc.moveDown(0.15);
   }
   doc.end();
   return new Uint8Array(await finished);

@@ -19,7 +19,7 @@ export function NotificationList({organizationId,items,canRetryDeliveries}:{orga
     {items.map((item)=><li key={`${item.kind}:${item.id}`} style={{padding:"1rem 0",borderBottom:"1px solid var(--border,#ddd)"}}>
       <p><strong>{item.title}</strong> {item.is_read&&<span>(Read)</span>}</p><p>{item.detail}</p>
       <p><time dateTime={item.occurred_at}>{new Date(item.occurred_at).toLocaleString("en-BD",{timeZone:"Asia/Dhaka"})}</time></p>
-      {item.document_id?<Link href={`/o/${organizationId}/accounting/documents/${item.document_id}`}>Open authorized document</Link>:<Link href={`/o/${organizationId}/reports/trial-balance`}>Open exports</Link>}
+      {item.document_id?<Link href={`/o/${organizationId}/accounting/documents/${item.document_id}`}>Open authorized document</Link>:<Link href={`/o/${organizationId}/exports`}>Open exports</Link>}
       {item.kind==="delivery_failure"&&item.document_id&&canRetryDeliveries&&!item.is_read&&!retried.includes(item.id)&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void retryDelivery(item)}>{busy===item.id?"Queueing retry…":"Retry email delivery"}</button>}
       {!item.is_read&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void markRead(item)}>{busy===item.id?"Saving…":"Mark read"}</button>}
     </li>)}</ul></section>;
