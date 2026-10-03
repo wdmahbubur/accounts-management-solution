@@ -89,6 +89,7 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | POST O/reconciliations/{id}/finalize | Reconcile capability | Zero unexplained difference and evidence snapshot |
 | POST O/reconciliations/{id}/reopen | Explicit reopen scope | Reason/reauthentication, retain prior evidence |
 | GET O/reports/{reportType} | Report-specific capability | Consistent-snapshot report, filters, cutoff and drilldown token |
+| GET O/dashboard | reports.read plus scoped sales.read/purchases.read/dues.read | Compose the shared P&L, balance-sheet, cash-flow and aging snapshots; omit every metric the actor cannot read; disable response caching |
 | POST O/exports | reports.export or scoped export | Create permission-bound export job |
 | GET O/exports/{id}/download | Current report/source scope | Recheck access and issue short-lived private URL |
 | POST O/periods/{id}/lock | periods.lock | Run checks, synchronize locks and save evidence |

@@ -98,6 +98,7 @@ const procedures = new Set([
   "list_statement_parties",
   "read_party_statement_snapshot",
   "read_cash_flow_snapshot",
+  "read_finance_dashboard",
   "read_year_close_preview",
   "list_year_close_workspace",
   "close_fiscal_year",
