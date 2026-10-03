@@ -82,7 +82,9 @@ const procedures = new Set([
   "read_reconciliation_workspace",
   "add_reconciliation_match",
   "reverse_reconciliation_match",
-  "list_operational_cash_accounts"
+  "list_operational_cash_accounts",
+  "finalize_reconciliation",
+  "reopen_reconciliation"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };

@@ -16,9 +16,13 @@ export default async function ReconciliationPage({ params }: { params: Promise<{
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
   let workspace: Record<string, unknown> = {};
   let canWrite = false;
+  let canFinalize = false;
+  let canReopen = false;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     canWrite = actor.capabilities.includes("banking.write");
+    canFinalize = actor.capabilities.includes("periods.lock");
+    canReopen = actor.capabilities.includes("periods.reopen");
     const result = await runtime.client.rpc("read_reconciliation_workspace", { p_organization_id: organizationId, p_reconciliation_id: reconciliationId });
     if (result.error) {
       if (result.error.code === "42501") throw CommandError.forbidden();
@@ -33,5 +37,5 @@ export default async function ReconciliationPage({ params }: { params: Promise<{
     if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>You need banking.read to view reconciliations.</p></main>;
     throw error;
   }
-  return <ReconciliationWorkspace organizationId={organizationId} data={workspace} canWrite={canWrite}/>;
+  return <ReconciliationWorkspace organizationId={organizationId} data={workspace} canWrite={canWrite} canFinalize={canFinalize} canReopen={canReopen}/>;
 }
