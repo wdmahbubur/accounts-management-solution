@@ -8,7 +8,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } fro
 const maxArtifactBytes = 10 * 1024 * 1024;
 
 function validObjectKey(key: string): boolean {
-  return /^[0-9a-f-]{36}\/(attachments|exports|invoice-pdfs)\/[0-9a-f-]{36}$/i.test(key);
+  return /^[0-9a-f-]{36}\/(attachments|exports|invoice-pdfs|imports)\/[0-9a-f-]{36}$/i.test(key);
 }
 
 function objectStoreClient(): S3Client | null {
@@ -94,6 +94,60 @@ export async function writeQuarantinedObject(key: string, bytes: Uint8Array): Pr
     try { await handle.writeFile(bytes); } finally { await handle.close(); }
     return true;
   } catch { return false; }
+}
+
+/** Store staged CSV bytes in private storage under an organization/job key. */
+export async function writePrivateImportObject(key: string, bytes: Uint8Array): Promise<boolean> {
+  if (!validObjectKey(key) || !key.includes("/imports/") || bytes.byteLength < 1 || bytes.byteLength > maxArtifactBytes) return false;
+  const bucket = process.env.OBJECT_STORE_BUCKET;
+  if (bucket) {
+    const client = objectStoreClient();
+    if (!client) return false;
+    try {
+      await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: bytes, ContentLength: bytes.byteLength,
+        ContentType: "text/csv; charset=utf-8", IfNoneMatch: "*", Metadata: { private: "true", purpose: "staged-import" } }));
+      return true;
+    } catch { return false; }
+    finally { client.destroy(); }
+  }
+  if (process.env.NODE_ENV === "production") return false;
+  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  await mkdir(root, { recursive: true, mode: 0o700 }).catch(() => undefined);
+  const rootReal = await realpath(root).catch(() => null);
+  if (!rootReal) return false;
+  const target = resolve(rootReal, ...key.split("/"));
+  if (!contained(rootReal, target)) return false;
+  const parent = resolve(target, "..");
+  await mkdir(parent, { recursive: true, mode: 0o700 }).catch(() => undefined);
+  const parentReal = await realpath(parent).catch(() => null);
+  if (parentReal !== parent || !contained(rootReal, target)) return false;
+  try {
+    const handle = await open(target, "wx", 0o600);
+    try { await handle.writeFile(bytes); } finally { await handle.close(); }
+    return true;
+  } catch { return false; }
+}
+
+/** Delete only the staged import object at an organization/job path. */
+export async function deletePrivateImportObject(key: string): Promise<void> {
+  if (!validObjectKey(key) || !key.includes("/imports/")) return;
+  const bucket = process.env.OBJECT_STORE_BUCKET;
+  if (bucket) {
+    const client = objectStoreClient();
+    if (!client) return;
+    try { await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })); }
+    catch { /* Private storage lifecycle cleanup can remove unreferenced staged files. */ }
+    finally { client.destroy(); }
+    return;
+  }
+  if (process.env.NODE_ENV === "production") return;
+  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const rootReal = await realpath(root).catch(() => null);
+  if (!rootReal) return;
+  const target = resolve(rootReal, ...key.split("/"));
+  if (!contained(rootReal, target)) return;
+  const metadata = await lstat(target).catch(() => null);
+  if (metadata?.isFile() && !metadata.isSymbolicLink()) await rm(target, { force: true }).catch(() => undefined);
 }
 
 /** Write an immutable invoice PDF object at an opaque generated key. */
