@@ -44,7 +44,7 @@ export async function readClamAvVersion(): Promise<string> {
       if (!match || response.subarray(end + 1).length) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Invalid scanner version response"));
       finish(undefined, `ClamAV-${match[1]}-db${match[2]}`);
     });
-    socket.once("connect", () => socket.end(Buffer.from("VERSION\0", "ascii")));
+    socket.once("connect", () => socket.end(Buffer.from("zVERSION\0", "ascii")));
     socket.once("end", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });
   });
 }
@@ -54,7 +54,7 @@ export async function scanWithClamAv(bytes: Uint8Array): Promise<"clean" | "infe
   const host = process.env.CLAMAV_HOST;
   const portText = process.env.CLAMAV_PORT ?? "3310";
   const port = Number(portText);
-    if (!host || host.length > 253 || /[\s/\\]/.test(host) || !Number.isInteger(port) || port < 1 || port > 65535 || bytes.byteLength < 1 || bytes.byteLength > 10 * 1024 * 1024) {
+  if (!host || host.length > 253 || /[\s/\\]/.test(host) || !Number.isInteger(port) || port < 1 || port > 65535 || bytes.byteLength < 1 || bytes.byteLength > 10 * 1024 * 1024) {
     throw new ClamAvError("CLAMAV_UNAVAILABLE", "Scanner unavailable");
   }
 

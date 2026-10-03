@@ -11,7 +11,7 @@ async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, ve
     const pieces: Buffer[] = [];
     socket.on("data", (chunk: Buffer) => {
       buffered = Buffer.concat([buffered, chunk]);
-      const version = Buffer.from("VERSION\0", "ascii");
+      const version = Buffer.from("zVERSION\0", "ascii");
       const command = Buffer.from("zINSTREAM\0", "ascii");
       if (mode === "command") {
         if (buffered.length < version.length && version.subarray(0, buffered.length).equals(buffered)) return;
