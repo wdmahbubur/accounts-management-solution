@@ -129,25 +129,29 @@ export async function writePrivateImportObject(key: string, bytes: Uint8Array): 
 }
 
 /** Delete only the staged import object at an organization/job path. */
-export async function deletePrivateImportObject(key: string): Promise<void> {
-  if (!validObjectKey(key) || !key.includes("/imports/")) return;
+export async function deletePrivateImportObject(key: string): Promise<boolean> {
+  if (!validObjectKey(key) || !key.includes("/imports/")) return false;
   const bucket = process.env.OBJECT_STORE_BUCKET;
   if (bucket) {
     const client = objectStoreClient();
-    if (!client) return;
-    try { await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })); }
-    catch { /* Private storage lifecycle cleanup can remove unreferenced staged files. */ }
+    if (!client) return false;
+    try { await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })); return true; }
+    catch { return false; }
     finally { client.destroy(); }
-    return;
   }
-  if (process.env.NODE_ENV === "production") return;
+  if (process.env.NODE_ENV === "production") return false;
   const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
   const rootReal = await realpath(root).catch(() => null);
-  if (!rootReal) return;
+  if (!rootReal) return true;
   const target = resolve(rootReal, ...key.split("/"));
-  if (!contained(rootReal, target)) return;
+  if (!contained(rootReal, target)) return false;
+  const parent = resolve(target, "..");
+  const parentReal = await realpath(parent).catch(() => null);
+  if (!parentReal || parentReal !== parent || !contained(rootReal, target)) return false;
   const metadata = await lstat(target).catch(() => null);
-  if (metadata?.isFile() && !metadata.isSymbolicLink()) await rm(target, { force: true }).catch(() => undefined);
+  if (!metadata) return true;
+  if (!metadata.isFile() || metadata.isSymbolicLink()) return false;
+  try { await rm(target); return true; } catch { return false; }
 }
 
 /** Write an immutable invoice PDF object at an opaque generated key. */

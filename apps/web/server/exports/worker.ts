@@ -5,8 +5,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
-import { withDatabase } from "../database.ts";
-import { readPrivateObject } from "../storage/private.ts";
+import { withWorkerDatabase } from "../database.ts";
+import { deletePrivateImportObject, readPrivateObject } from "../storage/private.ts";
 import { deletePrivateExport, putPrivateExport } from "./private-storage.ts";
 
 type ExportJob = {
@@ -29,6 +29,7 @@ type ExportRow = {
   account_code: string; account_name: string; account_type: string; opening_balance: string;
   movement_debit: string; movement_credit: string; closing_debit: string; closing_credit: string;
 };
+type CleanupJob = { job_id: string; organization_id: string; object_key: string; lease_token: string };
 
 function csvCell(value: string): string {
   const safe = /^[\s\u0000-\u001f]*[=+\-@]/.test(value) ? `'${value}` : value;
@@ -185,7 +186,7 @@ function errorCode(error: unknown): string {
 async function process(job: ExportJob): Promise<"completed" | "retried" | "stale"> {
   const key = `${job.organization_id}/exports/${job.job_id}`;
   try {
-    const report = await withDatabase((client) => client.query<{ snapshot: ReportSnapshot | null }>(
+    const report = await withWorkerDatabase((client) => client.query<{ snapshot: ReportSnapshot | null }>(
       "SELECT finance_private.read_report_export_snapshot($1::uuid,$2::uuid) AS snapshot", [job.job_id, job.lease_token]
     ));
     let bytes: Uint8Array;
@@ -196,7 +197,7 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
       else if (snapshot.export_format === "csv") bytes = renderReportCsv(snapshot);
       else throw Object.assign(new Error("Unsupported report export format"), { safeCode: "EXPORT_INVALID_REPORT_DATA" });
     } else {
-      const result = await withDatabase((client) => client.query<ExportRow>(
+      const result = await withWorkerDatabase((client) => client.query<ExportRow>(
         "SELECT * FROM finance_private.read_trial_balance_export($1::uuid,$2::uuid)", [job.job_id, job.lease_token]
       ));
       bytes = renderCsv(result.rows);
@@ -205,13 +206,18 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
       throw Object.assign(new Error("Export exceeds the private file limit"), { safeCode: "EXPORT_OUTPUT_TOO_LARGE" });
     }
     const digest = createHash("sha256").update(bytes).digest("hex");
+    const registered = await withWorkerDatabase((client) => client.query<{ registered: boolean }>(
+      "SELECT finance_private.record_report_export_object($1::uuid,$2::uuid,$3::uuid) AS registered",
+      [job.organization_id, job.job_id, job.lease_token]
+    ));
+    if (!registered.rows[0]?.registered) throw Object.assign(new Error("Export lease unavailable"), { safeCode: "EXPORT_LEASE_UNAVAILABLE" });
     if (!await putPrivateExport(key, bytes)) {
       const existing = await readPrivateObject(key);
       if (!existing || createHash("sha256").update(existing).digest("hex") !== digest) {
         throw Object.assign(new Error("Private export storage unavailable"), { safeCode: "EXPORT_STORAGE_FAILED" });
       }
     }
-    const completed = await withDatabase((client) => client.query<{ completed: boolean }>(
+    const completed = await withWorkerDatabase((client) => client.query<{ completed: boolean }>(
       "SELECT finance_private.complete_trial_balance_export($1::uuid,$2::uuid,$3::bigint,$4::text) AS completed",
       [job.job_id, job.lease_token, bytes.byteLength, digest]
     ));
@@ -222,7 +228,7 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
     // A stale lease belongs to a replacement worker. Its result must not be overwritten or deleted.
     const code = errorCode(error);
     try {
-      await withDatabase((client) => client.query(
+      await withWorkerDatabase((client) => client.query(
         "SELECT finance_private.fail_trial_balance_export($1::uuid,$2::uuid,$3::text)", [job.job_id, job.lease_token, code]
       ));
       await deletePrivateExport(key);
@@ -232,7 +238,7 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
 }
 
 export async function processTrialBalanceExportBatch(limit = 3) {
-  const claimed = await withDatabase((client) => client.query<ExportJob>(
+  const claimed = await withWorkerDatabase((client) => client.query<ExportJob>(
     "SELECT * FROM finance_private.claim_trial_balance_exports($1::integer,$2::integer)", [limit, 600]
   ));
   let completed = 0; let retried = 0; let stale = 0;
@@ -242,5 +248,56 @@ export async function processTrialBalanceExportBatch(limit = 3) {
     else if (result === "retried") retried++;
     else stale++;
   }
-  return { claimed: claimed.rowCount ?? claimed.rows.length, completed, retried, stale };
+  const cleaned = await cleanupPrivateJobObjects(10);
+  return { claimed: claimed.rowCount ?? claimed.rows.length, completed, retried, stale, cleaned };
+}
+
+async function cleanupPrivateJobObjects(limit: number) {
+  const removed = { exports: 0, imports: 0 };
+  const expired = await withWorkerDatabase((client) => client.query<CleanupJob>(
+    "SELECT * FROM finance_private.claim_expired_export_cleanup($1::integer,$2::integer)", [limit, 600]
+  ));
+  for (const job of expired.rows) {
+    const expected = `${job.organization_id}/exports/${job.job_id}`;
+    try {
+      if (job.object_key !== expected || !await deletePrivateExport(job.object_key)) {
+        await withWorkerDatabase((client) => client.query(
+          "SELECT finance_private.fail_expired_export_cleanup($1::uuid,$2::uuid,$3::uuid,$4::text)",
+          [job.organization_id, job.job_id, job.lease_token, "EXPORT_OBJECT_DELETE_FAILED"]
+        ));
+        continue;
+      }
+      const completed = await withWorkerDatabase((client) => client.query<{ completed: boolean }>(
+        "SELECT finance_private.complete_expired_export_cleanup($1::uuid,$2::uuid,$3::uuid) AS completed",
+        [job.organization_id, job.job_id, job.lease_token]
+      ));
+      if (completed.rows[0]?.completed) removed.exports++;
+    } catch {
+      // The next worker may reclaim this cleanup after the bounded lease expires.
+    }
+  }
+
+  const abandoned = await withWorkerDatabase((client) => client.query<CleanupJob>(
+    "SELECT * FROM finance_private.claim_abandoned_import_uploads($1::integer,$2::integer)", [limit, 600]
+  ));
+  for (const job of abandoned.rows) {
+    const expected = `${job.organization_id}/imports/${job.job_id}`;
+    try {
+      if (job.object_key !== expected || !await deletePrivateImportObject(job.object_key)) {
+        await withWorkerDatabase((client) => client.query(
+          "SELECT finance_private.fail_abandoned_import_upload_cleanup($1::uuid,$2::uuid,$3::uuid,$4::text)",
+          [job.organization_id, job.job_id, job.lease_token, "IMPORT_OBJECT_DELETE_FAILED"]
+        ));
+        continue;
+      }
+      const completed = await withWorkerDatabase((client) => client.query<{ completed: boolean }>(
+        "SELECT finance_private.complete_abandoned_import_upload_cleanup($1::uuid,$2::uuid,$3::uuid) AS completed",
+        [job.organization_id, job.job_id, job.lease_token]
+      ));
+      if (completed.rows[0]?.completed) removed.imports++;
+    } catch {
+      // The next worker may reclaim this cleanup after the bounded lease expires.
+    }
+  }
+  return removed;
 }

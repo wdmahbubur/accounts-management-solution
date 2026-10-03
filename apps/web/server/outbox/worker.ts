@@ -5,7 +5,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import nodemailer from "nodemailer";
 import { decryptInvitationDelivery } from "../invitations/tokens.ts";
-import { withDatabase } from "../database.ts";
+import { withWorkerDatabase } from "../database.ts";
 import { readPrivateObject } from "../storage/private.ts";
 
 type ClaimedEvent = {
@@ -68,7 +68,7 @@ type ClaimedInvoiceDelivery = {
 };
 
 async function deliverInvoice(event: ClaimedEvent): Promise<string | null> {
-  const result = await withDatabase(client => client.query<ClaimedInvoiceDelivery>(
+  const result = await withWorkerDatabase(client => client.query<ClaimedInvoiceDelivery>(
     "SELECT * FROM finance_private.read_claimed_invoice_delivery($1::uuid,$2::uuid)",
     [event.event_id, event.lease_token]
   ));
@@ -121,7 +121,7 @@ type ClaimedReminder = {
 };
 
 async function deliverReminder(event: ClaimedEvent): Promise<string | null> {
-  const result = await withDatabase(client => client.query<ClaimedReminder>(
+  const result = await withWorkerDatabase(client => client.query<ClaimedReminder>(
     "SELECT * FROM finance_private.read_claimed_financial_reminder($1::uuid,$2::uuid)",
     [event.event_id, event.lease_token]
   ));
@@ -170,7 +170,7 @@ async function deliverReminder(event: ClaimedEvent): Promise<string | null> {
 }
 
 export async function processOutboxBatch(limit = 10) {
-  const claimed = await withDatabase(async client => client.query<ClaimedEvent>(
+  const claimed = await withWorkerDatabase(async client => client.query<ClaimedEvent>(
     "SELECT * FROM finance_private.claim_outbox_batch($1::text[], $2::integer, $3::integer)",
     [["invitation.send", "document.send_requested", "financial.reminder"], limit, 120]
   ));
@@ -182,7 +182,7 @@ export async function processOutboxBatch(limit = 10) {
         event.event_type === "document.send_requested" ? await deliverInvoice(event) :
         event.event_type === "financial.reminder" ? await deliverReminder(event) :
           (() => { throw Object.assign(new Error("Unsupported event"), { safeCode: "UNSUPPORTED_EVENT_TYPE" }); })();
-      await withDatabase(client => client.query(
+      await withWorkerDatabase(client => client.query(
         "SELECT finance_private.complete_outbox_delivery($1::uuid,$2::uuid,$3::text)",
         [event.event_id, event.lease_token, messageId]
       ));
@@ -192,7 +192,7 @@ export async function processOutboxBatch(limit = 10) {
       const errorCode = typeof safeCode === "string" && /^[A-Z][A-Z0-9_]{2,63}$/.test(safeCode)
         ? safeCode : "EMAIL_DELIVERY_FAILED";
       try {
-        await withDatabase(client => client.query(
+        await withWorkerDatabase(client => client.query(
           "SELECT finance_private.fail_outbox_delivery($1::uuid,$2::uuid,$3::text)",
           [event.event_id, event.lease_token, errorCode]
         ));
@@ -206,7 +206,7 @@ export async function processOutboxBatch(limit = 10) {
 }
 
 export async function readOutboxDeadLetters(limit = 50) {
-  const result = await withDatabase(client => client.query(
+  const result = await withWorkerDatabase(client => client.query(
     "SELECT * FROM finance_private.read_outbox_dead_letters($1::integer)", [limit]
   ));
   return result.rows;

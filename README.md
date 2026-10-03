@@ -25,6 +25,9 @@ Setup:
 ```bash
 cp .env.example .env.local
 npm ci
+npm run db:migrate
+npm run db:worker-credential
+npm run dev:secrets
 npm run dev
 ```
 
@@ -32,6 +35,11 @@ The environment example contains placeholders only. Never commit database
 URLs, Auth.js secrets, mail/provider credentials or real customer data. Use
 `DATABASE_URL` only for migrations and a separate restricted
 `DATABASE_RUNTIME_URL` for server-side app access.
+Internal outbox, reminder and export workers use the separately restricted
+`DATABASE_WORKER_URL`, whose login inherits only the reviewed `ams_job_worker`
+function grants. After applying migrations, configure a local worker login with
+`npm run db:worker-credential`; production environments must provision an
+equivalent credential through their secret manager.
 
 ## Quality and test commands
 

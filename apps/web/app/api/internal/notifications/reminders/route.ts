@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { withDatabase } from "../../../../../server/database.ts";
+import { withWorkerDatabase } from "../../../../../server/database.ts";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -9,7 +9,7 @@ function authorized(request:Request){const expected=process.env.OUTBOX_WORKER_SE
   return supplied.length===secret.length&&timingSafeEqual(supplied,secret);}
 export async function POST(request:Request){const headers={"Cache-Control":"private, no-store"};
   if(!authorized(request))return NextResponse.json({error:"worker_unavailable"},{status:503,headers});
-  try{const result=await withDatabase(client=>client.query<{queued:number|string}>("SELECT finance_private.enqueue_due_notification_reminders() AS queued"));
+  try{const result=await withWorkerDatabase(client=>client.query<{queued:number|string}>("SELECT finance_private.enqueue_due_notification_reminders() AS queued"));
     const queued=Number(result.rows[0]?.queued);if(!Number.isSafeInteger(queued)||queued<0)throw new Error("Invalid scheduler result.");
     return NextResponse.json({data:{queued}},{headers});
   }catch{return NextResponse.json({error:"scheduler_failed"},{status:503,headers});}

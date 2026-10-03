@@ -48,23 +48,27 @@ export async function putPrivateExport(key: string, bytes: Uint8Array): Promise<
   } catch { return false; }
 }
 
-export async function deletePrivateExport(key: string): Promise<void> {
-  if (!validKey(key)) return;
+export async function deletePrivateExport(key: string): Promise<boolean> {
+  if (!validKey(key)) return false;
   const bucket = process.env.OBJECT_STORE_BUCKET;
   if (bucket) {
     const client = store();
-    if (!client) return;
-    try { await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })); }
-    catch { /* The inaccessible object can be removed by private bucket lifecycle policy. */ }
+    if (!client) return false;
+    try { await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })); return true; }
+    catch { return false; }
     finally { client.destroy(); }
-    return;
   }
-  if (process.env.NODE_ENV === "production") return;
+  if (process.env.NODE_ENV === "production") return false;
   const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
   const realRoot = await realpath(root).catch(() => null);
-  if (!realRoot) return;
+  if (!realRoot) return true;
   const target = resolve(realRoot, ...key.split("/"));
-  if (!contained(realRoot, target)) return;
+  if (!contained(realRoot, target)) return false;
+  const parent = resolve(target, "..");
+  const parentReal = await realpath(parent).catch(() => null);
+  if (!parentReal || parentReal.toLowerCase() !== parent.toLowerCase() || !contained(realRoot, target)) return false;
   const info = await lstat(target).catch(() => null);
-  if (info?.isFile() && !info.isSymbolicLink()) await rm(target, { force: true }).catch(() => undefined);
+  if (!info) return true;
+  if (!info.isFile() || info.isSymbolicLink()) return false;
+  try { await rm(target); return true; } catch { return false; }
 }

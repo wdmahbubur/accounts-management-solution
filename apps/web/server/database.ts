@@ -4,6 +4,7 @@ import { Pool, type PoolClient } from "@neondatabase/serverless";
 
 type DatabaseWork<T> = (client: PoolClient) => Promise<T>;
 let runtimePool: Pool | undefined;
+let workerPool: Pool | undefined;
 
 function openPool(): Pool {
   if (runtimePool) return runtimePool;
@@ -13,8 +14,32 @@ function openPool(): Pool {
   return runtimePool;
 }
 
+function openWorkerPool(): Pool {
+  if (workerPool) return workerPool;
+  const connectionString = process.env.DATABASE_WORKER_URL;
+  if (!connectionString) throw new Error("DATABASE_WORKER_URL is required for background job access.");
+  const workerUrl = new URL(connectionString);
+  const runtimeUrl = process.env.DATABASE_RUNTIME_URL ? new URL(process.env.DATABASE_RUNTIME_URL) : null;
+  if (decodeURIComponent(workerUrl.username) !== "ams_job_worker_login" || !runtimeUrl ||
+      workerUrl.hostname !== runtimeUrl.hostname || workerUrl.pathname !== runtimeUrl.pathname) {
+    throw new Error("DATABASE_WORKER_URL must use the restricted worker role on the application database.");
+  }
+  workerPool = new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
+  return workerPool;
+}
+
 export async function withDatabase<T>(work: DatabaseWork<T>): Promise<T> {
   const pool = openPool();
+  const client = await pool.connect();
+  try {
+    return await work(client);
+  } finally {
+    client.release();
+  }
+}
+
+export async function withWorkerDatabase<T>(work: DatabaseWork<T>): Promise<T> {
+  const pool = openWorkerPool();
   const client = await pool.connect();
   try {
     return await work(client);
