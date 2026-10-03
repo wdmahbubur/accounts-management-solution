@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import { readCompanyContext } from "../../server/company-context.ts";
 import { listActiveMemberships } from "../../server/companies/memberships.ts";
 import { switchCompanyAction } from "./actions.ts";
@@ -21,16 +21,16 @@ export default async function CompaniesPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const memberships = await listActiveMemberships(supabase);
+  const memberships = await listActiveMemberships(database);
   const cookieStore = await cookies();
   const preferred = readCompanyContext(cookieStore);
   const current =
@@ -43,6 +43,9 @@ export default async function CompaniesPage({
 
   const params = await searchParams;
   const error = first(params.error);
+  if (current && !error) {
+    redirect(`/o/${current.organizationId}/dashboard`);
+  }
 
   return (
     <main className="auth-shell">

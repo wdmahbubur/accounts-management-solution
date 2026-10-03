@@ -1147,6 +1147,8 @@ Same-transaction event recording; workers perform email/PDF work only after fina
 - `FOREIGN KEY (organization_id, document_id) REFERENCES finance.business_documents (organization_id, id) ON DELETE RESTRICT`
 - `UNIQUE (organization_id, deduplication_key)`
 
+For `document.send_requested`, the payload contains the immutable invoice PDF version ID and its source document version/material digest. It contains no recipient address or PDF bytes. Workers resolve the recipient from the matching email row in `notification_deliveries` and may retrieve PDF metadata only through a live event lease.
+
 ## 48. `notification_deliveries`
 
 Separate delivery state: an email failure never changes invoice posting state.

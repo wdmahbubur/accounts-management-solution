@@ -6,8 +6,8 @@ import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
-import { createSupabaseMembershipResolver } from "../../server/auth/supabase-membership.ts";
+import { createClient } from "../../lib/database/server.ts";
+import { createMembershipResolver } from "../../server/auth/membership-resolver.ts";
 import {
   COMPANY_CONTEXT_COOKIE,
   CURRENT_ORGANIZATION_COOKIE,
@@ -29,16 +29,16 @@ export async function switchCompanyAction(formData: FormData) {
     redirect("/companies?error=not_found");
   }
 
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/companies");
   }
 
-  const resolver = createSupabaseMembershipResolver(supabase);
+  const resolver = createMembershipResolver(database);
   const membership = await resolver.resolveActiveMembership({
     userId: parseUuid(user.id, "verified_user_id"),
     organizationId
@@ -55,5 +55,5 @@ export async function switchCompanyAction(formData: FormData) {
   cookieStore.set(CURRENT_ORGANIZATION_COOKIE, organizationId, options);
   cookieStore.set(COMPANY_CONTEXT_COOKIE, nonce, options);
 
-  redirect(`/o/${organizationId}`);
+  redirect(`/o/${organizationId}/dashboard`);
 }

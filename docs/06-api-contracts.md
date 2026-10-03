@@ -89,11 +89,14 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | POST O/reconciliations/{id}/finalize | Reconcile capability | Zero unexplained difference and evidence snapshot |
 | POST O/reconciliations/{id}/reopen | Explicit reopen scope | Reason/reauthentication, retain prior evidence |
 | GET O/reports/{reportType} | Report-specific capability | Consistent-snapshot report, filters, cutoff and drilldown token |
+| GET O/dashboard | reports.read plus scoped sales.read/purchases.read/dues.read | Compose the shared P&L, balance-sheet, cash-flow and aging snapshots; omit every metric the actor cannot read; disable response caching |
 | POST O/exports | reports.export or scoped export | Create permission-bound export job |
 | GET O/exports/{id}/download | Current report/source scope | Recheck access and issue short-lived private URL |
 | POST O/periods/{id}/lock | periods.lock | Run checks, synchronize locks and save evidence |
 | POST O/periods/{id}/reopen | periods.reopen | Reauthentication and reason; audit, invalidate affected caches |
-| POST O/fiscal-years/{id}/close | Year-close capability | Close journal + close-run record; avoid duplicate retained earnings |
+| GET O/fiscal-years/{id}/close-preview | accounting.read | Nominal balance preview, period checklist and retained-earnings mapping |
+| POST O/fiscal-years/{id}/close | periods.lock + recent authentication | Close journal + immutable close-run snapshot; avoid duplicate retained earnings |
+| POST O/fiscal-years/{id}/reopen | periods.reopen + recent authentication | Open fiscal periods and post a linked close reversal while retaining prior evidence |
 | POST O/import-jobs | imports.run | Stage supported structured import |
 | POST O/import-jobs/{id}/validate | imports.run | Mapping checks and row error report |
 | POST O/import-jobs/{id}/commit | imports.run + relevant write/post | Idempotent typed import; opening batch atomic |
@@ -104,6 +107,15 @@ In this table `O = /api/v1/organizations/{organizationId}`. All route handlers r
 | GET O/subscription | subscription.read | Platform plan/entitlements only |
 | POST O/subscription/checkout | subscription.manage | Approved provider adapter; no local success shortcut |
 | POST /api/v1/webhooks/billing/{provider} | Verified provider signature | Deduplicate raw provider event before entitlement change |
+| POST /api/internal/outbox | Internal worker bearer secret | Claim bounded invitation mail batch; leased, fenced delivery with retry/backoff; no financial posting |
+| GET /api/internal/outbox | Internal worker bearer secret | Read redacted failed-event metadata for operations |
+| POST O/attachments/upload-intents | attachments.write plus source-module write capability | Create a short-lived organization-bound quarantine upload intent |
+| POST O/attachments/uploads/{intentId}/complete | attachments.write plus source-module write capability | Verify private object digest and record a pending-scan evidence link |
+| GET O/invoices/{documentId}/pdf | sales.read | Retrieve or render an immutable PDF for the current posted invoice version |
+| POST O/documents/{documentId}/send | sales.write | Queue or resend email using the current immutable issued-invoice PDF version; requires an `Idempotency-Key` UUID |
+| POST O/exports | reports.export plus reports.read, accounting.read and ledger.read | Idempotently request a trial-balance CSV export |
+| GET O/exports | exports.read | List only the current requester's export job metadata |
+| POST /api/internal/exports | Internal export worker bearer secret | Render a bounded trial-balance batch under fenced leases and retry/backoff |
 
 These are proposed contracts, not deployed endpoints. Exact RPC names can follow the same domain verbs. All writes must be present in the permission catalogue; do not add an endpoint with an implicit “all authenticated users” grant.
 
@@ -177,7 +189,7 @@ A repeated authorized request after an uncertain network response must return th
 
 ## 7. Workers and integrations
 
-Outbox events include document.posted, document.send_requested, report.export_requested, import.validation_requested and subscription.event_received. The financial transaction persists the event; a worker claims rows with a lease, uses an event deduplication key and records outcomes. Delivery is at-least-once, so handlers must be idempotent. An invoice can have several email attempts without several journals.
+Outbox events include document.posted, document.send_requested, report.export_requested, import.validation_requested and subscription.event_received. The financial transaction persists the event; a worker claims rows with a lease, uses an event deduplication key and records outcomes. Delivery is at-least-once, so handlers must be idempotent. An invoice can have several email attempts without several journals. An invoice send request records only the immutable PDF version ID and source version/digest in its event payload; the recipient stays in `notification_deliveries`. A lease-fenced worker lookup returns the recipient and exact PDF object metadata only while the event lease is current.
 
 Email/PDF: validate recipients, freeze issued content, store immutable rendered version/checksum, keep retry state outside document posting state. Billing: verify signature against the raw request body, compare provider event ID and company mapping, and process out-of-order events using a provider reconciliation check where needed. Never let a provider webhook change a tenant's business ledger automatically.
 

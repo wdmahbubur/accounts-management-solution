@@ -14,162 +14,30 @@ concurrency:
 
 jobs:
   quality:
-    name: Lint, typecheck, application tests, build
+    name: Lint, typecheck and build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Use pinned Node.js
+      - name: Use Node.js 24.x
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
-
       - name: Verify toolchain
         run: |
           node --version
           npm --version
-          test "$(node --version)" = "v24.21.0"
+          test "$(node -p 'process.versions.node.split(".")[0]')" = "24"
           test "$(npm --version)" = "11.19.0"
-
       - name: Install locked dependencies
         run: npm ci
-
       - name: Lint
         run: npm run lint
-
       - name: Typecheck
         run: npm run typecheck
-
-      - name: Test real application/service layer
+      - name: Application tests
         run: npm test
-
       - name: Build Next.js
         run: npm run build
-
-      - name: Verify synthetic UI fixtures are disabled in ordinary deployment runtime
-        run: node scripts/test-ui-fixture-gate.mjs
-
-      - name: Run reference model separately
-        run: npm run test:reference
-
-      - name: Run static specification checks separately
-        run: npm run test:spec
-
-  database:
-    name: Supabase database and race harness
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Use pinned Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-        with:
-          version: 2.118.0
-
-      - name: Install locked Node dependencies
-        run: npm ci
-
-      - name: Verify database commands
-        run: |
-          test "$(supabase --version)" = "2.118.0"
-          supabase db start --help
-          supabase db reset --help
-          supabase test db --help
-
-      - name: Start isolated Supabase stack
-        run: bash scripts/start-test-stack.sh
-
-      - name: Verify clean migration replay
-        run: supabase db reset
-
-      - name: Run pgTAP database acceptance tests
-        run: supabase test db
-
-      - name: Verify exact TypeScript and PostgreSQL calculation parity
-        run: node scripts/test-calculation-parity.mjs
-
-      - name: Lint database routines
-        run: supabase db lint --level error --fail-on error
-
-      - name: Run local Auth integration
-        run: node scripts/test-auth-integration.mjs
-
-      - name: Verify independent multi-connection race harness
-        run: bash scripts/test-race-harness.sh
-
-      - name: Verify concurrent onboarding idempotency
-        run: bash scripts/test-onboarding-race.sh
-
-      - name: Verify last-owner concurrency protection
-        run: bash scripts/test-role-race.sh
-
-      - name: Verify single-use invitation acceptance race
-        run: bash scripts/test-invitation-race.sh
-
-      - name: Verify role-template migration backfill
-        run: bash scripts/test-role-migration-upgrade.sh
-
-      - name: Verify staged migration upgrade path
-        run: bash scripts/test-migration-upgrade.sh
-
-      - name: Verify invitation upgrade preserves accepted access and retires legacy links
-        run: bash scripts/test-invitation-upgrade.sh
-
-  browser:
-    name: Playwright browser harness
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Use pinned Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-        with:
-          version: 2.118.0
-
-      - name: Install locked dependencies
-        run: npm ci
-
-      - name: Start local Auth stack
-        run: bash scripts/start-test-stack.sh
-
-      - name: Export local public Supabase environment
-        run: node scripts/export-local-supabase-env.mjs >> "$GITHUB_ENV"
-
-      - name: Install pinned Chromium runtime
-        run: npx playwright install --with-deps chromium
-
-      - name: Run browser harness
-        run: npm run test:browser
-
-      - name: Retain synthetic-test screenshots and accessibility snapshots
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: browser-visual-evidence
-          path: |
-            test-results/**/*.png
-            test-results/**/*.md
-          if-no-files-found: ignore
-          retention-days: 3

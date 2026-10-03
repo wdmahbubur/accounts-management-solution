@@ -1,0 +1,374 @@
+-- US-010 private evidence and invitation controls.
+-- Legacy pending links have no grant snapshot and must never gain new authority.
+INSERT INTO finance.audit_events(organization_id,actor_kind,action,entity_type,entity_id,request_id,redacted_change)
+SELECT organization_id,'system','invitations.invalidated','invitation',id,'migration_us010',
+  jsonb_build_object('reason','legacy invitation requires a new, snapshotted grant')
+FROM finance.invitations WHERE status='pending';
+UPDATE finance.invitations SET status='revoked' WHERE status='pending';
+ALTER TABLE finance.invitations DROP CONSTRAINT invitations_status_check;
+ALTER TABLE finance.invitations ADD CONSTRAINT invitations_status_check
+  CHECK(status IN ('pending','accepted','rejected','revoked','expired'));
+ALTER TABLE finance.invitations ADD COLUMN permission_codes_snapshot text[] NOT NULL DEFAULT ARRAY[]::text[],
+  ADD COLUMN generation integer NOT NULL DEFAULT 1 CHECK(generation>0),
+  ADD COLUMN last_issued_at timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN resolved_at timestamptz;
+CREATE UNIQUE INDEX invitations_one_pending_recipient
+  ON finance.invitations(organization_id,email_normalized) WHERE status='pending';
+CREATE INDEX invitations_recipient_pending_idx ON finance.invitations(email_normalized,organization_id) WHERE status='pending';
+
+-- Even authorized company readers must not be able to read token hashes.
+REVOKE ALL ON finance.invitations FROM PUBLIC,ams_runtime;
+GRANT SELECT(id,organization_id,email_normalized,role_id,expires_at,invited_by_member_id,
+  accepted_by_member_id,status,created_at,generation,last_issued_at,resolved_at)
+  ON finance.invitations TO ams_runtime;
+
+CREATE FUNCTION finance_private.verified_invitation_email() RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_email text;
+BEGIN
+  IF identity.current_actor_id() IS NULL THEN RAISE EXCEPTION 'authentication required' USING ERRCODE='28000'; END IF;
+  SELECT lower(btrim(u.email)) INTO v_email FROM identity.users u
+  WHERE u.id=identity.current_actor_id() AND u.email_verified_at IS NOT NULL
+    AND NOT COALESCE(u.is_anonymous,false) AND u.deleted_at IS NULL
+    AND (u.banned_until IS NULL OR u.banned_until<=now());
+  IF v_email IS NULL OR v_email='' THEN
+    RAISE EXCEPTION 'verified email required' USING ERRCODE='42501';
+  END IF;
+  RETURN v_email;
+END $$;
+REVOKE ALL ON FUNCTION finance_private.verified_invitation_email() FROM PUBLIC,ams_runtime;
+
+CREATE FUNCTION finance_private.invitation_role_codes(p_organization_id uuid,p_role_id uuid) RETURNS text[]
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+  SELECT COALESCE(array_agg(p.code ORDER BY p.code),ARRAY[]::text[])
+  FROM finance.role_permissions rp JOIN finance.permissions p ON p.id=rp.permission_id
+  WHERE rp.organization_id=p_organization_id AND rp.role_id=p_role_id
+$$;
+REVOKE ALL ON FUNCTION finance_private.invitation_role_codes(uuid,uuid) FROM PUBLIC,ams_runtime;
+
+CREATE FUNCTION finance_private.cancel_invitation_delivery(p_invitation_id uuid) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path='' AS $$
+  UPDATE finance.outbox_events SET payload=payload-'delivery',
+    status=CASE WHEN status IN ('pending','processing') THEN 'failed' ELSE status END,
+    last_error_code=CASE WHEN status IN ('pending','processing') THEN 'INVITATION_SUPERSEDED' ELSE last_error_code END
+  WHERE event_type='invitation.send' AND payload->>'invitation_id'=p_invitation_id::text
+$$;
+REVOKE ALL ON FUNCTION finance_private.cancel_invitation_delivery(uuid) FROM PUBLIC,ams_runtime;
+
+-- Only the encrypted token is queued. Workers must recheck the live generation,
+-- token hash, pending state and expiry before delivery. No ordinary worker grant.
+CREATE FUNCTION finance_private.queue_invitation_delivery(
+  p_organization_id uuid,p_invitation_id uuid,p_generation integer,p_delivery jsonb
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+  IF p_delivery IS NULL OR jsonb_typeof(p_delivery)<>'object' THEN
+    RAISE EXCEPTION 'invalid delivery envelope' USING ERRCODE='22023';
+  END IF;
+  IF p_delivery->>'version' IS DISTINCT FROM '1'
+    OR COALESCE(p_delivery->>'iv','') !~ '^[A-Za-z0-9_-]{16}$'
+    OR COALESCE(p_delivery->>'tag','') !~ '^[A-Za-z0-9_-]{22}$'
+    OR COALESCE(p_delivery->>'ciphertext','') !~ '^[A-Za-z0-9_-]{58}$'
+    OR (SELECT count(*) FROM jsonb_object_keys(p_delivery))<>4 THEN
+    RAISE EXCEPTION 'invalid delivery envelope' USING ERRCODE='22023';
+  END IF;
+  INSERT INTO finance.outbox_events(organization_id,event_type,deduplication_key,payload)
+  VALUES(p_organization_id,'invitation.send','invitation:'||p_invitation_id||':'||p_generation,
+    jsonb_build_object('invitation_id',p_invitation_id,'generation',p_generation,
+      'template','company_invitation_v1','delivery',p_delivery));
+END $$;
+REVOKE ALL ON FUNCTION finance_private.queue_invitation_delivery(uuid,uuid,integer,jsonb) FROM PUBLIC,ams_runtime;
+
+CREATE FUNCTION public.issue_company_invitation(
+  p_organization_id uuid,p_invitation_id uuid,p_email text,p_role_id uuid,
+  p_token_hash text,p_delivery jsonb,p_request_id text
+) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_actor uuid; v_email text:=lower(btrim(p_email)); v_own_email text; v_codes text[];
+BEGIN
+  PERFORM finance_private.lock_role_admin(p_organization_id);
+  v_actor:=finance_private.require_capability(p_organization_id,'users.manage');
+  PERFORM finance_private.require_recent_auth();
+  v_own_email:=finance_private.verified_invitation_email();
+  IF NOT EXISTS(SELECT 1 FROM finance.organizations o WHERE o.id=p_organization_id AND o.status<>'archived') THEN
+    RAISE EXCEPTION 'permission denied' USING ERRCODE='42501';
+  END IF;
+  PERFORM finance_private.validate_request_id(p_request_id);
+  IF p_invitation_id IS NULL OR v_email IS NULL OR length(v_email)>254
+    OR v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+    OR p_token_hash IS NULL OR p_token_hash !~ '^[a-f0-9]{64}$' THEN
+    RAISE EXCEPTION 'invalid invitation input' USING ERRCODE='22023';
+  END IF;
+  IF v_email=v_own_email THEN RAISE EXCEPTION 'self invitation forbidden' USING ERRCODE='42501'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM finance.roles r WHERE r.id=p_role_id AND r.organization_id=p_organization_id) THEN
+    RAISE EXCEPTION 'unknown role id' USING ERRCODE='22023';
+  END IF;
+  PERFORM finance_private.assert_roles_grantable(p_organization_id,v_actor,ARRAY[p_role_id]);
+  v_codes:=finance_private.invitation_role_codes(p_organization_id,p_role_id);
+  IF (SELECT count(*) FROM finance.audit_events a WHERE a.organization_id=p_organization_id
+    AND a.action IN ('invitations.created','invitations.resent') AND a.created_at>now()-interval '1 hour')>=20 THEN
+    RAISE EXCEPTION 'invitation rate limited' USING ERRCODE='P0429';
+  END IF;
+  IF EXISTS(SELECT 1 FROM finance.organization_members m JOIN identity.users u ON u.id=m.user_id
+    WHERE m.organization_id=p_organization_id AND m.status='active' AND lower(btrim(u.email))=v_email) THEN
+    RAISE EXCEPTION 'recipient already active' USING ERRCODE='23505';
+  END IF;
+  UPDATE finance.invitations SET status='expired',resolved_at=now()
+  WHERE organization_id=p_organization_id AND email_normalized=v_email AND status='pending' AND expires_at<=now();
+  INSERT INTO finance.invitations(id,organization_id,email_normalized,role_id,token_hash,expires_at,
+    invited_by_member_id,permission_codes_snapshot)
+  VALUES(p_invitation_id,p_organization_id,v_email,p_role_id,p_token_hash,now()+interval '72 hours',v_actor,v_codes);
+  PERFORM finance_private.queue_invitation_delivery(p_organization_id,p_invitation_id,1,p_delivery);
+  PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'invitations.created','invitation',p_invitation_id,p_request_id,
+    jsonb_build_object('role_id',p_role_id,'generation',1));
+  RETURN p_invitation_id;
+END $$;
+REVOKE ALL ON FUNCTION public.issue_company_invitation(uuid,uuid,text,uuid,text,jsonb,text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.issue_company_invitation(uuid,uuid,text,uuid,text,jsonb,text) TO ams_runtime;
+
+CREATE FUNCTION public.resend_company_invitation(
+  p_organization_id uuid,p_invitation_id uuid,p_token_hash text,p_delivery jsonb,p_request_id text
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_actor uuid; v_inv finance.invitations%ROWTYPE; v_own_email text;
+BEGIN
+  PERFORM finance_private.lock_role_admin(p_organization_id);
+  v_actor:=finance_private.require_capability(p_organization_id,'users.manage');
+  PERFORM finance_private.require_recent_auth();
+  v_own_email:=finance_private.verified_invitation_email();
+  IF NOT EXISTS(SELECT 1 FROM finance.organizations o WHERE o.id=p_organization_id AND o.status<>'archived') THEN
+    RAISE EXCEPTION 'permission denied' USING ERRCODE='42501';
+  END IF;
+  PERFORM finance_private.validate_request_id(p_request_id);
+  SELECT * INTO v_inv FROM finance.invitations i
+  WHERE i.id=p_invitation_id AND i.organization_id=p_organization_id FOR UPDATE;
+  IF NOT FOUND OR v_inv.status NOT IN ('pending','expired') THEN
+    RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002';
+  END IF;
+  IF v_inv.email_normalized=v_own_email THEN RAISE EXCEPTION 'self invitation forbidden' USING ERRCODE='42501'; END IF;
+  PERFORM finance_private.assert_roles_grantable(p_organization_id,v_actor,ARRAY[v_inv.role_id]);
+  IF p_token_hash IS NULL OR p_token_hash !~ '^[a-f0-9]{64}$' OR p_token_hash=v_inv.token_hash THEN
+    RAISE EXCEPTION 'new invitation token required' USING ERRCODE='22023';
+  END IF;
+  IF v_inv.last_issued_at>now()-interval '60 seconds' OR
+    (SELECT count(*) FROM finance.audit_events a WHERE a.organization_id=p_organization_id
+      AND a.action IN ('invitations.created','invitations.resent') AND a.created_at>now()-interval '1 hour')>=20 THEN
+    RAISE EXCEPTION 'invitation rate limited' USING ERRCODE='P0429';
+  END IF;
+  IF EXISTS(SELECT 1 FROM finance.organization_members m JOIN identity.users u ON u.id=m.user_id
+    WHERE m.organization_id=p_organization_id AND m.status='active' AND lower(btrim(u.email))=v_inv.email_normalized) THEN
+    RAISE EXCEPTION 'recipient already active' USING ERRCODE='23505';
+  END IF;
+  PERFORM finance_private.cancel_invitation_delivery(v_inv.id);
+  UPDATE finance.invitations SET token_hash=p_token_hash,generation=generation+1,last_issued_at=now(),
+    expires_at=now()+interval '72 hours',status='pending',resolved_at=NULL,invited_by_member_id=v_actor,
+    permission_codes_snapshot=finance_private.invitation_role_codes(p_organization_id,v_inv.role_id)
+  WHERE id=v_inv.id;
+  PERFORM finance_private.queue_invitation_delivery(p_organization_id,v_inv.id,v_inv.generation+1,p_delivery);
+  PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'invitations.resent','invitation',v_inv.id,p_request_id,
+    jsonb_build_object('role_id',v_inv.role_id,'generation',v_inv.generation+1));
+END $$;
+REVOKE ALL ON FUNCTION public.resend_company_invitation(uuid,uuid,text,jsonb,text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.resend_company_invitation(uuid,uuid,text,jsonb,text) TO ams_runtime;
+
+CREATE FUNCTION public.revoke_company_invitation(p_organization_id uuid,p_invitation_id uuid,p_request_id text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_actor uuid; v_inv finance.invitations%ROWTYPE;
+BEGIN
+  PERFORM finance_private.lock_role_admin(p_organization_id);
+  v_actor:=finance_private.require_capability(p_organization_id,'users.manage');
+  PERFORM finance_private.require_recent_auth();
+  PERFORM finance_private.validate_request_id(p_request_id);
+  SELECT * INTO v_inv FROM finance.invitations i
+  WHERE i.id=p_invitation_id AND i.organization_id=p_organization_id FOR UPDATE;
+  IF NOT FOUND OR v_inv.status NOT IN ('pending','expired') THEN
+    RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002';
+  END IF;
+  PERFORM finance_private.assert_roles_grantable(p_organization_id,v_actor,ARRAY[v_inv.role_id]);
+  UPDATE finance.invitations SET status='revoked',resolved_at=now() WHERE id=v_inv.id;
+  PERFORM finance_private.cancel_invitation_delivery(v_inv.id);
+  PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'invitations.revoked','invitation',v_inv.id,p_request_id,
+    jsonb_build_object('generation',v_inv.generation));
+END $$;
+REVOKE ALL ON FUNCTION public.revoke_company_invitation(uuid,uuid,text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.revoke_company_invitation(uuid,uuid,text) TO ams_runtime;
+
+CREATE FUNCTION finance_private.recipient_invitation(p_token text,p_lock boolean)
+RETURNS finance.invitations LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_inv finance.invitations%ROWTYPE; v_email text; v_hash text;
+BEGIN
+  v_email:=finance_private.verified_invitation_email();
+  IF p_token IS NULL OR p_token !~ '^[A-Za-z0-9_-]{43}$' THEN
+    RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002';
+  END IF;
+  v_hash:=encode(sha256(convert_to(p_token,'UTF8')),'hex');
+  SELECT * INTO v_inv FROM finance.invitations i WHERE i.token_hash=v_hash;
+  IF NOT FOUND THEN RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002'; END IF;
+  IF p_lock THEN
+    PERFORM finance_private.lock_role_admin(v_inv.organization_id);
+    -- Re-read after waiting: a concurrent resend/revoke must invalidate this link.
+    SELECT * INTO v_inv FROM finance.invitations i WHERE i.token_hash=v_hash FOR UPDATE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002'; END IF;
+  END IF;
+  v_email:=finance_private.verified_invitation_email();
+  IF v_inv.status<>'pending' OR v_inv.expires_at<=clock_timestamp() OR v_inv.email_normalized<>v_email
+    OR NOT finance_private.member_has_capability(v_inv.organization_id,v_inv.invited_by_member_id,'users.manage')
+    OR NOT EXISTS(SELECT 1 FROM finance.organizations o WHERE o.id=v_inv.organization_id AND o.status<>'archived')
+    OR v_inv.permission_codes_snapshot IS DISTINCT FROM finance_private.invitation_role_codes(v_inv.organization_id,v_inv.role_id)
+    OR EXISTS(SELECT 1 FROM finance.organization_members m WHERE m.id=v_inv.invited_by_member_id AND m.user_id=identity.current_actor_id()) THEN
+    RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002';
+  END IF;
+  BEGIN
+    PERFORM finance_private.assert_roles_grantable(v_inv.organization_id,v_inv.invited_by_member_id,ARRAY[v_inv.role_id]);
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE EXCEPTION 'invitation unavailable' USING ERRCODE='P0002';
+  END;
+  RETURN v_inv;
+END $$;
+REVOKE ALL ON FUNCTION finance_private.recipient_invitation(text,boolean) FROM PUBLIC,ams_runtime;
+
+CREATE FUNCTION public.inspect_company_invitation(p_token text)
+RETURNS TABLE(organization_id uuid,organization_name text,role_name text,expires_at timestamptz)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_inv finance.invitations%ROWTYPE;
+BEGIN
+  v_inv:=finance_private.recipient_invitation(p_token,false);
+  RETURN QUERY SELECT o.id,o.name,r.name,v_inv.expires_at
+  FROM finance.organizations o JOIN finance.roles r ON r.organization_id=o.id AND r.id=v_inv.role_id
+  WHERE o.id=v_inv.organization_id;
+END $$;
+REVOKE ALL ON FUNCTION public.inspect_company_invitation(text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.inspect_company_invitation(text) TO ams_runtime;
+
+CREATE FUNCTION public.respond_company_invitation(p_token text,p_decision text,p_request_id text)
+RETURNS TABLE(organization_id uuid,member_id uuid,invitation_status text)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_inv finance.invitations%ROWTYPE; v_member finance.organization_members%ROWTYPE; v_name text;
+BEGIN
+  PERFORM finance_private.validate_request_id(p_request_id);
+  IF p_decision IS NULL OR p_decision NOT IN ('accept','reject') THEN
+    RAISE EXCEPTION 'invalid invitation decision' USING ERRCODE='22023';
+  END IF;
+  v_inv:=finance_private.recipient_invitation(p_token,true);
+  SELECT * INTO v_member FROM finance.organization_members m
+  WHERE m.organization_id=v_inv.organization_id AND m.user_id=identity.current_actor_id() FOR UPDATE;
+  IF p_decision='accept' THEN
+    IF v_member.id IS NOT NULL AND v_member.status='active' THEN
+      RAISE EXCEPTION 'recipient already active' USING ERRCODE='23505';
+    END IF;
+    IF v_member.id IS NULL THEN
+      SELECT p.display_name INTO v_name FROM finance.profiles p WHERE p.user_id=identity.current_actor_id();
+      INSERT INTO finance.organization_members(organization_id,user_id,display_name_snapshot)
+      VALUES(v_inv.organization_id,identity.current_actor_id(),COALESCE(v_name,split_part(v_inv.email_normalized,'@',1)))
+      RETURNING * INTO v_member;
+    ELSE
+      -- Rejoining must not silently restore historical or removed privilege.
+      DELETE FROM finance.member_roles mr WHERE mr.organization_id=v_inv.organization_id AND mr.member_id=v_member.id;
+      UPDATE finance.organization_members SET status='active' WHERE id=v_member.id;
+    END IF;
+    INSERT INTO finance.member_roles(organization_id,member_id,role_id)
+    VALUES(v_inv.organization_id,v_member.id,v_inv.role_id);
+    UPDATE finance.invitations SET status='accepted',resolved_at=now(),accepted_by_member_id=v_member.id WHERE id=v_inv.id;
+  ELSE
+    UPDATE finance.invitations SET status='rejected',resolved_at=now() WHERE id=v_inv.id;
+  END IF;
+  PERFORM finance_private.cancel_invitation_delivery(v_inv.id);
+  PERFORM finance_private.write_role_audit(v_inv.organization_id,v_member.id,
+    CASE WHEN p_decision='accept' THEN 'invitations.accepted' ELSE 'invitations.rejected' END,
+    'invitation',v_inv.id,p_request_id,
+    jsonb_build_object('role_id',v_inv.role_id,'generation',v_inv.generation,'recipient_user_id',identity.current_actor_id()));
+  RETURN QUERY SELECT v_inv.organization_id,v_member.id,
+    CASE WHEN p_decision='accept' THEN 'accepted'::text ELSE 'rejected'::text END;
+END $$;
+REVOKE ALL ON FUNCTION public.respond_company_invitation(text,text,text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.respond_company_invitation(text,text,text) TO ams_runtime;
+
+CREATE FUNCTION public.list_company_invitations(p_organization_id uuid)
+RETURNS TABLE(invitation_id uuid,email text,role_id uuid,role_name text,invitation_status text,
+  expires_at timestamptz,generation integer,last_issued_at timestamptz)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+  PERFORM finance_private.require_capability(p_organization_id,'users.read');
+  RETURN QUERY SELECT i.id,i.email_normalized,i.role_id,r.name,
+    CASE WHEN i.status='pending' AND i.expires_at<=now() THEN 'expired'::text ELSE i.status END,
+    i.expires_at,i.generation,i.last_issued_at
+  FROM finance.invitations i JOIN finance.roles r ON r.organization_id=i.organization_id AND r.id=i.role_id
+  WHERE i.organization_id=p_organization_id ORDER BY i.created_at DESC,i.id;
+END $$;
+REVOKE ALL ON FUNCTION public.list_company_invitations(uuid) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.list_company_invitations(uuid) TO ams_runtime;
+
+CREATE FUNCTION finance_private.invalidate_member_invitations() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_id uuid; v_email text;
+BEGIN
+  IF OLD.status='active' AND NEW.status='inactive' THEN
+    PERFORM finance_private.lock_role_admin(NEW.organization_id);
+    SELECT lower(btrim(u.email)) INTO v_email FROM identity.users u WHERE u.id=NEW.user_id;
+    FOR v_id IN UPDATE finance.invitations SET status='revoked',resolved_at=now()
+      WHERE organization_id=NEW.organization_id AND status='pending'
+        AND (invited_by_member_id=NEW.id OR email_normalized=v_email) RETURNING id
+    LOOP
+      PERFORM finance_private.cancel_invitation_delivery(v_id);
+      INSERT INTO finance.audit_events(organization_id,actor_kind,action,entity_type,entity_id,request_id,redacted_change)
+      VALUES(NEW.organization_id,'system','invitations.invalidated','invitation',v_id,
+        'membership_revocation',jsonb_build_object('member_id',NEW.id,'reason','membership revoked'));
+    END LOOP;
+  END IF;
+  RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION finance_private.invalidate_member_invitations() FROM PUBLIC,ams_runtime;
+CREATE TRIGGER invalidate_member_invitations AFTER UPDATE OF status ON finance.organization_members
+FOR EACH ROW EXECUTE FUNCTION finance_private.invalidate_member_invitations();
+
+
+-- US-010/S-14: a bounded byte-delivery boundary, not an upload/report generator.
+-- Private object bytes are outside PostgreSQL; download authorization stays server-side.
+CREATE FUNCTION finance_private.can_download_artifact(p_object_key text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+  SELECT identity.current_actor_id() IS NOT NULL AND (
+    EXISTS(SELECT 1 FROM finance.attachments a JOIN finance.organizations o ON o.id=a.organization_id
+      WHERE a.object_key=p_object_key AND a.object_key=a.organization_id||'/attachments/'||a.id
+        AND o.status<>'archived' AND a.scan_status='clean' AND a.byte_size BETWEEN 1 AND 10485760
+        AND finance_private.has_permission(a.organization_id,'attachments.read')
+        AND NOT EXISTS(SELECT 1 FROM finance.attachment_links l
+          WHERE l.organization_id=a.organization_id AND l.attachment_id=a.id
+            AND NOT finance_private.can_read_document(l.organization_id,l.document_id))
+        AND (EXISTS(SELECT 1 FROM finance.attachment_links l
+              WHERE l.organization_id=a.organization_id AND l.attachment_id=a.id)
+          OR (finance_private.has_permission(a.organization_id,'attachments.write') AND EXISTS(
+            SELECT 1 FROM finance.organization_members m WHERE m.organization_id=a.organization_id
+              AND m.id=a.uploaded_by_member_id AND m.user_id=identity.current_actor_id() AND m.status='active'))))
+    OR EXISTS(SELECT 1 FROM finance.export_jobs e JOIN finance.organizations o ON o.id=e.organization_id
+      JOIN finance.organization_members m ON m.organization_id=e.organization_id AND m.id=e.requested_by_member_id
+      WHERE e.object_key=p_object_key AND e.object_key=e.organization_id||'/exports/'||e.id
+        AND m.user_id=identity.current_actor_id() AND m.status='active' AND o.status<>'archived'
+        AND e.status='completed' AND e.expires_at>now() AND e.export_type='trial_balance'
+        AND finance_private.has_permission(e.organization_id,'exports.read')
+        AND finance_private.has_permission(e.organization_id,'reports.export')
+        AND finance_private.has_permission(e.organization_id,'reports.read')
+        AND finance_private.has_permission(e.organization_id,'accounting.read')
+        AND finance_private.has_permission(e.organization_id,'ledger.read'))
+  )
+$$;
+REVOKE ALL ON FUNCTION finance_private.can_download_artifact(text) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION finance_private.can_download_artifact(text) TO ams_runtime;
+
+CREATE FUNCTION public.authorize_artifact_download(p_organization_id uuid,p_kind text,p_artifact_id uuid)
+RETURNS TABLE(object_key text,download_filename text,expected_size bigint)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_key text:=p_organization_id||'/'||p_kind||'/'||p_artifact_id;
+BEGIN
+  IF identity.current_actor_id() IS NULL THEN RAISE EXCEPTION 'authentication required' USING ERRCODE='28000'; END IF;
+  IF p_kind IS NULL OR p_kind NOT IN ('attachments','exports') OR
+    NOT finance_private.can_download_artifact(v_key) THEN
+    RAISE EXCEPTION 'artifact unavailable' USING ERRCODE='P0002';
+  END IF;
+  IF p_kind='attachments' THEN
+    RETURN QUERY SELECT a.object_key,a.original_filename,a.byte_size FROM finance.attachments a
+    WHERE a.organization_id=p_organization_id AND a.id=p_artifact_id;
+  ELSE
+    RETURN QUERY SELECT e.object_key,'export-'||e.id||'.'||e.format,NULL::bigint FROM finance.export_jobs e
+    WHERE e.organization_id=p_organization_id AND e.id=p_artifact_id;
+  END IF;
+END $$;
+REVOKE ALL ON FUNCTION public.authorize_artifact_download(uuid,text,uuid) FROM PUBLIC,ams_runtime;
+GRANT EXECUTE ON FUNCTION public.authorize_artifact_download(uuid,text,uuid) TO ams_runtime;
+

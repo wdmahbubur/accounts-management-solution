@@ -6,10 +6,12 @@ import {
   roleTemplateCapabilityCodes
 } from "../../packages/permissions/src/index.ts";
 
-test("US-009 permission vocabulary matches the documented 39 capability codes", () => {
-  assert.equal(capabilityCodes.length, 39);
-  assert.equal(new Set(capabilityCodes).size, 39);
-  assert.equal(roleTemplateCapabilityCodes.owner.length, 39);
+test("US-009 permission vocabulary has 39 source capabilities and two story-scoped additions", () => {
+  assert.equal(capabilityCodes.length, 41);
+  assert.equal(new Set(capabilityCodes).size, 41);
+  assert.equal(roleTemplateCapabilityCodes.owner.length, 41);
+  assert.equal(capabilityCodes.includes("dues.adjust"), true);
+  assert.equal(capabilityCodes.includes("approvals.manage"), true);
 });
 
 test("Admin defaults to company and user administration without financial read", () => {

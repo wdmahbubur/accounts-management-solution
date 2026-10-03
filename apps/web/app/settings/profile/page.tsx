@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/database/server.ts";
 import { updateProfileAction } from "../../auth/actions.ts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -12,17 +12,17 @@ function first(value: string | string[] | undefined): string | undefined {
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage({ searchParams }: { searchParams: SearchParams }) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/settings/profile");
   }
 
   const params = await searchParams;
-  const { data: rows } = await supabase.rpc("get_own_profile");
+  const { data: rows } = await database.rpc("get_own_profile");
   const persisted =
     Array.isArray(rows) && rows.length === 1
       ? (rows[0] as {
@@ -31,11 +31,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
           timezone?: string;
         })
       : null;
-  const metadata = user.user_metadata ?? {};
-
-  const displayName =
-    persisted?.display_name ??
-    (typeof metadata.display_name === "string" ? metadata.display_name : "");
+  const displayName = persisted?.display_name ?? "";
   const locale = persisted?.locale === "bn-BD" ? "bn-BD" : "en-BD";
   const timezone = persisted?.timezone === "UTC" ? "UTC" : "Asia/Dhaka";
 

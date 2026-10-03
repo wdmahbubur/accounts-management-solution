@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../../lib/supabase/server.ts";
+import { auth } from "../../../../../auth.ts";
 import {
   reauthenticateAction,
   signOutAction,
@@ -17,10 +17,8 @@ function first(value: string | string[] | undefined): string | undefined {
 export const dynamic = "force-dynamic";
 
 export default async function SecurityPage({ searchParams }: { searchParams: SearchParams }) {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const session = await auth();
+  const user = session?.user?.id ? session.user : null;
 
   if (!user) {
     redirect("/auth/sign-in?next=/settings/security");
@@ -29,7 +27,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const status = first(params.status);
   const error = first(params.error);
-  const recent = hasRecentAuthentication(user.last_sign_in_at);
+  const recent = hasRecentAuthentication(user.recentAuthAt);
 
   return (
     <main className="auth-shell">
@@ -42,9 +40,15 @@ export default async function SecurityPage({ searchParams }: { searchParams: Sea
           <p className="muted">
             Recent authentication: <strong>{recent ? "yes" : "required for sensitive changes"}</strong>
           </p>
-          {status ? <p className="alert" role="status">Security action completed.</p> : null}
+          {status === "reauth_requested" ? <p className="alert" role="status">Check your verified email and open the confirmation link before changing security settings.</p> : null}
+          {status === "reauthenticated" ? <p className="alert" role="status">Recent authentication confirmed.</p> : null}
+          {status === "password_changed" ? <p className="alert" role="status">Password changed. Sign in again with the new password.</p> : null}
           {error === "password_policy" ? (
             <p className="alert" role="alert">Use at least 10 characters with uppercase, lowercase and a number.</p>
+          ) : error === "recent_auth_required" ? (
+            <p className="alert" role="alert">Confirm your current password again before changing it.</p>
+          ) : error === "reauthentication_failed" ? (
+            <p className="alert" role="alert">The current password was not accepted for this session.</p>
           ) : error ? (
             <p className="alert" role="alert">The security action could not be completed. Reauthenticate and try again.</p>
           ) : null}
@@ -57,14 +61,14 @@ export default async function SecurityPage({ searchParams }: { searchParams: Sea
               <span>New password</span>
               <input name="password" type="password" autoComplete="new-password" minLength={10} required />
             </label>
-            <label className="field">
-              <span>Reauthentication code (when requested)</span>
-              <input name="nonce" inputMode="numeric" autoComplete="one-time-code" />
-            </label>
             <button type="submit">Update password</button>
           </form>
-          <form action={reauthenticateAction}>
-            <button type="submit" className="secondary">Send reauthentication code</button>
+          <form action={reauthenticateAction} className="settings-form">
+            <label className="field">
+              <span>Current password</span>
+              <input name="current_password" type="password" autoComplete="current-password" required />
+            </label>
+            <button type="submit" className="secondary">Confirm this session</button>
           </form>
         </section>
 

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "../../lib/supabase/server.ts";
+import { createClient } from "../../lib/database/server.ts";
 import {
   CompanyOnboardingValidationError,
   parseCompanyOnboardingForm
@@ -13,10 +13,10 @@ function route(error: string): string {
 }
 
 export async function createCompanyAction(formData: FormData) {
-  const supabase = await createClient();
+  const database = await createClient();
   const {
     data: { user }
-  } = await supabase.auth.getUser();
+  } = await database.auth.getUser();
 
   if (!user) {
     redirect("/auth/sign-in?next=/onboarding/company");
@@ -32,7 +32,7 @@ export async function createCompanyAction(formData: FormData) {
     redirect(route("invalid_input"));
   }
 
-  const { data, error } = await supabase.rpc("create_company_atomic", {
+  const { data, error } = await database.rpc("create_company_atomic", {
     p_name: input.name,
     p_legal_name: input.legalName,
     p_country_code: input.countryCode,

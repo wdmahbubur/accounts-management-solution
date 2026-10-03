@@ -1,0 +1,1 @@
+export default function VendorsLoading(){return <main className="content" aria-busy="true"><p className="eyebrow">Purchasing</p><h1>Suppliers</h1><p role="status">Loading suppliers…</p><div className="panel" aria-hidden="true">Search contacts · Loading records…</div></main>;}
