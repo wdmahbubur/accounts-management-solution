@@ -87,7 +87,8 @@ const procedures = new Set([
   "reopen_reconciliation",
   "list_opening_cutover_options",
   "save_opening_cutover_summary",
-  "read_opening_cutover_summary"
+  "read_opening_cutover_summary",
+  "read_report_snapshot"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
