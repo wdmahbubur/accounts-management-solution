@@ -88,7 +88,9 @@ const procedures = new Set([
   "list_opening_cutover_options",
   "save_opening_cutover_summary",
   "read_opening_cutover_summary",
-  "read_report_snapshot"
+  "read_report_snapshot",
+  "list_profit_loss_options",
+  "read_profit_loss_snapshot"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
