@@ -91,7 +91,8 @@ const procedures = new Set([
   "read_report_snapshot",
   "list_profit_loss_options",
   "read_profit_loss_snapshot",
-  "read_balance_sheet_snapshot"
+  "read_balance_sheet_snapshot",
+  "read_aging_snapshot"
 ]);
 
 export type DatabaseError = { code?: string; message?: string };
