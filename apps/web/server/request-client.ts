@@ -21,6 +21,7 @@ const procedures = new Set([
   "save_financial_document",
   "save_document_allocation_plan",
   "read_financial_document",
+  "read_line_item_snapshots",
   "list_document_draft_options",
   "create_custom_role",
   "deactivate_member",

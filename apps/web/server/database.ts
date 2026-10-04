@@ -1,6 +1,11 @@
 import "server-only";
 
-import { Pool, type PoolClient } from "@neondatabase/serverless";
+import { Pool, types, type PoolClient } from "@neondatabase/serverless";
+
+// PostgreSQL DATE is a calendar value without a time zone. Keep it as its
+// canonical YYYY-MM-DD text instead of letting node-pg shift it through the
+// host's local time zone before domain validation or JSON serialization.
+types.setTypeParser(types.builtins.DATE, (value) => value);
 
 type DatabaseWork<T> = (client: PoolClient) => Promise<T>;
 let runtimePool: Pool | undefined;
