@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { auth, signIn, signOut } from "../../../../auth.ts";
 import { createRequestClient } from "../../server/request-client.ts";
 import { sendIdentityLink } from "../../server/auth/mailer.ts";
+import { getDemoAccountCredentials } from "../../server/auth/demo-login.ts";
 import {
   changeIdentityPassword,
   createIdentityUser,
@@ -49,6 +50,19 @@ export async function signInAction(formData: FormData) {
     await signIn("credentials", { email: normalizeEmail(email), password, redirectTo: next });
   } catch (error) {
     if (error instanceof AuthError) redirect(route("/auth/sign-in", { error: "invalid_credentials", next }));
+    throw error;
+  }
+}
+
+export async function demoSignInAction(formData: FormData) {
+  const next = safeNextPath(field(formData, "next"), "/companies");
+  const credentials = getDemoAccountCredentials();
+  if (!credentials) redirect(route("/auth/sign-in", { error: "demo_unavailable", next }));
+
+  try {
+    await signIn("credentials", { ...credentials, redirectTo: next });
+  } catch (error) {
+    if (error instanceof AuthError) redirect(route("/auth/sign-in", { error: "demo_unavailable", next }));
     throw error;
   }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { signInAction } from "../actions.ts";
+import { demoSignInAction, signInAction } from "../actions.ts";
+import { getDemoAccountCredentials } from "../../../server/auth/demo-login.ts";
 import { safeNextPath } from "../../../server/auth/redirects.ts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -14,6 +15,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
   const next = safeNextPath(first(params.next), "/companies");
   const error = first(params.error);
   const status = first(params.status);
+  const demoLoginEnabled = getDemoAccountCredentials() !== null;
 
   return (
     <main className="auth-shell">
@@ -21,7 +23,9 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
       <h1>Sign in</h1>
       <section className="panel" aria-labelledby="sign-in-title">
         <h2 id="sign-in-title">Company account</h2>
-        {error ? (
+        {error === "demo_unavailable" ? (
+          <p className="alert" role="alert">Demo sign-in is unavailable. Contact the site administrator.</p>
+        ) : error ? (
           <p className="alert" role="alert">
             Email or password is incorrect, or the account is not verified.
           </p>
@@ -40,6 +44,11 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
             <input name="password" type="password" autoComplete="current-password" required />
           </label>
           <button type="submit">Sign in</button>
+        </form>
+        <form action={demoSignInAction} className="auth-form">
+          <input type="hidden" name="next" value={next} />
+          <button type="submit" disabled={!demoLoginEnabled}>Sign in with demo account</button>
+          {!demoLoginEnabled ? <p className="muted">Demo sign-in is not configured for this deployment.</p> : null}
         </form>
         <div className="link-row">
           <Link href="/auth/sign-up">Create account</Link>
