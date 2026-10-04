@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -55,4 +56,14 @@ test("US-007 onboarding requires a retry-stable strong idempotency key", () => {
       error instanceof CompanyOnboardingValidationError &&
       error.field === "idempotency_key"
   );
+});
+
+test("US-007 database follow-up uses the current normalized identity email column", () => {
+  const migration = readFileSync(new URL(
+    "../../database/migrations/0082_fix_company_onboarding_identity_email.sql",
+    import.meta.url
+  ), "utf8");
+  assert.match(migration, /CREATE OR REPLACE FUNCTION public\.create_company_atomic/);
+  assert.match(migration, /split_part\(u\.email_normalized,/);
+  assert.doesNotMatch(migration, /split_part\(u\.email,/);
 });
