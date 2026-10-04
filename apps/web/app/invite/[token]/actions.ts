@@ -1,6 +1,6 @@
 "use server";
 import type { ApiResult } from "@ams/contracts";
-import { createClient } from "../../../lib/supabase/server.ts";
+import { createClient } from "../../../lib/database/server.ts";
 import { commandErrorBody, normalizeCommandError, CommandError } from "../../../server/commands/errors.ts";
 import { generateRequestId } from "../../../server/commands/request-context.ts";
 import type { RecipientReceipt } from "../../../server/invitations/contracts.ts";

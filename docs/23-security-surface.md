@@ -35,10 +35,17 @@ or a financial report generator. Unknown or unauthorized RPC scope returns no
 rows; the application boundary uses a permission-safe 404.
 
 `ams_job_worker` is a NOLOGIN, NOINHERIT, NOBYPASSRLS, non-administrative role. It has
-no company-data grants and cannot reuse human commands. Future worker stories
-must add only reviewed organization/job-bound command grants, not a broad service
-key or raw DML. A denied unscoped worker is tested here; background delivery/import
-execution itself is not implemented by this security story.
+no company-table grants and cannot reuse human commands. Migration `0076` adds a
+separate `ams_job_worker_login` identity and grants only leased outbox, report
+export, reminder and private-file cleanup routines to the worker role; those job
+procedures validate organization/job identity and fencing tokens. The app uses `DATABASE_WORKER_URL` for internal
+workers and checks that it targets the same database as `DATABASE_RUNTIME_URL`.
+`DATABASE_RUNTIME_URL` cannot claim, read or acknowledge background work, and the
+worker identity cannot read or write finance tables directly. Local credential
+provisioning uses a random secret in ignored `.env.local`; deployed environments
+must supply the equivalent identity through their secret manager. Runtime
+cross-tenant denial, lease races and provider delivery still require acceptance
+verification.
 
 ## Verification scope
 

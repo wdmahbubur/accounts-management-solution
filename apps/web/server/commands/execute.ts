@@ -9,7 +9,8 @@ import { resolveActorContext } from "../auth/index.ts";
 import {
   commandErrorBody,
   CommandError,
-  normalizeCommandError
+  normalizeCommandError,
+  RetryableTransactionError
 } from "./errors.ts";
 import { buildRequestContext } from "./request-context.ts";
 import type {
@@ -48,13 +49,17 @@ export async function executeOrganizationCommand<Input, Output>(input: {
     });
     requestId = requestContext.requestId;
 
-    const data = await input.definition.execute(
-      {
-        actor,
-        ...requestContext
-      },
-      validated
-    );
+    let data!:Output;let executed=false;
+    const maxAttempts=requestContext.idempotencyKey?3:1;
+    for(let attempt=0;attempt<maxAttempts;attempt++){
+      try{data=await input.definition.execute({actor,...requestContext},validated);executed=true;break;}
+      catch(error){
+        if(!(error instanceof RetryableTransactionError))throw error;
+        if(attempt+1>=maxAttempts)throw CommandError.transient();
+        await new Promise((resolve)=>setTimeout(resolve,25*(2**attempt)+Math.floor(Math.random()*20)));
+      }
+    }
+    if(!executed)throw CommandError.transient();
 
     const body: ApiSuccess<Output> = {
       data,

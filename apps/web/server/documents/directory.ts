@@ -1,11 +1,11 @@
 import { parseMoneyString, parseOrganizationId, parseUuid, type MoneyString, type OrganizationId, type Uuid } from "@ams/contracts";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RequestClient } from "../request-client.ts";
 import { CommandError } from "../commands/errors.ts";
 export interface DirectoryRow {
   id: Uuid; organizationId: OrganizationId; documentType: string; state: string;
   documentNumber: string | null; accountingDate: string; totalAmount: MoneyString;
 }
-export async function readDocumentDirectory(client: Pick<SupabaseClient, "rpc">, organizationId: OrganizationId,
+export async function readDocumentDirectory(client: Pick<RequestClient, "rpc">, organizationId: OrganizationId,
   limit = 50, after?: string): Promise<DirectoryRow[]> {
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw CommandError.validation({ limit: "Use a page size of 1-100." });
   const cursor = after === undefined ? null : parseUuid(after, "after");

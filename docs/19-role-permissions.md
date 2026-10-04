@@ -4,7 +4,12 @@
 
 The role table in `docs/01-product-requirements.md` is implemented conservatively.
 
-- Owner receives the complete 39-code documented permission family.
+- The source specification defines 39 capability codes. The implemented vocabulary
+  has 41: US-026 adds `dues.adjust` for controlled subledger adjustments, and
+  US-063 adds `approvals.manage` for approval-policy administration. These are
+  story-scoped extensions recorded by migrations 0027 and 0023, respectively;
+  the original v1.0 source document remains unchanged.
+- Owner receives all 41 implemented capability codes.
 - Admin receives company/user administration only and no default financial read.
 - Finance manager receives the unambiguous finance/posting/approval/report scopes, including the explicit reopen capability.
 - Accountant receives finance/posting/report scopes but not optional approval-decision or delegated period-lock/reopen defaults.

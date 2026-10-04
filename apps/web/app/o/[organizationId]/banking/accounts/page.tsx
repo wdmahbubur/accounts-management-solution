@@ -1,0 +1,14 @@
+import { parseOrganizationId,parseUuid } from "@ams/contracts";
+import { redirect } from "next/navigation";
+import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts";
+import { CommandError } from "../../../../../server/commands/errors.ts";
+import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+import { CashAccounts } from "./cash-accounts.tsx";
+
+export const dynamic="force-dynamic";export const revalidate=0;
+export default async function CashAccountsPage({params}:{params:Promise<{organizationId:string}>}){let organizationId;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}const runtime=await roleRuntime();if(!runtime.current||runtime.current.organizationId!==organizationId)redirect("/companies?error=context_mismatch");let rows:Record<string,unknown>[]=[];let options:Record<string,unknown>[]=[];let canWrite=false;let forbidden=false;
+ try{const actor=await resolveActorContext(organizationId,runtime.dependencies);canWrite=actor.capabilities.includes("banking.write");const [a,b]=await Promise.all([runtime.client.rpc("read_cash_accounts",{p_organization_id:organizationId}),runtime.client.rpc("list_cash_account_options",{p_organization_id:organizationId})]);if(a.error||b.error)throw a.error?.code==="42501"||b.error?.code==="42501"?CommandError.forbidden():new Error("Cash accounts could not be loaded.");if(!Array.isArray(a.data)||!Array.isArray(b.data))throw new Error("Invalid cash account response.");rows=a.data.map((raw:unknown)=>{if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("Invalid cash account.");const r=raw as Record<string,unknown>;parseUuid(r.id);if(typeof r.book_balance!=="string"||!/^-?\d+\.\d{2}$/.test(r.book_balance)||typeof r.name!=="string"||typeof r.kind!=="string"||typeof r.is_active!=="boolean"||typeof r.account_name!=="string"||typeof r.account_code!=="string")throw new Error("Invalid cash account row.");return r;});options=b.data.map((raw:unknown)=>{if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("Invalid account option.");const r=raw as Record<string,unknown>;parseUuid(r.id);if(typeof r.code!=="string"||typeof r.name!=="string")throw new Error("Invalid account option.");return r;});}
+ catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");if(error instanceof CommandError&&error.code==="FORBIDDEN")forbidden=true;else throw error;}
+ if(forbidden)return <main className="content"><h1>Access denied</h1><p>You need banking.read to view bank and cash accounts.</p></main>;
+ return <CashAccounts organizationId={organizationId} rows={rows} options={options} canWrite={canWrite}/>;
+}

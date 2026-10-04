@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  createSupabaseIdentityVerifier
-} from "../../apps/web/server/auth/supabase-identity.ts";
+import { createIdentityVerifier } from "../../apps/web/server/auth/identity-verifier.ts";
 import {
   hasRecentAuthentication,
   requireRecentAuthentication,
@@ -45,9 +43,9 @@ test("S-04 verified identity ignores editable metadata authority claims", async 
         };
       }
     }
-  } as unknown as Pick<SupabaseClient, "auth">;
+  } as unknown as Parameters<typeof createIdentityVerifier>[0];
 
-  const verifier = createSupabaseIdentityVerifier(client);
+  const verifier = createIdentityVerifier(client);
   assert.deepEqual(await verifier.verifyIdentity(), { userId: USER });
 });
 
@@ -101,4 +99,37 @@ test("recent-auth guard rejects missing or stale server-confirmed users", async 
       ),
     RecentAuthenticationRequiredError
   );
+});
+
+test("database recent-auth guard reads active Auth.js sessions, not a missing auth.users field", () => {
+  const migration = readFileSync(new URL(
+    "../../database/migrations/0083_recent_auth_session_guard.sql",
+    import.meta.url
+  ), "utf8");
+  assert.match(migration, /CREATE OR REPLACE FUNCTION finance_private\.require_recent_auth/);
+  assert.match(migration, /FROM identity\.auth_sessions s/);
+  assert.match(migration, /s\.recent_auth_at/);
+  assert.match(migration, /s\.revoked_at IS NULL/);
+  const executableSql = migration.replace(/^--.*$/gm, "");
+  assert.doesNotMatch(executableSql, /identity\.users|\.last_sign_in_at/);
+});
+
+test("onboarding permits setup and draft writes while accounting posting stays active-only", () => {
+  const migration = readFileSync(new URL(
+    "../../database/migrations/0084_enable_onboarding_setup_and_drafts.sql",
+    import.meta.url
+  ), "utf8");
+  assert.match(migration, /require_chart_write[\s\S]*?v_status NOT IN \('active','onboarding'\)/);
+  assert.match(migration, /require_catalog_write[\s\S]*?v_status IS DISTINCT FROM 'onboarding'/);
+  assert.match(migration, /create_tax_code_version[\s\S]*?'onboarding'/);
+  assert.match(migration, /archive_tax_code_version[\s\S]*?'onboarding'/);
+  assert.match(migration, /save_financial_document[\s\S]*?v_permission NOT IN \(''active'',''onboarding''\)/);
+  assert.doesNotMatch(migration, /CREATE OR REPLACE FUNCTION finance_private\.lock_accounting_date/);
+  const ambiguityFix = readFileSync(new URL(
+    "../../database/migrations/0085_disambiguate_financial_draft_output_columns.sql",
+    import.meta.url
+  ), "utf8");
+  assert.match(ambiguityFix, /finance\.document_lines\.document_id=v_id/);
+  assert.match(ambiguityFix, /UPDATE finance\.approval_requests AS ar/);
+  assert.match(ambiguityFix, /save_financial_document/);
 });

@@ -33,11 +33,11 @@ test("provider and toolchain dependencies are exact and lockfile-backed", async 
     assert.match(version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/, `${name} must be exact`);
   }
 
-  assert.equal(root.engines.node, "24.21.0");
+  assert.equal(root.engines.node, "24.x");
   assert.equal(root.packageManager, "npm@11.19.0");
   assert.equal(root.devDependencies.eslint, "9.39.5");
   assert.equal(lock.lockfileVersion, 3);
-  assert.equal(lock.packages[""].engines.node, "24.21.0");
+  assert.equal(lock.packages[""].engines.node, "24.x");
   assert.deepEqual(lock.packages[""].devDependencies, root.devDependencies);
   assert.deepEqual(lock.packages["apps/web"].dependencies, web.dependencies);
 });
@@ -48,8 +48,8 @@ test("environment and local setup are documented without secrets", async () => {
   const root = await readJson("package.json");
 
   assert.match(env, /NEXT_PUBLIC_APP_URL=/);
-  assert.match(env, /NEXT_PUBLIC_SUPABASE_URL=/);
-  assert.match(env, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=/);
+  assert.match(env, /DATABASE_URL=/);
+  assert.match(env, /AUTH_SECRET=/);
   assert.doesNotMatch(env, /SERVICE_ROLE|SECRET_KEY|PASSWORD=/i);
 
   for (const script of ["lint", "typecheck", "test", "build"]) {

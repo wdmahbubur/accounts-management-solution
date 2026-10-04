@@ -9,10 +9,33 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;
 }) {
   const path = usePathname(); const online = useOnline(); const root = `/o/${organizationId}`;
-  const current = path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : "Workspace overview";
+  const current = path.endsWith("/notifications/preferences") ? "Email preferences" : path.includes("/notifications") ? "Notifications" : path.endsWith("/exports") ? "Export jobs" : path.endsWith("/imports") ? "Imports" : path.endsWith("/audit") ? "Audit trail" : path.endsWith("/documents") ? "Evidence library" : path.includes("/banking/accounts/") ? "Cashbook ledger" : path.includes("/banking/transfers") ? "Transfers" : path.includes("/banking/") ? "Cash and bank accounts" : path.includes("/accounting/general-ledger") ? "General ledger" : path.includes("/accounting/journals") ? "Journal register" : path.includes("/reports/trial-balance") ? "Trial balance" : path.includes("/sales/receipts") ? "Receipts" : path.includes("/sales/invoices") ? "Invoices" : path.includes("/sales/customers") ? "Customers" : path.includes("/purchases/bills") ? "Supplier bills" : path.includes("/purchases/vendors") ? "Suppliers" : path.includes("/catalog/") ? "Service catalogue" : path.endsWith("/settings/users") ? "Users and invitations" : path.endsWith("/settings/roles") ? "Roles and permissions" : path.endsWith("/settings/taxes") ? "Tax configuration" : path.endsWith("/settings/approvals") ? "Approval policies" : path.endsWith("/approvals") ? "Approval inbox" : path.endsWith("/accounting/year-close") ? "Fiscal year close" : path.endsWith("/accounting/periods") ? "Fiscal periods" : path.endsWith("/accounting/accounts") ? "Chart of accounts" : path.includes("/accounting/documents") ? "Financial documents" : "Workspace overview";
   const nav = [{ href: root, label: "Workspace overview" }, ...(capabilities.includes("users.read") ? [
     { href: `${root}/settings/users`, label: "Manage users" }, { href: `${root}/settings/roles`, label: "Manage roles" }
-  ] : [])];
+  ] : []), ...(capabilities.includes("accounting.read") ? [{ href: `${root}/accounting/accounts`, label: "Chart of accounts" }] : []),
+  ...(capabilities.includes("tax.read") ? [{ href: `${root}/settings/taxes`, label: "Tax configuration" }] : [])];
+  nav.push({ href: `${root}/notifications`, label: "Notifications" });
+  nav.push({ href: `${root}/notifications/preferences`, label: "Email preferences" });
+  if (capabilities.includes("exports.read")) nav.push({ href: `${root}/exports`, label: "Export jobs" });
+  if (capabilities.includes("imports.read")) nav.push({ href: `${root}/imports`, label: "Imports" });
+  if (capabilities.includes("approvals.manage")) nav.push({ href: `${root}/settings/approvals`, label: "Approval policies" });
+  if (capabilities.includes("approvals.read")) nav.push({ href: `${root}/approvals`, label: "Approval inbox" });
+  if (capabilities.includes("audit.read")) nav.push({ href: `${root}/audit`, label: "Audit trail" });
+  if (capabilities.includes("attachments.read")) nav.push({ href: `${root}/documents`, label: "Evidence library" });
+  if (capabilities.includes("documents.read")) nav.push({ href: `${root}/accounting/documents`, label: "Financial documents" });
+  if (capabilities.includes("ledger.read")) nav.push({ href: `${root}/accounting/journals`, label: "Journal register" });
+  if (capabilities.includes("ledger.read")) nav.push({ href: `${root}/accounting/general-ledger`, label: "General ledger" });
+  if (capabilities.includes("reports.read")) nav.push({ href: `${root}/reports/trial-balance`, label: "Trial balance" });
+  if (capabilities.includes("catalog.read")) nav.push({ href: `${root}/catalog/items`, label: "Service catalogue" });
+  if (capabilities.includes("sales.read")) nav.push({ href: `${root}/sales/customers`, label: "Customers" });
+  if (capabilities.includes("sales.read")) nav.push({ href: `${root}/sales/invoices`, label: "Invoices" });
+  if (capabilities.includes("sales.read")) nav.push({ href: `${root}/sales/receipts`, label: "Receipts" });
+  if (capabilities.includes("purchases.read")) nav.push({ href: `${root}/purchases/vendors`, label: "Suppliers" });
+  if (capabilities.includes("purchases.read")) nav.push({ href: `${root}/purchases/bills`, label: "Supplier bills" });
+  if (capabilities.includes("banking.read")) nav.push({ href: `${root}/banking/accounts`, label: "Cash and bank accounts" });
+  if (capabilities.includes("banking.read")) nav.push({ href: `${root}/banking/transfers`, label: "Transfers" });
+  if (capabilities.includes("accounting.read")) nav.push({ href: `${root}/accounting/periods`, label: "Fiscal periods" });
+  if (capabilities.includes("accounting.read")) nav.push({ href: `${root}/accounting/year-close`, label: "Fiscal year close" });
   return <div className={styles.shell}>
     <a className={styles.skip} href="#workspace-content">Skip to workspace content</a>
     <aside className={styles.sidebar} aria-label="Workspace sidebar">
