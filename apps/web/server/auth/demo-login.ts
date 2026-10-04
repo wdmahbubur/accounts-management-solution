@@ -1,9 +1,17 @@
-type DemoEnvironment = Pick<NodeJS.ProcessEnv, "DEMO_ACCOUNT_EMAIL" | "DEMO_ACCOUNT_PASSWORD" | "DEMO_LOGIN_ENABLED">;
+type DemoEnvironment = {
+  DEMO_ACCOUNT_EMAIL?: string;
+  DEMO_ACCOUNT_PASSWORD?: string;
+  DEMO_LOGIN_ENABLED?: string;
+};
 
 export type DemoAccountCredentials = { email: string; password: string };
 
 export function getDemoAccountCredentials(
-  environment: DemoEnvironment = process.env
+  environment: DemoEnvironment = {
+    DEMO_ACCOUNT_EMAIL: process.env.DEMO_ACCOUNT_EMAIL,
+    DEMO_ACCOUNT_PASSWORD: process.env.DEMO_ACCOUNT_PASSWORD,
+    DEMO_LOGIN_ENABLED: process.env.DEMO_LOGIN_ENABLED,
+  }
 ): DemoAccountCredentials | null {
   if (environment.DEMO_LOGIN_ENABLED?.trim().toLowerCase() !== "true") return null;
 
