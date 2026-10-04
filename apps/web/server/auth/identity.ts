@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import argon2 from "argon2";
 
 import { withDatabase, withDatabaseTransaction } from "../database.ts";
+import { isEmailVerificationRequired } from "./verification-policy.ts";
 
 export type IdentityTokenPurpose = "verify_email" | "reset_password";
 
@@ -122,8 +123,9 @@ export async function findVerifiedIdentityId(email: string): Promise<string | nu
 
 export async function reauthenticateIdentity(userId: string, sessionId: string, password: string): Promise<boolean> {
   const user = await withDatabase((client) => client.query<{ password_hash: string }>(
-    "SELECT password_hash FROM identity.users WHERE id = $1::uuid AND disabled_at IS NULL AND email_verified_at IS NOT NULL",
-    [userId]
+    `SELECT password_hash FROM identity.users WHERE id = $1::uuid AND disabled_at IS NULL
+     AND ($2::boolean = false OR email_verified_at IS NOT NULL)`,
+    [userId, isEmailVerificationRequired()]
   ));
   if (!await verifyPasswordHash(user.rows[0]?.password_hash ?? null, password)) return false;
   return withDatabaseTransaction(async (client) => {
@@ -132,8 +134,9 @@ export async function reauthenticateIdentity(userId: string, sessionId: string, 
        FROM identity.users u
        WHERE s.id = $1::uuid AND s.user_id = $2::uuid AND u.id = s.user_id
          AND s.session_version = u.session_version AND s.revoked_at IS NULL AND s.expires_at > now()
-         AND u.disabled_at IS NULL AND u.email_verified_at IS NOT NULL`,
-      [sessionId, userId]
+         AND u.disabled_at IS NULL
+         AND ($3::boolean = false OR u.email_verified_at IS NOT NULL)`,
+      [sessionId, userId, isEmailVerificationRequired()]
     );
     return result.rowCount === 1;
   });

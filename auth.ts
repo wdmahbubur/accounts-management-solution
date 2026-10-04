@@ -10,6 +10,7 @@ import {
   recordFailedPasswordLogin,
   verifyPasswordHash
 } from "./apps/web/server/auth/identity.ts";
+import { isEmailVerificationRequired } from "./apps/web/server/auth/verification-policy.ts";
 
 const sessionLifetimeSeconds = 8 * 60 * 60;
 
@@ -55,7 +56,7 @@ const nextAuth = NextAuth({
         });
 
         const valid = await verifyPasswordHash(user?.password_hash ?? null, password);
-        if (!user || !valid || !user.email_verified_at || user.disabled_at) {
+        if (!user || !valid || (isEmailVerificationRequired() && !user.email_verified_at) || user.disabled_at) {
           await recordFailedPasswordLogin(email);
           return null;
         }
@@ -100,8 +101,9 @@ const nextAuth = NextAuth({
            WHERE s.id = $1::uuid AND s.user_id = $2::uuid
              AND s.session_version = $3 AND u.session_version = $3
              AND s.revoked_at IS NULL AND s.expires_at > now()
-             AND u.disabled_at IS NULL AND u.email_verified_at IS NOT NULL`,
-          [token.sid, token.sub, token.sv]
+             AND u.disabled_at IS NULL
+             AND ($4::boolean = false OR u.email_verified_at IS NOT NULL)`,
+          [token.sid, token.sub, token.sv, isEmailVerificationRequired()]
         );
         return result.rows[0] ?? null;
       });
