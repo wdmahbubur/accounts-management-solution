@@ -27,8 +27,12 @@ function contained(root: string, path: string): boolean {
   return pathFromRoot !== "" && !pathFromRoot.startsWith("..") && !isAbsolute(pathFromRoot);
 }
 
+function localObjectsRoot(): string {
+  return resolve(process.cwd(), ".local-private-objects");
+}
+
 async function readLocalObject(key: string): Promise<Uint8Array | null> {
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   const rootReal = await realpath(root).catch(async () => {
     await mkdir(root, { recursive: true, mode: 0o700 });
     return realpath(root);
@@ -79,7 +83,7 @@ export async function writeQuarantinedObject(key: string, bytes: Uint8Array): Pr
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   await mkdir(root, { recursive: true, mode: 0o700 }).catch(() => undefined);
   const rootReal = await realpath(root).catch(() => null);
   if (!rootReal) return false;
@@ -111,7 +115,7 @@ export async function writePrivateImportObject(key: string, bytes: Uint8Array): 
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   await mkdir(root, { recursive: true, mode: 0o700 }).catch(() => undefined);
   const rootReal = await realpath(root).catch(() => null);
   if (!rootReal) return false;
@@ -140,7 +144,7 @@ export async function deletePrivateImportObject(key: string): Promise<boolean> {
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   const rootReal = await realpath(root).catch(() => null);
   if (!rootReal) return true;
   const target = resolve(rootReal, ...key.split("/"));
@@ -170,7 +174,7 @@ export async function writeInvoicePdfObject(key: string, bytes: Uint8Array): Pro
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   await mkdir(root, { recursive: true, mode: 0o700 }).catch(() => undefined);
   const rootReal = await realpath(root).catch(() => null);
   if (!rootReal) return false;
@@ -200,7 +204,7 @@ export async function deleteInvoicePdfObject(key: string): Promise<void> {
     return;
   }
   if (process.env.NODE_ENV === "production") return;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   const rootReal = await realpath(root).catch(() => null);
   if (!rootReal) return;
   const target = resolve(rootReal, ...key.split("/"));

@@ -17,6 +17,10 @@ const contained = (root: string, target: string) => {
   return path !== "" && !path.startsWith("..") && !isAbsolute(path);
 };
 
+function localObjectsRoot(): string {
+  return resolve(process.cwd(), ".local-private-objects");
+}
+
 export async function putPrivateExport(key: string, bytes: Uint8Array, format: "csv" | "pdf" | "xlsx" = "csv"): Promise<boolean> {
   if (!validKey(key) || bytes.byteLength < 1 || bytes.byteLength > maxBytes) return false;
   const contentType = format === "pdf" ? "application/pdf" : format === "xlsx"
@@ -33,7 +37,7 @@ export async function putPrivateExport(key: string, bytes: Uint8Array, format: "
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   await mkdir(root, { recursive: true, mode: 0o700 }).catch(() => undefined);
   const realRoot = await realpath(root).catch(() => null);
   if (!realRoot) return false;
@@ -61,7 +65,7 @@ export async function deletePrivateExport(key: string): Promise<boolean> {
     finally { client.destroy(); }
   }
   if (process.env.NODE_ENV === "production") return false;
-  const root = resolve(process.env.PRIVATE_OBJECTS_PATH ?? resolve(process.cwd(), ".local-private-objects"));
+  const root = localObjectsRoot();
   const realRoot = await realpath(root).catch(() => null);
   if (!realRoot) return true;
   const target = resolve(realRoot, ...key.split("/"));
