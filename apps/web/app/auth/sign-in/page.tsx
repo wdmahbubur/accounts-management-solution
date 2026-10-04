@@ -15,7 +15,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
   const next = safeNextPath(first(params.next), "/companies");
   const error = first(params.error);
   const status = first(params.status);
-  const demoLoginEnabled = getDemoAccountCredentials() !== null;
+  const demoCredentials = getDemoAccountCredentials();
 
   return (
     <main className="auth-shell">
@@ -23,8 +23,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
       <h1>Sign in</h1>
       <section className="panel" aria-labelledby="sign-in-title">
         <h2 id="sign-in-title">Company account</h2>
-        {error === "demo_unavailable" ? (
-          <p className="alert" role="alert">Demo sign-in is unavailable. Contact the site administrator.</p>
+        {error === "demo_failed" ? (
+          <p className="alert" role="alert">Demo sign-in failed. Please try again.</p>
         ) : error ? (
           <p className="alert" role="alert">
             Email or password is incorrect, or the account is not verified.
@@ -47,8 +47,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
         </form>
         <form action={demoSignInAction} className="auth-form">
           <input type="hidden" name="next" value={next} />
-          <button type="submit" disabled={!demoLoginEnabled}>Sign in with demo account</button>
-          {!demoLoginEnabled ? <p className="muted">Demo sign-in is not configured for this deployment.</p> : null}
+          <button type="submit">Sign in with demo account</button>
+          <p className="muted">Email: {demoCredentials.email} · Password: {demoCredentials.password}</p>
         </form>
         <div className="link-row">
           <Link href="/auth/sign-up">Create account</Link>

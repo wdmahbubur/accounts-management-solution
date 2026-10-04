@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { auth, signIn, signOut } from "../../../../auth.ts";
 import { createRequestClient } from "../../server/request-client.ts";
 import { sendIdentityLink } from "../../server/auth/mailer.ts";
-import { getDemoAccountCredentials } from "../../server/auth/demo-login.ts";
+import { getDemoAccountCredentials, isDemoAccountEmail } from "../../server/auth/demo-login.ts";
 import {
   changeIdentityPassword,
   createIdentityUser,
@@ -57,12 +57,11 @@ export async function signInAction(formData: FormData) {
 export async function demoSignInAction(formData: FormData) {
   const next = safeNextPath(field(formData, "next"), "/companies");
   const credentials = getDemoAccountCredentials();
-  if (!credentials) redirect(route("/auth/sign-in", { error: "demo_unavailable", next }));
 
   try {
     await signIn("credentials", { ...credentials, redirectTo: next });
   } catch (error) {
-    if (error instanceof AuthError) redirect(route("/auth/sign-in", { error: "demo_unavailable", next }));
+    if (error instanceof AuthError) redirect(route("/auth/sign-in", { error: "demo_failed", next }));
     throw error;
   }
 }
@@ -101,7 +100,7 @@ export async function resendVerificationAction(formData: FormData) {
 
 export async function recoverAction(formData: FormData) {
   const email = field(formData, "email");
-  if (validEmail(email)) {
+  if (validEmail(email) && !isDemoAccountEmail(email)) {
     try {
       const userId = await findVerifiedIdentityId(email);
       if (userId) await sendIdentityLink(normalizeEmail(email), "reset_password", await issueIdentityToken(userId, "reset_password"));
@@ -139,6 +138,9 @@ export async function updatePasswordAction(formData: FormData) {
   if (!strongPassword(password)) redirect(route("/settings/security", { error: "password_policy" }));
   const session = await auth();
   if (!session?.user?.id) redirect(route("/auth/sign-in", { next: "/settings/security" }));
+  if (session.user.email && isDemoAccountEmail(session.user.email)) {
+    redirect(route("/settings/security", { error: "shared_demo_account" }));
+  }
   try {
     await changeIdentityPassword(session.user.id, session.user.sessionId, password);
   } catch {

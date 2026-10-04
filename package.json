@@ -19,6 +19,7 @@
     "build": "node scripts/run-next.mjs build apps/web",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:worker-credential": "node scripts/provision-local-worker-role.mjs",
+    "demo:provision": "node scripts/provision-demo-account.mjs",
     "dev:secrets": "node scripts/provision-local-secrets.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:application": "node --conditions=react-server --test tests/application/*.test.mjs tests/application/*.test.ts",

@@ -1,25 +1,13 @@
-type DemoEnvironment = {
-  DEMO_ACCOUNT_EMAIL?: string;
-  DEMO_ACCOUNT_PASSWORD?: string;
-  DEMO_LOGIN_ENABLED?: string;
-};
+/** Public credentials for the isolated, synthetic demo company. */
+export const DEMO_ACCOUNT_EMAIL = "demo@ams-public-demo.example";
+export const DEMO_ACCOUNT_PASSWORD = "Demo@AMS2026!";
 
 export type DemoAccountCredentials = { email: string; password: string };
 
-export function getDemoAccountCredentials(
-  environment: DemoEnvironment = {
-    DEMO_ACCOUNT_EMAIL: process.env.DEMO_ACCOUNT_EMAIL,
-    DEMO_ACCOUNT_PASSWORD: process.env.DEMO_ACCOUNT_PASSWORD,
-    DEMO_LOGIN_ENABLED: process.env.DEMO_LOGIN_ENABLED,
-  }
-): DemoAccountCredentials | null {
-  if (environment.DEMO_LOGIN_ENABLED?.trim().toLowerCase() !== "true") return null;
+export function getDemoAccountCredentials(): DemoAccountCredentials {
+  return { email: DEMO_ACCOUNT_EMAIL, password: DEMO_ACCOUNT_PASSWORD };
+}
 
-  const email = environment.DEMO_ACCOUNT_EMAIL?.trim().toLowerCase() ?? "";
-  const password = environment.DEMO_ACCOUNT_PASSWORD ?? "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || !password || password.length > 1024) {
-    return null;
-  }
-
-  return { email, password };
+export function isDemoAccountEmail(email: string): boolean {
+  return email.trim().toLowerCase() === DEMO_ACCOUNT_EMAIL;
 }
