@@ -20,21 +20,38 @@ Requirements:
 - npm `11.19.0`
 - Python `3.10+` for the retained specification/reference checks
 
-Setup:
+Copy the template, install dependencies, and fill in the private local database
+connections before running database setup:
 
 ```bash
 cp .env.example .env.local
 npm ci
-npm run db:migrate
-npm run db:worker-credential
+```
+
+Then generate independent local secrets and check the configuration:
+
+```bash
 npm run dev:secrets
+npm run env:check -- --local
+npm run db:migrate
 npm run dev
 ```
 
 The environment example contains placeholders only. Never commit database
 URLs, Auth.js secrets, mail/provider credentials or real customer data. Use
-`DATABASE_URL` only for migrations and a separate restricted
+`DATABASE_URL` only for migrations/demo provisioning and a separate restricted
 `DATABASE_RUNTIME_URL` for server-side app access.
+For a synthetic demo identity in the isolated local database, run
+`npm run demo:provision` after migrations. Both setup commands prefer
+`MIGRATION_DATABASE_URL` over `DATABASE_URL`; an empty explicit override fails.
+
+For Preview, inject its independent configuration and run
+`npm run env:check -- --preview`. This mode never loads local environment files.
+The check validates configuration only and runs separately from the build;
+it does not test database access, email, redirects or cookies. Follow the
+[local and preview environment guide](docs/environment-readiness.md) for the
+canonical origin, isolated database and browser acceptance steps.
+
 Internal outbox, reminder and export workers use the separately restricted
 `DATABASE_WORKER_URL`, whose login inherits only the reviewed `ams_job_worker`
 function grants. After applying migrations, configure a local worker login with
@@ -79,8 +96,9 @@ Ordered plain-PostgreSQL migrations live under `database/migrations/`. They are
 applied in transactions under a transaction-scoped advisory lock, and the
 runner rejects edits to already-applied migration checksums. It reads
 `DATABASE_URL` from `.env.local` by default; `MIGRATION_DATABASE_URL` can
-override it. Application requests use `DATABASE_RUNTIME_URL` and never the
-migration credential.
+override it. Demo provisioning uses the same owner-target precedence.
+Application requests use `DATABASE_RUNTIME_URL` and never the migration
+credential.
 
 ```bash
 npm run db:migrate

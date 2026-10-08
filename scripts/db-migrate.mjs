@@ -3,11 +3,9 @@ import { readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { Pool } from "@neondatabase/serverless";
 import "./load-local-env.mjs";
+import { resolveOwnerDatabaseUrl } from "./environment-config.mjs";
 
-const connectionString = process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("Set DATABASE_URL (or MIGRATION_DATABASE_URL) before applying migrations.");
-}
+const connectionString = resolveOwnerDatabaseUrl(process.env);
 
 const migrationDirectory = join(import.meta.dirname, "..", "database", "migrations");
 const legacyMigrationChecksums = JSON.parse(await readFile(join(import.meta.dirname, "migration-history-overrides.json"), "utf8"));
