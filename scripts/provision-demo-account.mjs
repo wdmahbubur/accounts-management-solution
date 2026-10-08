@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { Pool } from "@neondatabase/serverless";
 import argon2 from "argon2";
 

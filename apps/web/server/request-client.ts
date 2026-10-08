@@ -2,6 +2,7 @@ import "server-only";
 
 import { auth } from "../../../auth.ts";
 import { withActorTransaction } from "./database.ts";
+import { normalizeRpcResult, prepareRpcArguments, type RpcArgumentMetadata } from "./rpc-values.ts";
 
 const procedures = new Set([
   "authorize_artifact_download",
@@ -173,12 +174,16 @@ export function createRequestClient(): RequestClient {
       try {
         return await withActorTransaction(session.user.id, async (client) => {
           const names = Object.keys(args);
-          const signature = await client.query<{
+          const signature = await client.query<RpcArgumentMetadata & {
             returns_set: boolean;
-            argument_names: string[] | null;
           }>(
             `SELECT p.proretset AS returns_set,
-                    p.proargnames[1:p.pronargs] AS argument_names
+                    p.proargnames[1:p.pronargs] AS argument_names,
+                    ARRAY(
+                      SELECT argument_type.type_oid::integer
+                      FROM unnest(p.proargtypes) WITH ORDINALITY AS argument_type(type_oid, position)
+                      ORDER BY argument_type.position
+                    ) AS argument_type_oids
              FROM pg_catalog.pg_proc p
              JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
              WHERE n.nspname = 'public' AND p.proname = $1 AND p.prokind = 'f'`,
@@ -190,16 +195,16 @@ export function createRequestClient(): RequestClient {
           });
           if (!match) return { data: null, error: { code: "42883", message: "Database command signature not found." } };
 
-          const ordered = names.map((key) => [key, args[key]] as const);
+          const ordered = prepareRpcArguments(args, match);
           const call = `public."${name}"(${ordered.map(([key], index) => `${quoteArgumentName(key)} => $${index + 1}`).join(", ")})`;
           const values = ordered.map(([, value]) => value);
           if (match.returns_set) {
             const result = await client.query(`SELECT * FROM ${call}`, values);
-            return { data: result.rows, error: null };
+            return { data: normalizeRpcResult(result.rows), error: null };
           }
 
           const result = await client.query(`SELECT ${call} AS value`, values);
-          return { data: result.rows[0]?.value ?? null, error: null };
+          return { data: normalizeRpcResult(result.rows[0]?.value ?? null), error: null };
         });
       } catch (error) {
         const databaseError = error as { code?: unknown; message?: unknown };

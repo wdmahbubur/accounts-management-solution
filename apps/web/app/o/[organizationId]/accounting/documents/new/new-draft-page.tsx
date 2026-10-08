@@ -8,6 +8,7 @@ import { readDraftOptions, readFinancialDocument } from "../../../../../../serve
 import { readReceiptAllocationOptions } from "../../../../../../server/documents/customer-receipts.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
+import { duplicateTradeDraft } from "../draft-interactions.ts";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,6 +23,7 @@ export default async function NewDraftPage({ params, searchParams }: {
   const query = await searchParams;
   if (!query.type || !(sourceTypes as readonly string[]).includes(query.type)) redirect(`/o/${organizationId}/accounting/documents`);
   const documentType = query.type as SourceType;
+  const today = bangladeshDate();
   const runtime = await roleRuntime();
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
 
@@ -33,7 +35,7 @@ export default async function NewDraftPage({ params, searchParams }: {
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
-    const raw = await readDraftOptions(runtime.client, actor, documentType, bangladeshDate());
+    const raw = await readDraftOptions(runtime.client, actor, documentType, today);
     options = {
       accounts: Array.isArray(raw.accounts) ? raw.accounts as DraftOptions["accounts"] : [],
       parties: Array.isArray(raw.parties) ? raw.parties as DraftOptions["parties"] : [],
@@ -45,30 +47,17 @@ export default async function NewDraftPage({ params, searchParams }: {
     };
     if (initial?.party_id && !options.parties.some(party => party.id === initial?.party_id)) initial = undefined;
     const selectedParty = typeof initial?.party_id === "string" ? initial.party_id : null;
-    if (documentType === "receipt" && selectedParty) receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, selectedParty, bangladeshDate());
+    if (documentType === "receipt" && selectedParty) receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, selectedParty, today);
     if (query.original_document_id) {
       const original = await readFinancialDocument(runtime.client, actor, query.original_document_id);
       if (original.document_type !== "invoice" || documentType !== "customer_credit") throw CommandError.notFound();
       initial = { ...(initial ?? {}), trade: { original_document_id: query.original_document_id } };
     }
     if (query.copy) {
-      if (documentType !== "invoice") throw CommandError.validation({ copy: "Only an invoice can be copied into a new invoice draft." });
+      if (documentType !== "invoice" && documentType !== "bill") throw CommandError.validation({ copy: "Only an invoice or supplier bill can be duplicated as a draft." });
       const source = await readFinancialDocument(runtime.client, actor, query.copy);
-      if (source.document_type !== "invoice") throw CommandError.notFound();
-      const rows = Array.isArray(source.lines) ? source.lines : [];
-      const sourceTrade = source.trade && typeof source.trade === "object" ? source.trade as Record<string, unknown> : {};
-      initial = {
-        ...source,
-        id: undefined,
-        document_number: undefined,
-        state: "draft",
-        posted_journal: undefined,
-        trade: { ...sourceTrade, original_document_id: null, performance_confirmed: false },
-        lines: rows.map(value => {
-          const line = value && typeof value === "object" ? value as Record<string, unknown> : {};
-          return { ...line, id: null, original_line_id: null };
-        })
-      };
+      if (source.document_type !== documentType) throw CommandError.notFound();
+      initial = duplicateTradeDraft(source, documentType, today);
       duplicate = true;
     }
   } catch (error) {
@@ -80,5 +69,5 @@ export default async function NewDraftPage({ params, searchParams }: {
   if (forbidden) return <main><h1>Access denied</h1><p>You do not have permission to create this source type.</p></main>;
   if (failure) throw failure;
   if (!options) throw new Error("Document draft options were unavailable.");
-  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices} />;
+  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices} defaultDate={today} />;
 }

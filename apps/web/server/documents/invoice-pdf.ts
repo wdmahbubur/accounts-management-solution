@@ -95,6 +95,15 @@ function validMoney(value: string): string {
   return value;
 }
 
+function unitPrice(value: string): string {
+  // Rates retain PostgreSQL's six-place precision; posted money remains two-place.
+  if (!/^(?:0|[1-9]\d{0,13})(?:\.\d{1,6})?$/.test(value)) {
+    throw new Error("Invoice PDF snapshot contains invalid unit price.");
+  }
+  const [whole, fraction = ""] = value.split(".");
+  return `${whole}.${fraction.replace(/0+$/, "").padEnd(2, "0")}`;
+}
+
 function assertSnapshot(snapshot: IssuedInvoicePdfSnapshot): void {
   if (snapshot.state !== "posted" || snapshot.currency !== "BDT" || !snapshot.documentId || !snapshot.documentNumber ||
       !Number.isSafeInteger(snapshot.documentVersion) || snapshot.documentVersion < 1 || !/^[a-f\d]{64}$/i.test(snapshot.materialDigest) ||
@@ -106,7 +115,7 @@ function assertSnapshot(snapshot: IssuedInvoicePdfSnapshot): void {
   validMoney(snapshot.roundingAdjustment);
   validMoney(snapshot.totalAmount);
   for (const line of snapshot.lines) {
-    validMoney(line.unitPrice);
+    unitPrice(line.unitPrice);
     validMoney(line.discountAmount);
     validMoney(line.netAmount);
     validMoney(line.taxAmount);
@@ -228,7 +237,7 @@ export async function renderIssuedInvoicePdf(snapshot: IssuedInvoicePdfSnapshot)
     if (y + rowHeight > PAGE.height - PAGE.margin - 150) { doc.addPage(); y = PAGE.margin; drawTableHeader(); }
     descriptionLines.forEach((part, index) => mixedText(doc, part, columns.description + 7, y + 6 + index * 11, 245, { size: 8 }));
     doc.font("ams-regular-latin").fontSize(8).fillColor("#172b35").text(clean(line.quantity), columns.quantity, y + 7, { width: 50, align: "right" });
-    doc.text(validMoney(line.unitPrice), columns.unitPrice, y + 7, { width: 62, align: "right" });
+    doc.text(unitPrice(line.unitPrice), columns.unitPrice, y + 7, { width: 62, align: "right" });
     doc.text(`${clean(line.taxLabel, "Tax")} ${clean(line.taxRate)}%`, columns.tax - 4, y + 7, { width: 66, align: "right" });
     doc.font("ams-bold-latin").text(validMoney(line.grossAmount), columns.total, y + 7, { width: 63, align: "right" });
     y += rowHeight;
