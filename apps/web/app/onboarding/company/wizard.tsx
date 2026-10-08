@@ -89,7 +89,13 @@ export function CompanyOnboardingWizard({
           : true;
 
   return (
-    <form action={createCompanyAction} className="wizard">
+    <form
+      action={createCompanyAction}
+      className="wizard"
+      onSubmit={(event) => {
+        if (step !== stepNames.length - 1) event.preventDefault();
+      }}
+    >
       <input type="hidden" name="name" value={draft.name} />
       <input type="hidden" name="legal_name" value={draft.legalName} />
       <input type="hidden" name="country_code" value={draft.countryCode.toUpperCase()} />
@@ -239,14 +245,18 @@ export function CompanyOnboardingWizard({
           </button>
           {step < stepNames.length - 1 ? (
             <button
+              key="continue"
               type="button"
               disabled={!canContinue}
-              onClick={() => setStep(step + 1)}
+              onClick={(event) => {
+                event.preventDefault();
+                setStep(step + 1);
+              }}
             >
               Continue
             </button>
           ) : (
-            <button type="submit" disabled={!draft.idempotencyKey || !canContinue}>
+            <button key="create-company" type="submit" disabled={!draft.idempotencyKey || !canContinue}>
               Create company
             </button>
           )}
