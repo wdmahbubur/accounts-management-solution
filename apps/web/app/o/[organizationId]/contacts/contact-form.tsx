@@ -85,7 +85,7 @@ function EditableContactForm({organizationId,scope,initial,readableScopes}:Props
     <fieldset disabled={frozen} className={styles.fields} aria-describedby={fieldErrors.contact||fieldErrors.body?`${formId}-errors`:undefined}>
       <legend>Contact details</legend>
       <div className={styles.grid}>
-        <label>Display name <span className={styles.required}>(required)</span><input {...errorAttributes("display_name")} name="display_name" autoComplete="organization" required maxLength={200} value={name} onChange={event=>{setName(event.target.value);checkDuplicate(event.target.value);}}/>{message("display_name")}</label>
+        <label><span>Display name <span className={styles.required}>(required)</span></span><input {...errorAttributes("display_name")} name="display_name" autoComplete="organization" required maxLength={200} value={name} onChange={event=>{setName(event.target.value);checkDuplicate(event.target.value);}}/>{message("display_name")}</label>
         <label>Legal name<input {...errorAttributes("legal_name")} name="legal_name" maxLength={200} value={legal} onChange={event=>setLegal(event.target.value)}/>{message("legal_name")}</label>
         <label>Email<input {...errorAttributes("email")} name="email" type="email" autoComplete="email" maxLength={254} value={email} onChange={event=>setEmail(event.target.value)}/>{message("email")}</label>
         <label>Phone<input {...errorAttributes("phone")} name="phone" type="tel" autoComplete="tel" maxLength={40} value={phone} onChange={event=>setPhone(event.target.value)}/>{message("phone")}</label>
