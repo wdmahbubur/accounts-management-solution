@@ -95,6 +95,7 @@ export default async function OrganizationDashboardPage({
   return <main className="content">
     <p className="eyebrow">Company dashboard · {snapshot.company.name}</p>
     <h1>Financial overview</h1>
+    {actor.capabilities.includes("company.update") && <p><Link href={`/o/${organizationId}/settings/setup`}>Review company setup and opening position</Link></p>}
     <p>BDT accrual books · {snapshot.company.timezone} · Period: {period} · Balances as of {snapshot.filters.as_of}</p>
     <form method="get" className="panel toolbar">
       <label>Performance from<input required type="date" name="from" defaultValue={snapshot.filters.from} /></label>
@@ -104,7 +105,7 @@ export default async function OrganizationDashboardPage({
     </form>
 
     {data.empty && <section className="panel"><h2>No posted activity yet</h2><p>Once you post opening balances, invoices, bills, expenses or cash entries, this overview will use the company ledger.</p>
-      {actor.capabilities.includes("journal.write") && <Link href={`/o/${organizationId}/settings/opening-balances`}>Set up opening balances</Link>}
+      {["journal.write","documents.read","accounting.read"].every(capability=>actor.capabilities.includes(capability)) && <Link href={`/o/${organizationId}/settings/opening-balances`}>Set up opening balances</Link>}
       {actor.capabilities.includes("sales.write") && <Link href={`/o/${organizationId}/sales/invoices`}>Open invoices</Link>}
     </section>}
 

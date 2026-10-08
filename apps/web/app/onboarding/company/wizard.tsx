@@ -5,7 +5,7 @@ import { useState } from "react";
 import { createCompanyAction } from "../actions.ts";
 
 const STORAGE_KEY = "ams:onboarding-company:v1";
-const stepNames = ["Company", "Calendar", "Books", "Team", "Review"] as const;
+const stepNames = ["Company", "Calendar", "Books", "Review"] as const;
 
 type Draft = {
   name: string;
@@ -149,7 +149,7 @@ export function CompanyOnboardingWizard({
               <input value="BDT" readOnly aria-describedby="bdt-note" />
             </label>
             <p id="bdt-note" className="muted">
-              V1 is BDT-only. Foreign currency is rejected rather than silently converted.
+              Your company’s books use Bangladeshi taka (BDT).
             </p>
             <label className="field">
               <span>Timezone</span>
@@ -180,7 +180,7 @@ export function CompanyOnboardingWizard({
 
         {step === 2 ? (
           <>
-            <h2>Books and starter accounts</h2>
+            <h2>Choose when your books start</h2>
             <label className="field">
               <span>Books start date</span>
               <input
@@ -191,30 +191,18 @@ export function CompanyOnboardingWizard({
               />
             </label>
             <p className="muted">
-              Setup creates the reviewed 29-account starter chart, required system mappings,
-              one opening period and regular periods through the fiscal-year end. Foundational
-              dates and currency become restricted after financial posting begins.
+              Choose the first day for transactions in these books. We’ll set up the accounts
+              and financial calendar for you. After creating the company, you can bring in
+              earlier balances or confirm that you’re starting from zero.
+            </p>
+            <p className="muted">
+              Check the start date and calendar before you post transactions; changes are
+              limited afterwards.
             </p>
           </>
         ) : null}
 
         {step === 3 ? (
-          <>
-            <h2>Roles, cash and tax setup</h2>
-            <p>
-              Setup creates the sourced system role templates and assigns your verified account
-              the Owner template. Detailed role capabilities are configured by the dedicated
-              permissions story and cannot be self-granted here.
-            </p>
-            <p className="muted">
-              Starter Cash on hand, Bank, Mobile wallet, AR/AP, advance, tax, retained-earnings,
-              opening-suspense and rounding accounts are included. Team invitations and policy
-              configuration are completed in their dedicated workflows.
-            </p>
-          </>
-        ) : null}
-
-        {step === 4 ? (
           <>
             <h2>Review and create</h2>
             <dl className="review-list">
@@ -226,9 +214,13 @@ export function CompanyOnboardingWizard({
               <div><dt>Fiscal start month</dt><dd>{draft.fiscalMonth}</dd></div>
               <div><dt>Books start</dt><dd>{draft.booksStartDate || "—"}</dd></div>
             </dl>
+            <p>
+              You’ll be the company Owner. You can add teammates and set up approvals after
+              creating the company.
+            </p>
             <p className="muted">
-              The final command is atomic: company, owner membership, templates, starter COA,
-              mappings and periods either all commit or all roll back.
+              Next, finish setting up your books by choosing whether to start from zero or
+              bring in existing balances.
             </p>
           </>
         ) : null}

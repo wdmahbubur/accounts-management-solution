@@ -14,6 +14,7 @@ type NavigationDefinition = {
   path: string;
   label: string;
   anyCapability?: readonly string[];
+  allCapabilities?: readonly string[];
   aliases?: string[];
 };
 
@@ -56,11 +57,12 @@ const definitions: { id: string; label: string; items: NavigationDefinition[] }[
     { path: "/audit", label: "Audit trail", anyCapability: ["audit.read"] }
   ] },
   { id: "settings", label: "Settings", items: [
+    { path: "/settings/setup", label: "Company setup", anyCapability: ["company.update"] },
     { path: "/settings/users", label: "Users and invitations", anyCapability: ["users.read"] },
     { path: "/settings/roles", label: "Roles and permissions", anyCapability: ["users.read"] },
     { path: "/settings/taxes", label: "Tax configuration", anyCapability: ["tax.read"] },
     { path: "/settings/approvals", label: "Approval policies", anyCapability: ["approvals.manage"] },
-    { path: "/settings/opening-balances", label: "Opening balances", anyCapability: ["journal.write"] },
+    { path: "/settings/opening-balances", label: "Opening balances", allCapabilities: ["journal.write", "documents.read", "accounting.read"] },
     { path: "/notifications/preferences", label: "Email preferences" }
   ] }
 ];
@@ -71,7 +73,8 @@ export function workspaceNavigation(organizationId: string, capabilities: readon
     id: group.id,
     label: group.label,
     items: group.items
-      .filter(item => !item.anyCapability || item.anyCapability.some(capability => capabilities.includes(capability)))
+      .filter(item => (!item.anyCapability || item.anyCapability.some(capability => capabilities.includes(capability))) &&
+        (!item.allCapabilities || item.allCapabilities.every(capability => capabilities.includes(capability))))
       .map(item => ({
         href: `${root}${item.path}`,
         label: item.label,

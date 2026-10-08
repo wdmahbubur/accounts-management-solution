@@ -35,6 +35,10 @@ export default async function NewDraftPage({ params, searchParams }: {
   let failure: unknown;
   try {
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
+    if(documentType === "opening_balance") {
+      if(!["journal.write","documents.read","accounting.read"].every(capability=>actor.capabilities.includes(capability))) throw CommandError.forbidden();
+      redirect(`/o/${organizationId}/settings/opening-balances`);
+    }
     const raw = await readDraftOptions(runtime.client, actor, documentType, today);
     options = {
       accounts: Array.isArray(raw.accounts) ? raw.accounts as DraftOptions["accounts"] : [],

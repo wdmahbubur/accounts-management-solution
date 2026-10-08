@@ -1,6 +1,8 @@
 import type { RequestClient } from "../request-client.ts";
 import { capability } from "@ams/permissions";
 import { calculateDocument, moneyUnits, formatMoney } from "@ams/accounting";
+import { cashPreviewTypes, parseCashPreviewDatabaseResult, type PostingPreviewResult } from "../../lib/posting-preview.ts";
+import { readApprovalReview } from "../approvals/inbox-service.ts";
 import { CommandError } from "../commands/errors.ts";
 import type { ActorContext } from "../auth/types.ts";
 import type { OrganizationCommandDefinition } from "../commands/types.ts";
@@ -9,6 +11,9 @@ import { record, documentDatabaseError, validateDraftDocument, validateAllocatio
 type RpcClient=Pick<RequestClient,"rpc">;
 const typeCapability:Record<string,string>={invoice:"sales.write",customer_credit:"sales.write",receipt:"sales.write",customer_refund:"sales.write",customer_advance:"sales.write",
   bill:"purchases.write",vendor_credit:"purchases.write",paid_expense:"purchases.write",vendor_payment:"purchases.write",vendor_refund:"purchases.write",vendor_advance:"purchases.write",transfer:"banking.write"};
+export function canEditFinancialDocument(actor:Pick<ActorContext,"capabilities">,documentType:string){
+  return actor.capabilities.includes(typeCapability[documentType]??"journal.write");
+}
 export interface SaveDraftReceipt { documentId:string; documentVersion:number; state:string; netAmount:string; taxAmount:string; totalAmount:string; materialDigest:string }
 function validateSaveEnvelope(raw:unknown){const r=record(raw);if(Object.keys(r).some((key)=>!(["expected_version","draft"] as string[]).includes(key)))throw CommandError.validation({body:"Unexpected request field."});
   if(!Number.isSafeInteger(r.expected_version)||Number(r.expected_version)<1)throw CommandError.validation({expected_version:"Refresh the current document before saving."});
@@ -57,32 +62,59 @@ export async function readDraftOptions(client:RpcClient,actor:ActorContext,docum
   const r=await client.rpc("list_document_draft_options",{p_organization_id:actor.organizationId,p_document_type:documentType,p_accounting_date:accountingDate});
   if(r.error)throw documentDatabaseError(r.error);return record(r.data,"draft_options");
 }
-export async function previewFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number){
+function previewDatabaseError(error:{code?:string;message?:string},approval=false){
+  if(error.code==="40001")return CommandError.conflict(approval?"APPROVAL_STALE":"STALE_VERSION");
+  if(error.code==="23P01")return CommandError.conflict("ALLOCATION_EXCEEDED");
+  if(error.code==="55P03")return CommandError.conflict("PERIOD_LOCKED");
+  if(error.code==="22023"||error.code==="23514")return CommandError.validation({document:"The posting preview could not be prepared. Check the saved customer or supplier, cash accounts, account mappings and settlement targets."});
+  return documentDatabaseError(error);
+}
+function sourceCalculationPreview(source:Record<string,unknown>,documentId:string,expectedVersion:number):PostingPreviewResult{
+  const type=String(source.document_type);
+  const rows=Array.isArray(source.lines)?source.lines.map(raw=>record(raw,"line")):[];
+  const warnings=["Preview only. No journal, settlement or cash movement is created."];
+  if(["invoice","customer_credit","bill","vendor_credit","paid_expense"].includes(type)&&rows.length){
+    const rounding=String(source.rounding_adjustment??"0.00");
+    const preview=calculateDocument({currency:"BDT",lines:rows.map(line=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
+      discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
+      ...(rounding==="0.00"?{}:{rounding:{amount:rounding,reason:String(source.rounding_reason),account_id:String(source.rounding_account_id)}})});
+    return{documentId,documentVersion:expectedVersion,preview:{kind:"trade",...preview,descriptions:rows.map(row=>String(row.description??""))},warnings};
+  }
+  if(!["manual_journal","controlled_adjustment","opening_balance"].includes(type)){
+    throw CommandError.validation({document:"A posting preview is not available for this source. Check its saved details."});
+  }
+  const journal=Array.isArray(source.journal_rows)?source.journal_rows.map(raw=>record(raw,"journal_row")):[];
+  let debits=0n,credits=0n;
+  const lines=journal.map((row,index)=>{
+    debits+=moneyUnits(String(row.debit));credits+=moneyUnits(String(row.credit));
+    return{lineNo:index+1,accountId:String(row.account_id),accountCode:null,accountName:null,partyName:null,
+      description:String(row.description??""),debit:formatMoney(moneyUnits(String(row.debit))),credit:formatMoney(moneyUnits(String(row.credit)))};
+  });
+  const balanced=journal.length>=2&&debits>0n&&debits===credits;
+  if(!balanced)warnings.unshift("The journal needs at least two lines with equal, positive debit and credit totals.");
+  return{documentId,documentVersion:expectedVersion,preview:{kind:"journal",currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced,lines},warnings};
+}
+export async function previewFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number):Promise<PostingPreviewResult>{
   const source=await readFinancialDocument(client,actor,documentId);const type=String(source.document_type);const required=typeCapability[type]??"journal.write";
   if(!actor.capabilities.includes(required))throw CommandError.forbidden();if(Number(source.version)!==expectedVersion)throw CommandError.conflict("STALE_VERSION");
   if(source.state==="posted"||source.state==="void")throw CommandError.validation({document:"Posted and void sources do not have an editable posting preview."});
-  const rows=Array.isArray(source.lines)?source.lines.map((raw)=>record(raw,"line")):[];
-  if(rows.length){
-    const rounding=String(source.rounding_adjustment??"0.00");const preview=calculateDocument({currency:"BDT",lines:rows.map((line)=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
-      discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
-      ...(rounding==="0.00"?{}:{rounding:{amount:rounding,reason:String(source.rounding_reason),account_id:String(source.rounding_account_id)}})});
-    return{documentId,documentVersion:expectedVersion,preview,warnings:["Preview only. No journal, settlement or cash movement is created."]};
+  if((cashPreviewTypes as readonly string[]).includes(type)){
+    const result=await client.rpc("preview_cash_document_posting",{p_organization_id:actor.organizationId,p_document_id:documentId,p_expected_version:expectedVersion});
+    if(result.error)throw previewDatabaseError(result.error);
+    return parseCashPreviewDatabaseResult(result.data,documentId,expectedVersion);
   }
-  const journal=Array.isArray(source.journal_rows)?source.journal_rows.map((raw)=>record(raw,"journal_row")):[];let debits=0n,credits=0n;
-  for(const row of journal){debits+=moneyUnits(String(row.debit));credits+=moneyUnits(String(row.credit));}
-  return{documentId,documentVersion:expectedVersion,preview:{currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced:debits===credits},
-    warnings:[...(journal.length&&debits!==credits?["Journal draft is unbalanced."]:[]),"Preview only. No journal, settlement or cash movement is created."]};
+  return sourceCalculationPreview(source,documentId,expectedVersion);
 }
-export async function previewApprovalDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number){
+export async function previewApprovalDocument(client:RpcClient,actor:ActorContext,approvalRequestId:string,expectedVersion:number):Promise<PostingPreviewResult>{
   if(!actor.capabilities.includes("approvals.read"))throw CommandError.forbidden();
-  const source=await readFinancialDocument(client,actor,documentId);if(Number(source.version)!==expectedVersion)throw CommandError.conflict("STALE_VERSION");
-  const rows=Array.isArray(source.lines)?source.lines.map((raw)=>record(raw,"line")):[];
-  if(rows.length){const rounding=String(source.rounding_adjustment??"0.00");const preview=calculateDocument({currency:"BDT",lines:rows.map((line)=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
-      discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
-      ...(rounding==="0.00"?{}:{rounding:{amount:rounding,reason:String(source.rounding_reason),account_id:String(source.rounding_account_id)}})});
-    return{documentId,documentVersion:expectedVersion,preview,warnings:["Review preview only. Posting remains a separate authorized action."]};}
-  const journal=Array.isArray(source.journal_rows)?source.journal_rows.map((raw)=>record(raw,"journal_row")):[];let debits=0n,credits=0n;
-  for(const row of journal){debits+=moneyUnits(String(row.debit));credits+=moneyUnits(String(row.credit));}
-  return{documentId,documentVersion:expectedVersion,preview:{currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced:debits===credits},
-    warnings:[...(journal.length&&debits!==credits?["Journal draft is unbalanced."]:[]),"Review preview only. Posting remains a separate authorized action."]};
+  const review=await readApprovalReview(client,actor,approvalRequestId);
+  const source=record(review.document,"document");const documentId=String(review.document_id);
+  if(review.stale===true||review.document_version!==expectedVersion||Number(source.version)!==expectedVersion
+    ||!["pending","approved"].includes(String(review.state))||!["pending_approval","approved"].includes(String(source.state)))throw CommandError.conflict("APPROVAL_STALE");
+  if((cashPreviewTypes as readonly string[]).includes(String(source.document_type))){
+    const result=await client.rpc("preview_approval_cash_posting",{p_organization_id:actor.organizationId,p_approval_request_id:approvalRequestId,p_expected_version:expectedVersion});
+    if(result.error)throw previewDatabaseError(result.error,true);
+    return parseCashPreviewDatabaseResult(result.data,documentId,expectedVersion);
+  }
+  return sourceCalculationPreview(source,documentId,expectedVersion);
 }
