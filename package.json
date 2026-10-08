@@ -24,6 +24,7 @@
     "env:check": "node scripts/check-environment.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:application": "node --conditions=react-server --test tests/application/*.test.mjs tests/application/*.test.ts",
+    "test:database:cash-accounts": "node --test tests/database/cash-account-balance.test.mjs",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
     "test:spec": "cd docs && python verification/check_spec.py"
   },

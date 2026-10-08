@@ -4,12 +4,14 @@ import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
-import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
+import { canEditFinancialDocument, readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
 import { canPostDocument } from "../../../../../../server/documents/posting.ts";
 import { readInvoiceLifecycle } from "../../../../../../server/documents/invoice-register.ts";
-import { readReceiptLifecycle } from "../../../../../../server/documents/customer-receipts.ts";
+import { readReceiptAllocationOptions, readReceiptLifecycle, type ReceiptInvoiceTarget } from "../../../../../../server/documents/customer-receipts.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
+import { listActiveMemberships } from "../../../../../../server/companies/memberships.ts";
+import { OpeningSubmitAction } from "../opening-submit-action.tsx";
 import { PostingAction } from "../posting-action.tsx";
 import { ReverseDocumentAction } from "../reverse-document-action.tsx";
 import { AllocationUnapplyAction } from "../allocation-unapply-action.tsx";
@@ -35,21 +37,27 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   let document: Record<string, unknown> | undefined;
   let invoiceLifecycle: Awaited<ReturnType<typeof readInvoiceLifecycle>> | null = null;
   let receiptLifecycle: Awaited<ReturnType<typeof readReceiptLifecycle>> | null = null;
+  let openingCompanyStatus:string|undefined;
+  let openingOptions:{accounts:{id:string;code:string;name:string}[];parties:{id:string;display_name:string}[]}|undefined;
   let openingCutover: Record<string,unknown> | null = null;
   let options: DraftOptions | undefined;
+  let receiptInvoices: ReceiptInvoiceTarget[] = [];
+  let receiptInvoiceError = "";
   let failure: unknown;
   try {
     actor = await resolveActorContext(organizationId, runtime.dependencies);
     document = await readFinancialDocument(runtime.client, actor, documentId);
     const type = String(document.document_type);
+    if(type === "opening_balance") {openingCompanyStatus=(await listActiveMemberships(runtime.client)).find(company=>company.organizationId===organizationId)?.organizationStatus;
+      if(actor.capabilities.includes("journal.write")){const result=await runtime.client.rpc("list_opening_cutover_options",{p_organization_id:organizationId});if(!result.error&&result.data)openingOptions=result.data as typeof openingOptions;}}
     if (type === "opening_balance" && actor.capabilities.includes("accounting.read")) {
       const result = await runtime.client.rpc("read_opening_cutover_summary", { p_organization_id: organizationId, p_document_id: documentId });
       if (result.error) throw new Error("Opening cutover evidence could not be loaded.");
       if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) openingCutover = result.data as Record<string,unknown>;
     }
-    if (type === "invoice") invoiceLifecycle = await readInvoiceLifecycle(runtime.client, actor, documentId);
-    if (type === "receipt") receiptLifecycle = await readReceiptLifecycle(runtime.client, actor, documentId);
-    if (String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type)) {
+    if (type === "invoice" && actor.capabilities.includes("sales.read")) invoiceLifecycle = await readInvoiceLifecycle(runtime.client, actor, documentId);
+    if (type === "receipt" && actor.capabilities.includes("sales.read")) receiptLifecycle = await readReceiptLifecycle(runtime.client, actor, documentId);
+    if (type !== "opening_balance" && String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type) && canEditFinancialDocument(actor, type)) {
       const raw = await readDraftOptions(runtime.client, actor, type, String(document.accounting_date));
       options = {
         accounts: Array.isArray(raw.accounts) ? raw.accounts as DraftOptions["accounts"] : [],
@@ -60,6 +68,10 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
         items: Array.isArray(raw.items) ? raw.items as DraftOptions["items"] : [],
         cost_centers: Array.isArray(raw.cost_centers) ? raw.cost_centers as DraftOptions["cost_centers"] : []
       };
+      if (type === "receipt" && typeof document.party_id === "string") {
+        try { receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, document.party_id, String(document.accounting_date)); }
+        catch { receiptInvoiceError = "Eligible invoices could not be loaded. Your saved settlement targets are preserved. Refresh the invoice list to retry."; }
+      }
     }
   } catch (error) {
     failure = error;
@@ -74,12 +86,12 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   if (!actor || !document) throw new Error("Document response was empty.");
 
   const type = String(document.document_type);
-  const canPost = String(document.state) === "approved" && canPostDocument(actor, type);
+  const canPost = String(document.state) === "approved" && canPostDocument(actor, type) && !(type === "opening_balance" && openingCompanyStatus === "onboarding");
   const canReverse = String(document.state) === "posted" && actor.capabilities.includes("journal.post") &&
     !document.reversed_by_document_id && !["reversal", "opening_balance", "year_close"].includes(type);
   return <main className={styles.main}>
     <p><Link href={type === "invoice" ? `/o/${organizationId}/sales/invoices` : `/o/${organizationId}/accounting/documents`}>← {type === "invoice" ? "Invoices" : "Financial documents"}</Link></p>
-    {options ? <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={type as SourceType} options={options} initial={document} expectedVersion={Number(document.version)} /> : <>
+    {options && type !== "opening_balance" ? <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={type as SourceType} options={options} initial={document} expectedVersion={Number(document.version)} receiptInvoices={receiptInvoices} receiptInvoiceError={receiptInvoiceError} /> : <>
       <section className={`panel ${styles.panel}`}>
         <p className="eyebrow">{type}</p>
         <h1>{String(document.document_number ?? "Draft")}</h1>
@@ -91,6 +103,13 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
         {type === "receipt" && receiptLifecycle && <section aria-label="Receipt settlement" className="panel"><h2>Receipt settlement</h2><p>Applied: BDT {String(receiptLifecycle.applied_amount)} · Unused credit: BDT {String(receiptLifecycle.residual_amount ?? "0.00")}</p>{Array.isArray(receiptLifecycle.allocations) && receiptLifecycle.allocations.map((value, index) => {const allocation = value as Record<string, unknown>;return <p key={String(allocation.id ?? index)}>{String(allocation.effective_date)} · BDT {String(allocation.amount)} · {String(allocation.counter_document_number ?? "Invoice")}{!allocation.reversed_on && actor.capabilities.includes("dues.allocate") && <AllocationUnapplyAction organizationId={organizationId} allocationId={String(allocation.id)} />}</p>;})}</section>}
         {Array.isArray(document.lines) && document.lines.length > 0 && <LineSnapshotTable rows={document.lines as Record<string, unknown>[]} />}
       </section>
+      {type === "opening_balance" && <section className="panel"><h2>Opening journal · BDT</h2><div className="table-scroll"><table><thead><tr><th>Account</th><th>Party</th><th>Description</th><th>Original reference</th><th>Due date</th><th>Debit</th><th>Credit</th></tr></thead><tbody>{(Array.isArray(document.journal_rows)?document.journal_rows as Record<string,unknown>[]:[]).map((row,index)=><tr key={index}><td>{openingOptions?.accounts.find(account=>account.id===row.account_id)?.name??String(row.account_id)}</td><td>{openingOptions?.parties.find(party=>party.id===row.party_id)?.display_name??String(row.party_id??"—")}</td><td>{String(row.description)}</td><td>{String(row.open_item_reference??"—")}</td><td>{String(row.open_item_due_date??"—")}</td><td>{String(row.debit)}</td><td>{String(row.credit)}</td></tr>)}</tbody></table></div>
+        {document.state === "draft" && actor.capabilities.includes("journal.write") && actor.capabilities.includes("accounting.read") && <p><Link href={`/o/${organizationId}/settings/opening-balances?document=${documentId}`}>Edit balances and cutover evidence</Link></p>}
+        {actor.capabilities.includes("accounting.read")&&!openingCutover&&<p>Add the source trial-balance evidence in the cutover workspace before requesting approval.</p>}
+        <p><Link href={`/o/${organizationId}/settings/approvals`}>Configure opening approval</Link> · <Link href={`/o/${organizationId}/approvals`}>Review approval requests</Link></p>
+        {openingCompanyStatus === "onboarding" && <p>{actor.capabilities.includes("company.update")?<Link href={`/o/${organizationId}/settings/setup`}>Return to company setup to activate and post the approved opening</Link>:"A company owner completes setup after this opening is approved."}</p>}
+      </section>}
+      {type === "opening_balance" && document.state === "draft" && (openingCutover || !actor.capabilities.includes("accounting.read")) && actor.capabilities.includes("journal.write") && <OpeningSubmitAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}
       {type === "write_off" && document.state === "draft" && <WriteOffSubmitAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}
       {canPost && <PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} />}
       {canReverse && <ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} />}

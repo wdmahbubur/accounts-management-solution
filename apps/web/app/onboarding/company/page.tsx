@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "../../../lib/database/server.ts";
 import { CompanyOnboardingWizard } from "./wizard.tsx";
+import { switchCompanyAction } from "../../companies/actions.ts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -40,18 +41,17 @@ export default async function CompanyOnboardingPage({
 
       {status === "created" && organization ? (
         <section className="panel">
-          <h2>Company setup created</h2>
+          <h2>Your company is ready for its opening setup</h2>
           <p>
-            The company, owner membership, starter accounts, mappings and initial periods were
-            committed atomically.
+            Your starter accounts and fiscal periods are saved. Choose whether these books begin
+            with zero balances or bring forward balances from earlier records.
           </p>
-          <p className="muted">
-            Organization ID: <code className="inline">{organization}</code>
-          </p>
-          <p className="muted">
-            Company switching and the full permission matrix are completed by the next foundation stories.
-          </p>
-          <Link href="/companies">Open company list</Link>
+          <form action={switchCompanyAction}>
+            <input type="hidden" name="organization_id" value={organization} />
+            <input type="hidden" name="destination" value="setup" />
+            <button type="submit">Continue company setup</button>
+          </form>
+          <p><Link href="/companies">Open company list</Link></p>
         </section>
       ) : (
         <>

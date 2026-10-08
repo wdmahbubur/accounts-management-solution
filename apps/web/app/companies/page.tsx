@@ -43,9 +43,6 @@ export default async function CompaniesPage({
 
   const params = await searchParams;
   const error = first(params.error);
-  if (current && !error) {
-    redirect(`/o/${current.organizationId}/dashboard`);
-  }
 
   return (
     <main className="auth-shell">
@@ -102,13 +99,14 @@ export default async function CompaniesPage({
                   </div>
                 </dl>
                 <form action={switchCompanyAction}>
+                  {membership.organizationStatus === "onboarding" && membership.roleNames.includes("Owner") && <input type="hidden" name="destination" value="setup" />}
                   <input
                     type="hidden"
                     name="organization_id"
                     value={membership.organizationId}
                   />
                   <button type="submit">
-                    {isCurrent ? "Open current company" : `Open ${membership.organizationName}`}
+                    {membership.organizationStatus === "onboarding" && membership.roleNames.includes("Owner") ? "Finish company setup" : isCurrent ? "Open current company" : `Open ${membership.organizationName}`}
                   </button>
                 </form>
               </article>
@@ -118,8 +116,7 @@ export default async function CompaniesPage({
       )}
 
       <p className="muted">
-        The selected-company cookie is a navigation preference only. Every company page
-        rechecks your live active membership before showing tenant context.
+        Choose the company whose books you want to work on. Each company keeps its own accounts, transactions, and reports.
       </p>
       <Link href="/onboarding/company">Create another company</Link>
     </main>
