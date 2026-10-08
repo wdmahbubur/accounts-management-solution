@@ -1,17 +1,11 @@
 import { Pool } from "@neondatabase/serverless";
 import argon2 from "argon2";
 
-import { loadEnvFile } from "node:process";
+import "./load-local-env.mjs";
+import { resolveOwnerDatabaseUrl } from "./environment-config.mjs";
 import { DEMO_ACCOUNT_EMAIL, DEMO_ACCOUNT_PASSWORD } from "../apps/web/server/auth/demo-login.ts";
 
-try {
-  loadEnvFile(".env.local");
-} catch (error) {
-  if (!error || typeof error !== "object" || !("code" in error) || error.code !== "ENOENT") throw error;
-}
-
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error("DATABASE_URL is required to provision the isolated demo company.");
+const databaseUrl = resolveOwnerDatabaseUrl(process.env);
 
 const pool = new Pool({ connectionString: databaseUrl, max: 1, connectionTimeoutMillis: 10_000 });
 const client = await pool.connect();
