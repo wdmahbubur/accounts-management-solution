@@ -1,1 +1,78 @@
 .main{display:grid;gap:1rem;max-width:1200px;margin:auto}.panel{padding:1.2rem}.toolbar{display:flex;gap:.6rem;flex-wrap:wrap}.grid{overflow:auto}.grid table{width:100%;border-collapse:collapse}.grid th,.grid td{text-align:left;padding:.7rem;border-bottom:1px solid #e4e7ec;white-space:nowrap}.form{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:.85rem}.form label,.line label{display:grid;gap:.3rem;font-weight:600}.form input,.form select,.form textarea,.line input,.line select{min-height:2.5rem;padding:.4rem;border:1px solid #c8ced8;border-radius:.35rem;background:#fff}.wide{grid-column:1/-1}.line{display:grid;grid-template-columns:repeat(3,minmax(130px,1fr));align-items:end;gap:.7rem;padding:.8rem 0;border-bottom:1px solid #e4e7ec}.line:last-child{border-bottom:0}.check{display:flex!important;align-items:center;gap:.5rem}.check input{min-height:auto}.error{padding:.75rem;background:#fef3f2;color:#8a1c1c}.hint{color:#667085}@media(max-width:760px){.form{grid-template-columns:repeat(2,minmax(130px,1fr))}.line{grid-template-columns:repeat(2,minmax(125px,1fr))}}
+
+/* Draft-editor rules are scoped so document lists and read-only details keep their layout. */
+.editor { width: 100%; min-width: 0; }
+.editorHeader { display: grid; gap: .4rem; }
+.editorHeader :is(h1, h2, p) { margin: 0; }
+.editorForm { display: grid; gap: 1rem; min-width: 0; }
+.editorFields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.editor .editorFields:disabled { opacity: .8; }
+.editorSection { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid #dce3ec; border-radius: 12px; background: #fff; min-width: 0; }
+.editorSection > h2, .sectionHeading h2, .totalPanel h2 { margin: 0; font-size: 1.1rem; }
+.editorSection > .hint, .sectionHeading .hint, .totalPanel .hint { margin: .35rem 0 0; line-height: 1.55; font-size: .9rem; }
+.editorGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 1rem; }
+.editor label { min-width: 0; font-size: .9rem; }
+.editor :is(input, select, textarea) { max-width: 100%; min-width: 0; padding: .65rem .75rem; min-height: 44px; border-radius: 7px; font-weight: 400; }
+.editor :is(input, select, textarea)[aria-invalid="true"] { border-color: #b42318; }
+.editor input[type="checkbox"] { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; min-height: 0; padding: 0; }
+.editor .check { align-self: center; line-height: 1.5; }
+.optional { font-size: .8rem; color: #667085; font-weight: 400; }
+.editor small { line-height: 1.5; font-weight: 400; }
+.fieldError { color: #a8241c; }
+.sectionHeading, .lineHeading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.lineCount { flex: 0 0 auto; padding: .3rem .65rem; border-radius: 20px; background: #edf2f8; color: #475467; font-size: .8rem; }
+.lineCards { display: grid; gap: 1rem; min-width: 0; }
+.lineCard { display: grid; gap: 1rem; padding: 1rem; border: 1px solid #d6dfeb; border-radius: 10px; min-width: 0; }
+.lineHeading h3 { margin: 0; font-size: .95rem; white-space: nowrap; }
+.lineHeadingActions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .75rem; min-width: 0; }
+.lineAmount { color: #172f53; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.lineHeadingActions button { min-height: 44px; padding: .45rem .7rem; font-size: .8rem; }
+.lineNumbers { display: grid; grid-template-columns: .8fr 1fr 1fr; gap: 1rem; }
+.lineNumbers input { text-align: right; font-variant-numeric: tabular-nums; }
+.lineDetails { border-top: 1px solid #e7ebf1; padding-top: .9rem; min-width: 0; }
+.lineDetails summary, .optionalDetails summary { cursor: pointer; min-height: 28px; font-weight: 600; line-height: 1.5; }
+.lineDetails summary > span { display: block; margin-left: 1rem; font-size: .8rem; color: #667085; font-weight: 400; overflow-wrap: anywhere; }
+.lineDetails[open] > .editorGrid { margin-top: 1rem; }
+.lineTotals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 0; padding: .8rem; border-radius: 7px; background: #f5f7fa; }
+.lineTotals dt { font-size: .75rem; color: #667085; }
+.lineTotals dd { margin: .3rem 0 0; font-size: .9rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.optionalDetails { display: block; }
+.optionalDetails[open] > :not(summary) { margin-top: 1rem; }
+.totalPanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 380px); align-items: start; gap: 2rem; padding: 1.25rem; background: #f1f5fa; border: 1px solid #d4e0ee; border-radius: 12px; }
+.documentTotals { display: grid; gap: .7rem; margin: 0; }
+.documentTotals > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; }
+.documentTotals dt { color: #475467; font-size: .9rem; }
+.documentTotals dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.documentTotals .grandTotal { border-top: 1px solid #bacade; margin-top: .25rem; padding-top: 1rem; font-weight: 700; }
+.grandTotal dt { color: #172f53; font-size: 1rem; }
+.grandTotal dd { color: #172f53; font-size: 1.15rem; }
+.totalPending { margin: 0; color: #475467; line-height: 1.5; }
+.editorActions { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem 1rem; padding: 1rem; border: 1px solid #d3deeb; border-radius: 10px; background: #fff; box-shadow: 0 -3px 14px #17203308; }
+.saveStatus { margin: 0; color: #475467; font-size: .85rem; line-height: 1.5; }
+.actionButtons { display: flex; flex-wrap: wrap; gap: .6rem; }
+.actionButtons button { min-height: 44px; }
+.editor .error { border: 1px solid #f1c6c2; border-radius: 8px; line-height: 1.5; }
+.editor .errorLink { display: inline; padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; text-align: left; font-weight: 400; border-radius: 2px; }
+.recovery { margin: 0; padding: 1rem; border: 1px solid #e7ca83; border-radius: 8px; background: #fff9ea; color: #6b4c08; line-height: 1.5; }
+.previewPanel { min-width: 0; }
+.editor .line { grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+.editor :is(input, select, textarea) { scroll-margin-bottom: 8rem; }
+@media(max-width: 760px) {
+  .editorFields { grid-template-columns: minmax(0, 1fr); }
+  .editorSection { padding: 1rem; }
+  .totalPanel { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .editorActions { position: static; }
+  .actionButtons { width: 100%; }
+  .actionButtons button { flex: 1 1 12rem; }
+}
+@media(max-width: 520px) {
+  .editorGrid { grid-template-columns: minmax(0, 1fr); }
+  .lineCard { padding: .8rem; }
+  .lineNumbers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .lineNumbers > label:last-child { grid-column: 1 / -1; }
+  .lineTotals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lineHeading { align-items: flex-start; }
+  .lineHeadingActions { gap: .35rem; }
+  .lineAmount { font-size: .9rem; }
+  .editor .line { grid-template-columns: minmax(0, 1fr); }
+}
