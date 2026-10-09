@@ -44,13 +44,19 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     catch (error) { throw CommandError.validation({ file: error instanceof Error ? error.message : "The statement file could not be read." }); }
     const { matrix, sha256, bytes } = parsed;
     const action = String(form.get("action") ?? "inspect");
+    const expectedHash = form.get("file_sha256");
+    if (action === "import" && expectedHash !== null && expectedHash !== sha256) throw CommandError.validation({ file: "The file changed after preview. Read the file and preview the rows again." });
     if (action === "inspect") return Response.json({ data: { headers: matrix[0], sample: matrix.slice(0, 6), file_sha256: sha256 }, meta: { request_id: requestId } }, { headers: { "Cache-Control": "private, no-store" } });
     const mapping = mappingFrom(form.get("mapping"), matrix[0]!.length);
     const { rows, errors, preview, repeatedFingerprints } = mapStatementRows(matrix, mapping);
+    const dates = rows.map(row => row.transaction_date).sort();
+    const dateRange = { starts_on: dates[0] ?? null, ends_on: dates.at(-1) ?? null };
     if (action === "preview") {
       const matches = rows.length ? await runtime.client.rpc("count_statement_fingerprint_matches", { p_organization_id: organizationId, p_cash_account_id: accountId, p_fingerprints: [...new Set(rows.map((row) => row.fingerprint))] }) : { data: 0, error: null };
+      if (matches.error?.code === "42501") throw CommandError.forbidden();
+      if (matches.error?.code === "P0002") throw CommandError.notFound();
       if (matches.error) throw new Error("Statement duplicate warnings could not be checked.");
-      return Response.json({ data: { headers: matrix[0], preview, row_count: rows.length + errors.length, valid_count: rows.length, errors: errors.slice(0, 100), file_sha256: sha256, repeated_fingerprint_groups: repeatedFingerprints, prior_fingerprint_groups: Number(matches.data) }, meta: { request_id: requestId } }, { headers: { "Cache-Control": "private, no-store" } });
+      return Response.json({ data: { headers: matrix[0], preview, row_count: rows.length + errors.length, valid_count: rows.length, errors: errors.slice(0, 100), file_sha256: sha256, repeated_fingerprint_groups: repeatedFingerprints, prior_fingerprint_groups: Number(matches.data), ...dateRange }, meta: { request_id: requestId } }, { headers: { "Cache-Control": "private, no-store" } });
     }
     if (action !== "import") throw CommandError.validation({ action: "Unsupported import action." });
     if (errors.length) throw CommandError.validation({ rows: `${errors.length} row(s) need correction. Review the preview before importing.` });
@@ -60,9 +66,13 @@ export async function POST(request: Request, context: { params: Promise<{ organi
       if (result.error.code === "42501") throw CommandError.forbidden();
       if (result.error.code === "P0002") throw CommandError.notFound();
       if (result.error.code === "23505") throw CommandError.conflict("DUPLICATE_IMPORT");
+      if (result.error.code === "55000") throw CommandError.conflict("RECONCILIATION_LOCKED");
+      if (result.error.code === "22023" || result.error.code === "23514") throw CommandError.validation({ rows: "The account or statement rows are no longer eligible. Review the statement and try again." });
       throw new Error("The statement import could not be saved.");
     }
-    return Response.json({ data: result.data, meta: { request_id: requestId } }, { status: 201, headers: { "Cache-Control": "private, no-store" } });
+    if (!result.data || typeof result.data !== "object" || Array.isArray(result.data)) throw new Error("The saved import could not be confirmed.");
+    const saved = result.data as Record<string, unknown>;
+    return Response.json({ data: { ...saved, cash_account_id: accountId, ...(saved.duplicate === true ? { starts_on: null, ends_on: null } : dateRange) }, meta: { request_id: requestId } }, { status: 201, headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     const normalized = normalizeCommandError(error);
     return Response.json(commandErrorBody(normalized, requestId), { status: normalized.status, headers: { "Cache-Control": "private, no-store" } });

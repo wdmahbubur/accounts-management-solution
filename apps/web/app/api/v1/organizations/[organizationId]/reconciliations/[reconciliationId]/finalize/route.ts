@@ -12,10 +12,11 @@ export async function POST(_request: Request, context: { params: Promise<{ organ
     if (!actor.capabilities.includes("periods.lock")) throw CommandError.forbidden();
     const result = await runtime.client.rpc("finalize_reconciliation", { p_organization_id: organizationId, p_reconciliation_id: reconciliationId, p_request_id: requestId });
     if (result.error) {
+      if (result.error.code === "42501" && /recent authentication/i.test(result.error.message ?? "")) throw new CommandError({ code: "FORBIDDEN", message: "Recent authentication is required. Reauthenticate in Settings → Security, then retry." });
       if (result.error.code === "42501") throw CommandError.forbidden();
       if (result.error.code === "P0002") throw CommandError.notFound();
       if (result.error.code === "23P01" || result.error.code === "55000") throw CommandError.conflict("RECONCILIATION_LOCKED");
-      if (result.error.code === "23514") throw CommandError.validation({ reconciliation: "Statement balances or the adjusted ledger closing do not reconcile. Resolve the unexplained difference before finalizing." });
+      if (result.error.code === "23514") throw CommandError.validation({ reconciliation: "Match every statement movement and check the opening and closing balances. Unmatched statement rows or an unexplained difference must be resolved before finalizing." });
       throw new Error("Reconciliation could not be finalized.");
     }
     return Response.json({ data: result.data, meta: { request_id: requestId } }, { headers: { "Cache-Control": "private, no-store" } });
