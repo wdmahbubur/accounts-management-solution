@@ -8,8 +8,8 @@ import {
 } from "./document-detail-model.ts";
 import styles from "./document-detail.module.css";
 
-export function DocumentHeader({ document, invoiceLifecycle, receiptLifecycle, actions, amountLabel }: {
-  document: DetailRecord; invoiceLifecycle: DetailRecord | null; receiptLifecycle: DetailRecord | null; actions?: ReactNode; amountLabel?: string;
+export function DocumentHeader({ document, invoiceLifecycle, receiptLifecycle, supplierLifecycle, actions, amountLabel }: {
+  document: DetailRecord; invoiceLifecycle: DetailRecord | null; receiptLifecycle: DetailRecord | null; supplierLifecycle?: DetailRecord | null; actions?: ReactNode; amountLabel?: string;
 }) {
   const deliveries = detailRows(invoiceLifecycle?.delivery_attempts);
   return <header className={styles.header}>
@@ -29,6 +29,16 @@ export function DocumentHeader({ document, invoiceLifecycle, receiptLifecycle, a
     {receiptLifecycle && document.state === "posted" ? <dl className={styles.statusStrip}>
       <div><dt>Applied to invoices · BDT</dt><dd>{displayMoney(receiptLifecycle.applied_amount)}</dd></div>
       <div><dt>Unused customer credit · BDT</dt><dd>{receiptLifecycle.residual_amount === null ? "Unavailable" : displayMoney(receiptLifecycle.residual_amount)}</dd></div>
+    </dl> : null}
+    {supplierLifecycle && document.document_type === "bill" ? <dl className={styles.statusStrip}>
+      <div><dt>Settlement</dt><dd>{humanLabel(supplierLifecycle.settlement_status)}{supplierLifecycle.overdue === true ? <span className={styles.overdue}>Overdue</span> : null}</dd></div>
+      <div><dt>Outstanding · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date after posting" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
+      <div><dt>Balance as of</dt><dd>{detailDate(supplierLifecycle.as_of_date)}</dd></div>
+    </dl> : null}
+    {supplierLifecycle && supplierLifecycle.settlement_status !== "reversed" && document.document_type === "vendor_payment" && document.state === "posted" ? <dl className={styles.statusStrip}>
+      <div><dt>Applied to bills · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.applied_amount)}</dd></div>
+      <div><dt>Unused supplier trade debit · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
+      <div><dt>Balance as of</dt><dd>{detailDate(supplierLifecycle.as_of_date)}</dd></div>
     </dl> : null}
     {actions ? <div className={styles.actions}>{actions}</div> : null}
   </header>;

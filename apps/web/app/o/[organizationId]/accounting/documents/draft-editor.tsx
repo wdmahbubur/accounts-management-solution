@@ -10,6 +10,12 @@ import { parsePostingPreviewResult, type PostingPreviewResult } from "../../../.
 import { DraftEditGuard } from "./draft-interactions.ts";
 import { calculateTradeDraft, canonicalAmountInput, type SavedLineTax } from "./draft-calculations.ts";
 import { confirmedDraftReceipt, documentActionError, isConfirmedFormRejection, RecoverableFormRequest } from "./document-action-validation.ts";
+import type { SupplierBillTarget } from "../../../../../server/documents/supplier-payments.ts";
+import { hasPositiveSettlement, parseSupplierBillTargets, supplierAllocationDisplay } from "./supplier-payment-selection.ts";
+import { SupplierPaymentAllocation } from "./supplier-payment-allocation.tsx";
+import type { CreditNoteOptions } from "../../../../../server/documents/credit-notes.ts";
+import { creditLineValues, creditSelectionIssues, creditSourceIdForLookup, originalCreditTaxes, parseCreditOptions } from "./credit-source-selection.ts";
+import { CreditSourcePicker } from "./credit-source-picker.tsx";
 import styles from "./documents.module.css";
 
 type Option={id:string;code?:string;name?:string;display_name?:string;kind?:string;label?:string;rate_percent?:string};
@@ -25,7 +31,7 @@ const tradeTypes:SourceType[]=["invoice","customer_credit","bill","vendor_credit
 const movementTypes:SourceType[]=["receipt","vendor_payment","customer_refund","vendor_refund","customer_advance","vendor_advance","paid_expense"];
 const journalTypes:SourceType[]=["manual_journal","controlled_adjustment","opening_balance"];
 const blankLine=(accountId="",uiKey=""):Line=>({uiKey,id:null,item_id:null,item_snapshot:null,original_line_id:null,description:"",quantity:"1",unit_price:"0.00",discount_amount:"0.00",account_id:accountId,cost_center_id:null,cost_center_snapshot:null,tax_code_id:null,tax_mode:"exclusive"});
-export function DraftEditor({organizationId,nonce,documentType,options,initial,expectedVersion,duplicate=false,createNew=false,receiptInvoices=[],receiptInvoiceError="",defaultDate}:{organizationId:string;nonce:string;documentType:SourceType;options:DraftOptions;initial?:Record<string,unknown>;expectedVersion?:number;duplicate?:boolean;createNew?:boolean;receiptInvoices?:ReceiptTarget[];receiptInvoiceError?:string;defaultDate?:string}){
+export function DraftEditor({organizationId,nonce,documentType,options,initial,expectedVersion,duplicate=false,createNew=false,receiptInvoices=[],receiptInvoiceError="",supplierBills=[],supplierBillError="",creditSources,creditSourceError="",defaultDate}:{organizationId:string;nonce:string;documentType:SourceType;options:DraftOptions;initial?:Record<string,unknown>;expectedVersion?:number;duplicate?:boolean;createNew?:boolean;receiptInvoices?:ReceiptTarget[];receiptInvoiceError?:string;supplierBills?:SupplierBillTarget[];supplierBillError?:string;creditSources?:CreditNoteOptions;creditSourceError?:string;defaultDate?:string}){
  const router=useRouter();
  const editorId=useId();
  const formRef=useRef<HTMLFormElement>(null);
@@ -81,11 +87,19 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  const [rounding,setRounding]=useState({amount:field("rounding_adjustment","0.00"),reason:field("rounding_reason"),accountId:field("rounding_account_id")});
  const isTrade=tradeTypes.includes(documentType);
  const isCredit=documentType==="customer_credit"||documentType==="vendor_credit";
+ const scopedSelection=documentType==="receipt"||documentType==="vendor_payment"||isCredit;
+ const [creditOptions,setCreditOptions]=useState<CreditNoteOptions|null>(creditSources??null);
+ const [creditError,setCreditError]=useState(creditSourceError);
+ const [creditLoading,setCreditLoading]=useState(false);
+ const [creditSearch,setCreditSearch]=useState("");
+ const creditRequest=useRef(0);
+ const originalDocumentId=String(trade.original_document_id??"");
+ const selectedCreditSource=creditOptions?.selectedSource?.id===originalDocumentId?creditOptions.selectedSource:null;
  const savedTaxes:SavedLineTax[]=initialLines.filter(line=>typeof line.tax_rate_snapshot==="string").map(line=>({
   id:line.id?String(line.id):null,original_line_id:line.original_line_id?String(line.original_line_id):null,
   tax_code_id:line.tax_code_id?String(line.tax_code_id):null,tax_rate_snapshot:String(line.tax_rate_snapshot),tax_mode:line.tax_mode==="inclusive"?"inclusive":"exclusive"
  }));
- const liveTotals=isTrade?calculateTradeDraft({lines,taxCodes:options.tax_codes,savedLines:savedTaxes,credit:isCredit,rounding}):null;
+ const liveTotals=isTrade?calculateTradeDraft({lines,taxCodes:options.tax_codes,savedLines:savedTaxes,originalLines:originalCreditTaxes(selectedCreditSource),credit:isCredit,rounding}):null;
  const issueMessage=(name:string)=>fieldErrors[name]??liveTotals?.issues.find(issue=>issue.field===name)?.message;
  const fieldAttributes=(name:string)=>({name,"aria-invalid":Boolean(issueMessage(name)),"aria-describedby":issueMessage(name)?`${editorId}-${name}-error`:undefined});
  const fieldError=(name:string)=>issueMessage(name)?<small className={styles.fieldError} id={`${editorId}-${name}-error`}>{issueMessage(name)}</small>:null;
@@ -95,8 +109,54 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
   catch{throw new ContractValidationError("Check the highlighted amounts.",{[name]:"Enter an amount with up to two decimal places, for example 1250.00."});}
  }
  const [receiptParty,setReceiptParty]=useState(field("party_id"));const [receiptDate,setReceiptDate]=useState(field("accounting_date",today));
+ const creditScope={organizationId,documentType,partyId:receiptParty,accountingDate:receiptDate,sourceId:originalDocumentId};
+ const creditIssues=isCredit?creditSelectionIssues(creditScope,creditOptions,lines,rounding.amount):[];
+ async function refreshCreditSources(partyId:string,date:string,sourceId:string,search=creditSearch):Promise<CreditNoteOptions|null>{
+  const request=++creditRequest.current;setCreditLoading(true);setCreditError("");
+  try{
+   if(!date)throw new Error("Choose an accounting date to find original documents.");
+   const q=new URLSearchParams({document_type:documentType,accounting_date:date});
+   if(partyId)q.set("party_id",partyId);if(sourceId)q.set("original_document_id",sourceId);if(search.trim())q.set("search",search.trim());
+   const response=await fetch(`/api/v1/organizations/${organizationId}/documents/credit-options?${q}`,{cache:"no-store"});
+   const json=await response.json();if(!response.ok)throw new Error(json?.error?.message??"Original documents could not be loaded.");
+   const next=parseCreditOptions(json.data,{organizationId,documentType,partyId,accountingDate:date,sourceId});
+   if(request!==creditRequest.current)return null;
+   setCreditOptions(next);return next;
+  }catch(failure){if(request===creditRequest.current)setCreditError(failure instanceof Error?failure.message:"Original documents could not be loaded.");return null;}
+  finally{if(request===creditRequest.current)setCreditLoading(false);}
+ }
+ function changeParty(party:string){
+  setReceiptParty(party);
+  if(documentType==="vendor_payment")void refreshSupplierTargets(party,receiptDate);
+  else if(documentType==="receipt")void refreshReceiptTargets(party,receiptDate);
+  else if(isCredit)void refreshCreditSources(party,receiptDate,creditSourceIdForLookup(originalDocumentId,selectedCreditSource?.partyId,party));
+ }
+ function changeAccountingDate(date:string){
+  setReceiptDate(date);
+  if(documentType==="vendor_payment")void refreshSupplierTargets(receiptParty,date);
+  else if(documentType==="receipt")void refreshReceiptTargets(receiptParty,date);
+  else if(isCredit)void refreshCreditSources(receiptParty,date,originalDocumentId);
+ }
  const [receiptTargets,setReceiptTargets]=useState<ReceiptTarget[]>(receiptInvoices);const [receiptLoading,setReceiptLoading]=useState(false);
  const [receiptError,setReceiptError]=useState(receiptInvoiceError);const receiptRequest=useRef(0);
+ const [supplierTargets,setSupplierTargets]=useState<SupplierBillTarget[]>(supplierBills);
+ const [supplierLoading,setSupplierLoading]=useState(false);
+ const [supplierError,setSupplierError]=useState(supplierBillError);
+ const supplierRequest=useRef(0);
+ const supplierDisplay=supplierAllocationDisplay(movement.amount,allocationPlan,supplierTargets);
+ async function refreshSupplierTargets(partyId:string,date:string):Promise<SupplierBillTarget[]|null>{
+  const request=++supplierRequest.current;setSupplierTargets([]);setSupplierError("");
+  if(!partyId||!date){setSupplierLoading(false);return null;}setSupplierLoading(true);
+  try{
+   const q=new URLSearchParams({party_id:partyId,accounting_date:date});
+   const response=await fetch(`/api/v1/organizations/${organizationId}/supplier-payment-allocation-options?${q}`,{cache:"no-store"});
+   const json=await response.json();if(!response.ok)throw new Error(json?.error?.message??"Eligible supplier bills could not be loaded.");
+   const targets=parseSupplierBillTargets(json.data);
+   if(request!==supplierRequest.current)return null;
+   setSupplierTargets(targets);return targets;
+  }catch(failure){if(request===supplierRequest.current)setSupplierError(failure instanceof Error?failure.message:"Eligible supplier bills could not be loaded.");return null;}
+  finally{if(request===supplierRequest.current)setSupplierLoading(false);}
+ }
  async function refreshReceiptTargets(partyId:string,date:string){
   const request=++receiptRequest.current;setReceiptTargets([]);setReceiptError("");
   if(!partyId||!date){setReceiptLoading(false);return;}setReceiptLoading(true);
@@ -112,6 +172,24 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
 
  async function submit(form:FormData){
   if(requestPending.current)return;
+  if(isCredit&&!retrySave){
+   requestPending.current=true;setAction("save");
+   try{
+    const checked=await refreshCreditSources(receiptParty,receiptDate,originalDocumentId,"");
+    if(!checked){setError("The original document could not be checked. Your credit lines are preserved. Refresh the original document and try again.");focusError();return;}
+    const issues=creditSelectionIssues(creditScope,checked,lines,rounding.amount);
+    if(issues.length){setFieldErrors(Object.fromEntries(issues.map(issue=>[issue.field,issue.message])));setError("Check the original document and highlighted credit limits before saving.");focusError();return;}
+   }finally{finishRequest();}
+  }
+  if(documentType==="vendor_payment"&&!retrySave){
+   requestPending.current=true;setAction("save");
+   try{
+    const targets=allocationPlan.length?await refreshSupplierTargets(receiptParty,receiptDate):supplierTargets;
+    if(!targets){setError("The selected bills could not be checked. Your entries are preserved. Refresh the bill list and try again.");focusError();return;}
+    const validation=supplierAllocationDisplay(movement.amount,allocationPlan,targets);
+    if(validation.issues.length){setFieldErrors(Object.fromEntries(validation.issues.map(issue=>[issue.field,issue.message])));setError("Check the payment and selected bill amounts before saving.");focusError();return;}
+   }finally{finishRequest();}
+  }
   let attempt;
   try{
    if(!retrySave&&liveTotals?.issues.length){
@@ -180,6 +258,9 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
   }catch(e){setError(e instanceof Error?e.message:"Could not preview draft.");focusError();}finally{finishRequest();}
  }
  async function submitForApproval(){
+  if(documentType==="vendor_payment"&&!hasPositiveSettlement(allocationPlan)){
+   setError("Allocate this payment to at least one bill before submitting for approval. Choose a bill below, enter an amount, and save the draft. Any amount left over stays available on the supplier’s account.");focusError();return;
+  }
   if(!beginReview("submit"))return;
   try{
    const response=await fetch(`/api/v1/organizations/${organizationId}/documents/${String(d.id)}/submit`,{method:"POST",headers:{"Content-Type":"application/json","X-Request-Id":`document-submit-${crypto.randomUUID()}`,"Idempotency-Key":submitIdem.current},body:JSON.stringify({expected_version:version})});
@@ -212,7 +293,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
   </div>}
   {retrySave&&<p role="status" className={styles.recovery}>The save result is unconfirmed. Your submitted values are kept unchanged. Use “Retry save” to confirm the same request before editing or submitting for approval.</p>}
   <form ref={formRef} className={styles.editorForm} aria-busy={busy}
-   onChange={markDirty}
+   onChange={event=>{if(!(event.target instanceof Element&&event.target.closest('[data-draft-ignore="true"]')))markDirty();}}
    onClickCapture={event=>{if(event.target instanceof Element&&event.target.closest('button[data-draft-edit="true"]'))markDirty();}}
    onInvalidCapture={event=>{
     const control=event.target;
@@ -226,22 +307,23 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
      <h2 id={`${editorId}-details`}>Document details</h2>
      <div className={styles.editorGrid}>
       {needsParty&&<label>{partyLabel}
-       <select {...fieldAttributes("party_id")} required value={documentType==="receipt"?receiptParty:undefined}
-        defaultValue={documentType==="receipt"?undefined:field("party_id")}
-        onChange={documentType==="receipt"?event=>{const party=event.target.value;setReceiptParty(party);setAllocationPlan([]);void refreshReceiptTargets(party,receiptDate);}:undefined}>
+       <select {...fieldAttributes("party_id")} required value={scopedSelection?receiptParty:undefined}
+        defaultValue={scopedSelection?undefined:field("party_id")}
+        onChange={scopedSelection?event=>changeParty(event.target.value):undefined}>
         <option value="">Choose a {partyLabel.toLowerCase()}</option>
         {field("party_id")&&!options.parties.some(p=>p.id===field("party_id"))&&<option value={field("party_id")}>Saved {partyLabel.toLowerCase()} · not in the active list</option>}
+        {isCredit&&receiptParty!==field("party_id")&&!options.parties.some(p=>p.id===receiptParty)&&receiptParty&&<option value={receiptParty}>{selectedCreditSource?.partyName??"Original document’s party"}</option>}
         {options.parties.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}
        </select>{fieldError("party_id")}
        {options.parties.length===0&&<small>No active {partyLabel.toLowerCase()} is available. Add one in {partyLabel==="Customer"?"Sales → Customers":"Purchases → Vendors"} before saving.</small>}
       </label>}
       <label>Issue date<input {...fieldAttributes("issue_date")} type="date" required value={issueDate} onChange={event=>setIssueDate(event.target.value)}/>{fieldError("issue_date")}</label>
-      <label>Accounting date<input {...fieldAttributes("accounting_date")} type="date" required value={documentType==="receipt"?receiptDate:undefined}
-       defaultValue={documentType==="receipt"?undefined:field("accounting_date",today)}
-       onChange={documentType==="receipt"?event=>{const date=event.target.value;setReceiptDate(date);setAllocationPlan([]);void refreshReceiptTargets(receiptParty,date);}:undefined}/>{fieldError("accounting_date")}</label>
+      <label>Accounting date<input {...fieldAttributes("accounting_date")} type="date" required value={scopedSelection?receiptDate:undefined}
+       defaultValue={scopedSelection?undefined:field("accounting_date",today)}
+       onChange={scopedSelection?event=>changeAccountingDate(event.target.value):undefined}/>{fieldError("accounting_date")}</label>
       <label><span>Due date <span className={styles.optional}>Optional</span></span><input {...fieldAttributes("due_date")} type="date" min={issueDate} defaultValue={field("due_date")}/>{fieldError("due_date")}</label>
       <label><span>Reference <span className={styles.optional}>Optional</span></span><input {...fieldAttributes("external_reference")} maxLength={160} defaultValue={field("external_reference")} placeholder="PO number or your reference"/>{fieldError("external_reference")}</label>
-      <label><span>Description <span className={styles.optional}>Optional</span></span><input {...fieldAttributes("description")} maxLength={2000} defaultValue={field("description")} placeholder="What is this document for?"/>{fieldError("description")}</label>
+      <label><span>{isCredit?"Reason for credit":"Description"} <span className={styles.optional}>Optional</span></span><input {...fieldAttributes("description")} maxLength={2000} defaultValue={field("description")} placeholder={isCredit?"For example, an agreed price reduction or cancelled service":"What is this document for?"}/>{fieldError("description")}</label>
      </div>
      <p className={styles.hint}>The issue date appears on the document. The accounting date determines when it is recorded in the books.</p>
     </section>
@@ -249,7 +331,12 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
      {(isCredit||documentType==="invoice"||documentType==="bill")&&<section className={`${styles.wide} ${styles.editorSection}`}>
       <h2>{documentType==="invoice"?"Service and payment details":isCredit?"Original document":"Supplier invoice"}</h2>
       <div className={styles.editorGrid}>
-       {isCredit&&<label>Original posted document ID<input {...fieldAttributes("original_document_id")} required defaultValue={String(trade.original_document_id??"")}/>{fieldError("original_document_id")}</label>}
+       {isCredit&&<CreditSourcePicker documentType={documentType as "customer_credit"|"vendor_credit"} sourceId={originalDocumentId}
+        options={creditOptions?.accountingDate===receiptDate&&(!receiptParty||creditOptions.sources.every(source=>source.partyId===receiptParty))&&(!creditOptions.selectedSource||!receiptParty||creditOptions.selectedSource.partyId===receiptParty)?creditOptions:null}
+        search={creditSearch} loading={creditLoading} error={creditError} fieldError={issueMessage("original_document_id")??(originalDocumentId?creditIssues.find(issue=>issue.field==="original_document_id")?.message:undefined)}
+        onSearchChange={setCreditSearch} onSearch={()=>void refreshCreditSources(receiptParty,receiptDate,creditSourceIdForLookup(originalDocumentId,selectedCreditSource?.partyId,receiptParty))}
+        onSelect={sourceId=>{const source=creditOptions?.sources.find(row=>row.id===sourceId);const party=source?.partyId??receiptParty;
+         setTrade(current=>({...current,original_document_id:sourceId}));setReceiptParty(party);void refreshCreditSources(party,receiptDate,sourceId);}}/>}
        {documentType==="invoice"&&<>
         <label>When is this revenue earned?<select {...fieldAttributes("recognition_mode")} value={String(trade.recognition_mode??"earned_or_incurred")} onChange={event=>setTrade({...trade,recognition_mode:event.target.value})}>
          <option value="earned_or_incurred">Services already delivered</option><option value="deferred_revenue">Future services · deferred revenue</option>
@@ -270,6 +357,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
        const prefix=`lines.${i+1}`;
        const account=options.accounts.find(option=>option.id===line.account_id);
        const tax=options.tax_codes.find(option=>option.id===line.tax_code_id);
+       const originalLine=selectedCreditSource?.lines.find(row=>row.id===line.original_line_id);
        return <section className={styles.lineCard} key={line.uiKey} aria-labelledby={`${line.uiKey}-heading`}>
         <div className={styles.lineHeading}>
          <h3 id={`${line.uiKey}-heading`}>Line {i+1}</h3>
@@ -288,6 +376,24 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
          {line.item_id&&!options.items.some(item=>item.id===line.item_id)&&<option value={line.item_id}>{String(line.item_snapshot?.name??"Archived item")}</option>}
          {options.items.map(item=><option key={item.id} value={item.id}>{item.sku?`${item.sku} · `:""}{item.name} ({item.unit})</option>)}
         </select></label>}
+        {isCredit&&<div className={styles.creditLineSource}><label>Original {documentType==="customer_credit"?"invoice":"bill"} line<select {...fieldAttributes(`${prefix}.original_line_id`)} required value={line.original_line_id??""}
+         onChange={event=>{const sourceLine=selectedCreditSource?.lines.find(row=>row.id===event.target.value);
+          if(sourceLine)updateLine(i,{...creditLineValues(sourceLine),id:line.id});else updateLine(i,{original_line_id:null});}}>
+         <option value="">Choose an original line</option>
+         {line.original_line_id&&!selectedCreditSource?.lines.some(row=>row.id===line.original_line_id)&&<option value={line.original_line_id}>Previously selected line · refresh or choose another</option>}
+         {selectedCreditSource?.lines.map(sourceLine=><option key={sourceLine.id} value={sourceLine.id} disabled={!sourceLine.eligible}>
+          Line {sourceLine.lineNo} · {sourceLine.description} · {displayMoney(sourceLine.remainingGrossAmount)} remaining{sourceLine.eligible?"":" · not eligible"}
+         </option>)}
+        </select>{fieldError(`${prefix}.original_line_id`)}</label>
+        {selectedCreditSource?.lines.filter(row=>row.id===line.original_line_id).map(sourceLine=><p className={styles.hint} key={sourceLine.id}>
+         Available to credit: quantity {sourceLine.remainingQuantity}; net {displayMoney(sourceLine.remainingNetAmount)}, tax {displayMoney(sourceLine.remainingTaxAmount)}, total {displayMoney(sourceLine.remainingGrossAmount)}.
+         {` Original tax: ${sourceLine.taxLabelSnapshot??"No tax"} (${sourceLine.taxRateSnapshot}%), ${sourceLine.taxMode}.`}
+        </p>)}
+        {creditIssues.filter(issue=>issue.field.startsWith(`${prefix}.`)).map(issue=><p key={issue.field} className={styles.fieldError}>{issue.message}</p>)}
+        {originalLine&&(line.account_id!==originalLine.accountId||line.cost_center_id!==originalLine.costCenterId)&&<button type="button" className="secondary" data-draft-edit="true"
+         onClick={()=>updateLine(i,{account_id:originalLine.accountId,cost_center_id:originalLine.costCenterId,
+          cost_center_snapshot:originalLine.costCenterId?{id:originalLine.costCenterId,code:originalLine.costCenterCode,name:originalLine.costCenterName}:null})}>Restore original account and cost center</button>}
+        </div>}
         <label>Description<input {...fieldAttributes(`${prefix}.description`)} required maxLength={500} value={line.description} placeholder="Describe the service or item" onChange={event=>updateLine(i,{description:event.target.value})}/>{fieldError(`${prefix}.description`)}</label>
         <div className={styles.lineNumbers}>
          <label><span>Quantity{typeof line.item_snapshot?.unit==="string"&&<span className={styles.optional}> · {line.item_snapshot.unit}</span>}</span>
@@ -295,20 +401,19 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
          <label>Unit price (BDT)<input {...fieldAttributes(`${prefix}.unit_price`)} required inputMode="decimal" pattern={decimalPattern} title="Use up to six decimal places, for example 1250.00" maxLength={21} value={line.unit_price} onChange={event=>updateLine(i,{unit_price:event.target.value})}/>{fieldError(`${prefix}.unit_price`)}</label>
          <label>Discount (BDT)<input {...fieldAttributes(`${prefix}.discount_amount`)} required inputMode="decimal" pattern={moneyPattern} title="Use up to two decimal places, for example 50.00" maxLength={21} value={line.discount_amount} onChange={event=>updateLine(i,{discount_amount:event.target.value})}/>{fieldError(`${prefix}.discount_amount`)}</label>
         </div>
-        {isCredit&&<label>Original line ID<input {...fieldAttributes(`${prefix}.original_line_id`)} required value={line.original_line_id??""} onChange={event=>updateLine(i,{original_line_id:event.target.value||null})}/>{fieldError(`${prefix}.original_line_id`)}</label>}
         <details className={styles.lineDetails} open={!line.account_id||Boolean(fieldErrors[`${prefix}.account_id`])||undefined}>
          <summary>Account and tax <span>{account?`${account.code} · ${account.name}`:line.account_id?"Saved account":"Choose an account"} · {isCredit?"Original line’s tax":tax?.label??(line.tax_code_id?"Saved tax code":"No tax")}{line.cost_center_id?" · Cost center selected":""}</span></summary>
          <div className={styles.editorGrid}>
-          <label>{documentType==="invoice"||documentType==="customer_credit"?"Income account":"Expense or asset account"}<select {...fieldAttributes(`${prefix}.account_id`)} required value={line.account_id} onChange={event=>updateLine(i,{account_id:event.target.value})}>
+          {isCredit?<p>Original account<br/><strong>{originalLine?`${originalLine.accountCode} · ${originalLine.accountName}`:account?`${account.code} · ${account.name}`:"Choose an original line"}</strong></p>:<label>{documentType==="invoice"?"Income account":"Expense or asset account"}<select {...fieldAttributes(`${prefix}.account_id`)} required value={line.account_id} onChange={event=>updateLine(i,{account_id:event.target.value})}>
            <option value="">Choose an account</option>{line.account_id&&!account&&<option value={line.account_id}>Saved account · not in the active list</option>}
            {options.accounts.map(option=><option key={option.id} value={option.id}>{option.code} · {option.name}</option>)}
-          </select>{fieldError(`${prefix}.account_id`)}</label>
-          <label><span>Cost center <span className={styles.optional}>Optional</span></span><select value={line.cost_center_id??""} onChange={event=>{
+          </select>{fieldError(`${prefix}.account_id`)}</label>}
+          {isCredit?<p>Original cost center<br/><strong>{originalLine?.costCenterName??String(line.cost_center_snapshot?.name??"No cost center")}</strong></p>:<label><span>Cost center <span className={styles.optional}>Optional</span></span><select value={line.cost_center_id??""} onChange={event=>{
            const center=options.cost_centers.find(option=>option.id===event.target.value);
            updateLine(i,{cost_center_id:event.target.value||null,cost_center_snapshot:center?{id:center.id,code:center.code,name:center.name}:null});
           }}><option value="">No cost center</option>{line.cost_center_id&&!options.cost_centers.some(center=>center.id===line.cost_center_id)&&<option value={line.cost_center_id}>{String(line.cost_center_snapshot?.code??"")} · {String(line.cost_center_snapshot?.name??"Archived cost center")}</option>}
            {options.cost_centers.map(center=><option key={center.id} value={center.id}>{center.code} · {center.name}</option>)}
-          </select></label>
+          </select></label>}
           {isCredit?<p className={`${styles.wide} ${styles.hint}`}>The credit uses the tax rate and inclusive or exclusive setting from its original posted line.</p>:<>
            <label>Tax code<select value={line.tax_code_id??""} onChange={event=>updateLine(i,{tax_code_id:event.target.value||null})}>
             <option value="">No tax</option>{line.tax_code_id&&!tax&&<option value={line.tax_code_id}>Saved tax code · not in the current list</option>}
@@ -331,7 +436,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
       <button type="button" className="secondary" data-draft-edit="true" disabled={lines.length>=500} onClick={()=>{
        lineSequence.current+=1;const uiKey=`${editorId}-added-${lineSequence.current}`;
        setLines(current=>[...current,blankLine(options.accounts[0]?.id,uiKey)]);
-       requestAnimationFrame(()=>focusField(`lines.${lines.length+1}.description`));
+       requestAnimationFrame(()=>focusField(`lines.${lines.length+1}.${isCredit?"original_line_id":"description"}`));
       }}>+ Add another line</button>
      </section>
      {documentType==="invoice"&&<details className={`${styles.wide} ${styles.editorSection} ${styles.optionalDetails}`} open={Boolean(trade.notes)||undefined}>
@@ -339,7 +444,25 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
       <label>Notes shown on the invoice<textarea {...fieldAttributes("notes")} maxLength={2000} rows={3} value={String(trade.notes??"")} placeholder="Add a message or instructions for your customer" onChange={event=>setTrade({...trade,notes:event.target.value})}/>{fieldError("notes")}</label>
      </details>}
     </>}
-  {movementTypes.includes(documentType)&&<section className={styles.wide}><h2>Cash movement</h2><div className={styles.line}><label>Cash/bank account<select value={movement.cash_account_id} onChange={(e)=>setMovement({...movement,cash_account_id:e.target.value})}>{options.cash_accounts.map((a)=><option key={a.id} value={a.id}>{a.name} · {a.kind}</option>)}</select></label><label>Amount (BDT)<input inputMode="decimal" value={movement.amount} onChange={(e)=>setMovement({...movement,amount:e.target.value})}/></label><label>Cash-flow class<select value={movement.cash_flow_class} onChange={e=>setMovement({...movement,cash_flow_class:e.target.value})}><option value="unclassified">Unclassified · report stays provisional</option><option value="operating">Operating</option><option value="investing">Investing</option><option value="financing">Financing</option></select></label><label>Method<select value={movement.method} onChange={(e)=>setMovement({...movement,method:e.target.value})}>{["cash","bank_transfer","mobile_wallet","card","other"].map(x=><option key={x}>{x}</option>)}</select></label><label>Reference<input value={movement.reference} onChange={(e)=>setMovement({...movement,reference:e.target.value})}/></label></div></section>}
+  {movementTypes.includes(documentType)&&<section className={`${styles.wide} ${styles.editorSection}`}><h2>{documentType==="vendor_payment"?"Payment details":"Cash movement"}</h2>
+   {documentType==="vendor_payment"&&<p className={styles.hint}>Enter the supplier payment to record in your books, including its bank or cash account and reference.</p>}
+   <div className={styles.editorGrid}>
+    <label>Cash or bank account<select {...fieldAttributes("cash_account_id")} required value={movement.cash_account_id} onChange={event=>setMovement({...movement,cash_account_id:event.target.value})}>
+     <option value="">Choose an account</option>
+     {movement.cash_account_id&&!options.cash_accounts.some(account=>account.id===movement.cash_account_id)&&<option value={movement.cash_account_id}>Saved account · not in the active list</option>}
+     {options.cash_accounts.map(account=><option key={account.id} value={account.id}>{account.name} · {account.kind}</option>)}
+    </select>{fieldError("cash_account_id")}</label>
+    <label>{documentType==="vendor_payment"?"Payment amount":"Amount"} (BDT)<input {...fieldAttributes("amount")} required inputMode="decimal" pattern={moneyPattern} value={movement.amount}
+     onChange={event=>setMovement({...movement,amount:event.target.value})}/>{fieldError("amount")}</label>
+    <label>Method<select name="method" value={movement.method} onChange={event=>setMovement({...movement,method:event.target.value})}>
+     {[["cash","Cash"],["bank_transfer","Bank transfer"],["mobile_wallet","Mobile wallet"],["card","Card"],["other","Other"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}
+    </select></label>
+    <label>Payment reference <span className={styles.optional}>Optional</span><input name="movement_reference" value={movement.reference} onChange={event=>setMovement({...movement,reference:event.target.value})}/></label>
+    <label>Cash-flow class<select name="cash_flow_class" value={movement.cash_flow_class} onChange={event=>setMovement({...movement,cash_flow_class:event.target.value})}>
+     <option value="unclassified">Unclassified · report stays provisional</option><option value="operating">Operating</option><option value="investing">Investing</option><option value="financing">Financing</option>
+    </select></label>
+   </div>
+  </section>}
   {documentType==="receipt"&&<section className={styles.wide}>
    <h2>Invoice allocation</h2><p>Balances are calculated for this accounting date; posting checks the selected invoices and receipt capacity again.</p>
    <button type="button" className="secondary" disabled={receiptLoading||!receiptParty||!receiptDate} onClick={()=>void refreshReceiptTargets(receiptParty,receiptDate)}>Refresh invoice list</button>
@@ -352,7 +475,9 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
     <button type="button" className="secondary" data-draft-edit="true" onClick={()=>setAllocationPlan(allocationPlan.filter(row=>row.target_open_item_id!==plan.target_open_item_id))}>Remove saved target</button>
    </div>)}
   </section>}
-  {documentType==="vendor_payment"&&<section className={styles.wide}><h2>Settlement plan</h2><p>Targets must be same-company open items. Their available balance is checked again when the source posts.</p>{allocationPlan.map((plan,i)=><div className={styles.line} key={i}><label>Open item ID<input value={plan.target_open_item_id} onChange={(e)=>setAllocationPlan(allocationPlan.map((p,j)=>j===i?{...p,target_open_item_id:e.target.value}:p))}/></label><label>Amount (BDT)<input inputMode="decimal" value={plan.amount} onChange={(e)=>setAllocationPlan(allocationPlan.map((p,j)=>j===i?{...p,amount:e.target.value}:p))}/></label><button type="button" className="secondary" data-draft-edit="true" onClick={()=>setAllocationPlan(allocationPlan.filter((_,j)=>j!==i))}>Remove target</button></div>)}<button type="button" className="secondary" data-draft-edit="true" onClick={()=>setAllocationPlan([...allocationPlan,{target_open_item_id:"",amount:"0.00"}])}>Add settlement target</button></section>}
+  {documentType==="vendor_payment"&&<SupplierPaymentAllocation partyId={receiptParty} accountingDate={receiptDate} targets={supplierTargets}
+   plan={allocationPlan} amount={movement.amount} display={supplierDisplay} loading={supplierLoading} error={supplierError}
+   onRefresh={()=>void refreshSupplierTargets(receiptParty,receiptDate)} onChange={setAllocationPlan}/>}
   {documentType==="transfer"&&<section className={styles.wide}><h2>Transfer</h2><div className={styles.line}>{(["from_cash_account_id","to_cash_account_id"] as const).map((key)=><label key={key}>{key==="from_cash_account_id"?"From":"To"}<select value={transfer[key]} onChange={(e)=>setTransfer({...transfer,[key]:e.target.value})}>{options.cash_accounts.map((a)=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>)}<label>Amount<input value={transfer.amount} onChange={(e)=>setTransfer({...transfer,amount:e.target.value})}/></label><label>Fee<input value={transfer.fee_amount} onChange={(e)=>setTransfer({...transfer,fee_amount:e.target.value})}/></label><label>Fee expense account<select value={transfer.fee_account_id} onChange={(e)=>setTransfer({...transfer,fee_account_id:e.target.value})}>{options.accounts.map((a)=><option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></label></div></section>}
   {journalTypes.includes(documentType)&&<section className={styles.wide}><h2>Journal rows</h2>{journals.map((row,i)=><div className={styles.line} key={i}><label>Account<select value={row.account_id} onChange={(e)=>setJournals(journals.map((x,j)=>j===i?{...x,account_id:e.target.value}:x))}>{options.accounts.map((a)=><option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></label><label>Cost-center tag<select value={row.cost_center_id??""} onChange={e=>setJournals(journals.map((x,j)=>j===i?{...x,cost_center_id:e.target.value||null}:x))}><option value="">No cost center</option>{options.cost_centers.map(c=><option key={c.id} value={c.id}>{c.code} · {c.name}</option>)}</select></label><label>Debit<input value={row.debit} onChange={(e)=>setJournals(journals.map((x,j)=>j===i?{...x,debit:e.target.value,credit:"0.00"}:x))}/></label><label>Credit<input value={row.credit} onChange={(e)=>setJournals(journals.map((x,j)=>j===i?{...x,credit:e.target.value,debit:"0.00"}:x))}/></label><label>Description<input value={row.description} onChange={(e)=>setJournals(journals.map((x,j)=>j===i?{...x,description:e.target.value}:x))}/></label><label>Cash-flow class (for cash lines)<select value={row.cash_flow_class} onChange={e=>setJournals(journals.map((x,j)=>j===i?{...x,cash_flow_class:e.target.value}:x))}><option value="unclassified">Unclassified</option><option value="operating">Operating</option><option value="investing">Investing</option><option value="financing">Financing</option></select></label>{journals.length>1&&<button type="button" className="secondary" data-draft-edit="true" onClick={()=>setJournals(journals.filter((_,j)=>j!==i))}>Remove row</button>}</div>)}<button type="button" className="secondary" data-draft-edit="true" onClick={()=>setJournals([...journals,{account_id:options.accounts[0]?.id??"",cost_center_id:null,debit:"0.00",credit:"0.00",description:"",cash_flow_class:"unclassified"}])}>Add row</button></section>}
     <details className={`${styles.wide} ${styles.editorSection} ${styles.optionalDetails}`} open={!/^[-+]?0(?:\.0{1,2})?$/.test(rounding.amount)||Boolean(fieldErrors.rounding_adjustment||fieldErrors.rounding_reason||fieldErrors.rounding_account_id)||undefined}>

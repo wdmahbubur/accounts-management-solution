@@ -57,6 +57,22 @@
 .previewPanel { min-width: 0; }
 .editor .line { grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
 .editor :is(input, select, textarea) { scroll-margin-bottom: 8rem; }
+.selectionCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+.selectionCard { display: grid; gap: .9rem; padding: 1rem; border: 1px solid #d6dfeb; border-radius: 9px; min-width: 0; }
+.selectionCard :is(h3,p) { margin: 0; line-height: 1.5; }
+.selectionActive { border-color: #789cc5; background: #f6f9fd; }
+.selectionUnavailable { border-color: #e7ca83; background: #fff9ea; }
+.selectionFacts, .paymentSummary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; margin: 0; }
+.selectionFacts dt, .paymentSummary dt { font-size: .8rem; color: #667085; }
+.selectionFacts dd, .paymentSummary dd { margin: .25rem 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.paymentSummary { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 1rem; border-radius: 8px; background: #edf3fa; }
+.paymentSummary dd { font-weight: 700; }
+.creditSourcePicker, .creditLineSource { display: grid; gap: 1rem; }
+.creditLineSource { padding: 1rem; border-radius: 8px; background: #f1f5fa; }
+.creditLineSource p { margin: 0; line-height: 1.5; }
+.lookupSearch { display: flex; gap: .75rem; align-items: flex-end; }
+.lookupSearch label { flex: 1; }
+.lookupSearch button { flex: 0 0 auto; }
 @media(max-width: 760px) {
   .editorFields { grid-template-columns: minmax(0, 1fr); }
   .editorSection { padding: 1rem; }
@@ -75,4 +91,7 @@
   .lineHeadingActions { gap: .35rem; }
   .lineAmount { font-size: .9rem; }
   .editor .line { grid-template-columns: minmax(0, 1fr); }
+  .paymentSummary { grid-template-columns: minmax(0, 1fr); }
+  .editorSection > .sectionHeading { align-items: flex-start; flex-direction: column; }
+  .lookupSearch { align-items: stretch; flex-direction: column; }
 }

@@ -8,6 +8,10 @@ import { canEditFinancialDocument, readDraftOptions, readFinancialDocument } fro
 import { canPostDocument } from "../../../../../../server/documents/posting.ts";
 import { readInvoiceLifecycle } from "../../../../../../server/documents/invoice-register.ts";
 import { readReceiptAllocationOptions, readReceiptLifecycle, type ReceiptInvoiceTarget } from "../../../../../../server/documents/customer-receipts.ts";
+import { readSupplierDocumentLifecycle, readSupplierPaymentAllocationOptions, type SupplierBillTarget } from "../../../../../../server/documents/supplier-payments.ts";
+import { readCreditNoteOptions, type CreditNoteOptions } from "../../../../../../server/documents/credit-notes.ts";
+import { readCreditApplicationOptions } from "../../../../../../server/documents/credit-application.ts";
+import type { CreditApplicationOptions } from "../../../../../../lib/credit-application.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 import { listActiveMemberships } from "../../../../../../server/companies/memberships.ts";
@@ -15,6 +19,7 @@ import { OpeningSubmitAction } from "../opening-submit-action.tsx";
 import { PostingAction } from "../posting-action.tsx";
 import { ReverseDocumentAction } from "../reverse-document-action.tsx";
 import { AllocationUnapplyAction } from "../allocation-unapply-action.tsx";
+import { CreditApplicationAction } from "../credit-application-action.tsx";
 import { WriteOffSubmitAction } from "../write-off-submit-action.tsx";
 import { InvoiceSendAction } from "./invoice-send-action.tsx";
 import { bangladeshDate } from "../../../../../../lib/date.ts";
@@ -23,7 +28,7 @@ import {
   DocumentTechnicalDetails, JournalTable, PlannedSettlements
 } from "../../../../../../components/finance/document-detail.tsx";
 import {
-  detailDate, detailRecord, detailRows, detailText, documentList, humanLabel, invoiceDetailActions, type DetailRecord
+  detailDate, detailRecord, detailRows, detailText, documentList, humanLabel, invoiceDetailActions, supplierDetailActions, settlementStateLabel, type DetailRecord
 } from "../../../../../../components/finance/document-detail-model.ts";
 import { displayMoney } from "../../../../../../components/finance/contracts.ts";
 import styles from "../../../../../../components/finance/document-detail.module.css";
@@ -46,12 +51,20 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   let document: Record<string, unknown> | undefined;
   let invoiceLifecycle: Awaited<ReturnType<typeof readInvoiceLifecycle>> | null = null;
   let receiptLifecycle: Awaited<ReturnType<typeof readReceiptLifecycle>> | null = null;
+  let supplierLifecycle: Awaited<ReturnType<typeof readSupplierDocumentLifecycle>> | null = null;
   let openingCompanyStatus:string|undefined;
 
   let openingCutover: Record<string,unknown> | null = null;
   let options: DraftOptions | undefined;
   let receiptInvoices: ReceiptInvoiceTarget[] = [];
   let receiptInvoiceError = "";
+  let supplierBills: SupplierBillTarget[] = [];
+  let supplierBillError = "";
+  let creditSources: CreditNoteOptions | undefined;
+  let creditSourceError = "";
+  let creditOriginal: DetailRecord | null = null;
+  let creditApplication: CreditApplicationOptions | null = null;
+  let creditApplicationError = "";
   let failure: unknown;
   try {
     actor = await resolveActorContext(organizationId, runtime.dependencies);
@@ -65,6 +78,18 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
     }
     if (type === "invoice" && actor.capabilities.includes("sales.read")) invoiceLifecycle = await readInvoiceLifecycle(runtime.client, actor, documentId);
     if (type === "receipt" && actor.capabilities.includes("sales.read")) receiptLifecycle = await readReceiptLifecycle(runtime.client, actor, documentId);
+    if ((type === "bill" || type === "vendor_payment") && actor.capabilities.includes("purchases.read")) supplierLifecycle = await readSupplierDocumentLifecycle(runtime.client, actor, documentId);
+    if (type === "customer_credit" || type === "vendor_credit") {
+      const originalId = detailRecord(document.trade).original_document_id;
+      if (typeof originalId === "string" && document.state !== "draft") {
+        try { creditOriginal = await readFinancialDocument(runtime.client, actor, originalId); }
+        catch (error) { if (!(error instanceof CommandError && ["NOT_FOUND", "FORBIDDEN"].includes(error.code))) throw error; }
+      }
+      if (document.state === "posted" && actor.capabilities.includes("dues.read")) {
+        try { creditApplication = await readCreditApplicationOptions(runtime.client, actor, documentId, bangladeshDate()); }
+        catch { creditApplicationError = "Credit settlement balances could not be loaded. Refresh available credit to retry."; }
+      }
+    }
     if (type !== "opening_balance" && String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type) && canEditFinancialDocument(actor, type) && actor.capabilities.includes("documents.read")) {
       const raw = await readDraftOptions(runtime.client, actor, type, String(document.accounting_date));
       options = {
@@ -79,6 +104,14 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
       if (type === "receipt" && typeof document.party_id === "string") {
         try { receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, document.party_id, String(document.accounting_date)); }
         catch { receiptInvoiceError = "Eligible invoices could not be loaded. Your saved settlement targets are preserved. Refresh the invoice list to retry."; }
+      }
+      if (type === "vendor_payment" && typeof document.party_id === "string") {
+        try { supplierBills = await readSupplierPaymentAllocationOptions(runtime.client, actor, document.party_id, String(document.accounting_date)); }
+        catch { supplierBillError = "Eligible bills could not be loaded. Your saved allocations are preserved. Refresh the bill list to retry. Viewing bill balances requires dues.read."; }
+      }
+      if (type === "customer_credit" || type === "vendor_credit") {
+        try { creditSources = await readCreditNoteOptions(runtime.client, actor, { documentType: type, accountingDate: String(document.accounting_date), partyId: String(document.party_id), originalDocumentId: detailText(detailRecord(document.trade).original_document_id, "") || null }); }
+        catch { creditSourceError = "Original documents could not be loaded. Your saved credit lines are preserved. Refresh the source list before saving changes."; }
       }
     }
   } catch (error) {
@@ -101,29 +134,34 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   const canReverse = document.state === "posted" && has("journal.post") &&
     !document.reversed_by_document_id && !["reversal", "opening_balance", "year_close"].includes(type);
   const invoiceActions = invoiceDetailActions(document, capabilities);
+  const supplierActions = supplierDetailActions(document, capabilities);
   const canRecordReceipt = invoiceActions.recordReceipt && invoiceLifecycle?.residual_amount !== "0.00";
+  const canRecordPayment = supplierActions.recordPayment && typeof supplierLifecycle?.residual_amount === "string" && supplierLifecycle.residual_amount !== "0.00";
   const canEditOpening = type === "opening_balance" && document.state === "draft" && has("journal.write", "documents.read", "accounting.read");
   const canReviewApproval = document.state === "pending_approval" && has("approvals.read");
-  const hasHeaderActions = invoiceActions.downloadPdf || invoiceActions.sendEmail || canRecordReceipt || invoiceActions.issueCredit || canEditOpening || canReviewApproval;
+  const hasHeaderActions = invoiceActions.downloadPdf || invoiceActions.sendEmail || canRecordReceipt || invoiceActions.issueCredit || canRecordPayment || supplierActions.issueCredit || canEditOpening || canReviewApproval;
   const journal = has("ledger.read") ? detailRecord(document.posted_journal) : {};
   const savedRows = detailRows(document.journal_rows);
   const primaryJournal = type !== "opening_balance" && savedRows.length > 0;
-  const lifecycle = invoiceLifecycle ?? receiptLifecycle;
+  const lifecycle = invoiceLifecycle ?? receiptLifecycle ?? supplierLifecycle;
   const back = <Link className={styles.back} href={list.href}>← {list.label}</Link>;
 
   if (options && type !== "opening_balance") return <main className={styles.main}>{back}
     <DocumentHeader document={document} invoiceLifecycle={null} receiptLifecycle={null} amountLabel="Last saved total" />
     <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={type as SourceType} options={options}
-      initial={document} expectedVersion={Number(document.version)} receiptInvoices={receiptInvoices} receiptInvoiceError={receiptInvoiceError} />
+      initial={document} expectedVersion={Number(document.version)} receiptInvoices={receiptInvoices} receiptInvoiceError={receiptInvoiceError}
+      supplierBills={supplierBills} supplierBillError={supplierBillError} creditSources={creditSources} creditSourceError={creditSourceError} />
   </main>;
 
   return <main className={styles.main}>
     {back}
-    <DocumentHeader document={document} invoiceLifecycle={invoiceLifecycle} receiptLifecycle={receiptLifecycle} actions={hasHeaderActions ? <>
+    <DocumentHeader document={document} invoiceLifecycle={invoiceLifecycle} receiptLifecycle={receiptLifecycle} supplierLifecycle={supplierLifecycle} actions={hasHeaderActions ? <>
       {invoiceActions.downloadPdf ? <a className="secondary" href={`/api/v1/organizations/${organizationId}/invoices/${documentId}/pdf`}>Download issued PDF</a> : null}
       {invoiceActions.sendEmail ? <InvoiceSendAction organizationId={organizationId} documentId={documentId} /> : null}
       {canRecordReceipt ? <Link className="primary" href={`/o/${organizationId}/accounting/documents/new?type=receipt&party_id=${String(document.party_id)}`}>Record customer receipt</Link> : null}
       {invoiceActions.issueCredit ? <Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=customer_credit&party_id=${String(document.party_id)}&original_document_id=${documentId}`}>Issue customer credit</Link> : null}
+      {canRecordPayment ? <Link className="primary" href={`/o/${organizationId}/accounting/documents/new?type=vendor_payment&party_id=${String(document.party_id)}`}>Record supplier payment</Link> : null}
+      {supplierActions.issueCredit ? <Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=vendor_credit&party_id=${String(document.party_id)}&original_document_id=${documentId}`}>Issue supplier credit</Link> : null}
       {canEditOpening ? <Link className="primary" href={`/o/${organizationId}/settings/opening-balances?document=${documentId}`}>Edit opening balances</Link> : null}
       {canReviewApproval ? <Link className="primary" href={`/o/${organizationId}/approvals`}>Review approval request</Link> : null}
     </> : null} />
@@ -132,13 +170,19 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
     {document.reversal_of_document_id ? <p className={styles.notice}>Reversal of <Link href={`/o/${organizationId}/accounting/documents/${String(document.reversal_of_document_id)}`}>{detailText(document.reversal_of_document_number, "the original document")}</Link>. Both events remain in the ledger.</p> : null}
     {canPost ? <div className={styles.commandArea}><PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} /></div> : null}
 
+    {creditOriginal ? <p className={styles.notice}>Credit against the original {creditOriginal.document_type === "bill" ? "bill" : "invoice"}: <Link href={`/o/${organizationId}/accounting/documents/${String(creditOriginal.id)}`}>{detailText(creditOriginal.document_number, "Open original document")}</Link>. The original document and its issued details are preserved.</p> : null}
+
     <DocumentFacts document={document} />
     <DocumentItems document={document} />
     <CashMovementDetails document={document} />
+    {(type === "customer_credit" || type === "vendor_credit") && document.state === "posted" && has("dues.read") ? <CreditApplicationAction key={documentId} organizationId={organizationId} documentId={documentId}
+      initial={creditApplication} initialError={creditApplicationError} defaultDate={bangladeshDate()} canApply={has("dues.allocate") && !document.reversed_by_document_id} /> : null}
 
     {invoiceLifecycle ? <SettlementSection organizationId={organizationId} lifecycle={invoiceLifecycle} title="Payments and credits" canUnapply={false} /> : null}
     {receiptLifecycle && document.state === "posted" ? <SettlementSection organizationId={organizationId} lifecycle={receiptLifecycle} title="Receipt settlement" canUnapply={has("dues.allocate")} /> : null}
-    {!(type === "receipt" && document.state === "posted" && receiptLifecycle) ? <PlannedSettlements organizationId={organizationId} document={document} /> : null}
+    {supplierLifecycle && document.state === "posted" ? <SettlementSection organizationId={organizationId} lifecycle={supplierLifecycle} title={type === "bill" ? "Payments and supplier credits" : "Bill settlement"} canUnapply={type === "vendor_payment" && has("dues.allocate")} /> : null}
+    {creditApplication ? <SettlementSection organizationId={organizationId} lifecycle={{state:"posted",as_of_date:creditApplication.effective_date,allocations:creditApplication.allocations}} title="Credit settlement history" canUnapply={has("dues.allocate")} /> : null}
+    {!((type === "receipt" || type === "vendor_payment") && document.state === "posted" && lifecycle) ? <PlannedSettlements organizationId={organizationId} document={document} /> : null}
 
     {primaryJournal ? <section className={styles.section} aria-labelledby="saved-journal-title"><h2 id="saved-journal-title">{journal.id ? "Posted journal" : "Saved journal lines"}</h2>
       <JournalTable rows={journal.id ? detailRows(journal.lines) : savedRows} caption={journal.id ? `Posted ${detailDate(journal.accounting_date)}` : "Saved source lines"} />
@@ -176,10 +220,10 @@ function SettlementSection({ organizationId, lifecycle, title, canUnapply }: {
 }) {
   const allocations = detailRows(lifecycle.allocations);
   return <section className={styles.section} aria-label={title}><h2>{title}</h2>
-    {allocations.length ? <div className={styles.tableScroll}><table><caption>Linked settlement history · BDT</caption><thead><tr><th scope="col">Effective date</th><th scope="col">Source</th><th scope="col">Amount</th><th scope="col">Allocation state</th>{canUnapply ? <th scope="col">Correction</th> : null}</tr></thead>
+    {allocations.length ? <div className={styles.tableScroll}><table><caption>Linked settlement history · BDT · status as of {detailDate(lifecycle.as_of_date)}</caption><thead><tr><th scope="col">Effective date</th><th scope="col">Source</th><th scope="col">Amount</th><th scope="col">Allocation state</th>{canUnapply ? <th scope="col">Correction</th> : null}</tr></thead>
       <tbody>{allocations.map((allocation, index) => <tr key={detailText(allocation.id, String(index))}>
         <td>{detailDate(allocation.effective_date)}</td><td>{allocation.counter_document_id ? <Link href={`/o/${organizationId}/accounting/documents/${String(allocation.counter_document_id)}`}>{detailText(allocation.counter_document_number, humanLabel(allocation.counter_document_type))}</Link> : detailText(allocation.counter_document_number, humanLabel(allocation.counter_document_type))}</td>
-        <td className={styles.amount}>{displayMoney(allocation.amount)}</td><td>{allocation.reversed_on ? `Reversed effective ${detailDate(allocation.reversed_on)}` : "Active"}</td>
+        <td className={styles.amount}>{displayMoney(allocation.amount)}</td><td>{settlementStateLabel(allocation, lifecycle.as_of_date)}</td>
         {canUnapply ? <td className={styles.allocationAction}>{!allocation.reversed_on ? <AllocationUnapplyAction organizationId={organizationId} allocationId={String(allocation.id)} /> : "—"}</td> : null}
       </tr>)}</tbody></table></div> : <p className={styles.hint}>{lifecycle.state === "posted" ? "No settlement allocation is linked to this document." : "Settlement will be available after posting."}</p>}
   </section>;

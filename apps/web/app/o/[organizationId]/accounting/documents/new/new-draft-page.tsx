@@ -1,4 +1,4 @@
-import { parseOrganizationId } from "@ams/contracts";
+import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { bangladeshDate } from "../../../../../../lib/date.ts";
 import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
@@ -6,6 +6,8 @@ import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
 import { readDraftOptions, readFinancialDocument } from "../../../../../../server/documents/service.ts";
 import { readReceiptAllocationOptions } from "../../../../../../server/documents/customer-receipts.ts";
+import { readSupplierPaymentAllocationOptions } from "../../../../../../server/documents/supplier-payments.ts";
+import { readCreditNoteOptions, type CreditNoteOptions } from "../../../../../../server/documents/credit-notes.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 import { duplicateTradeDraft } from "../draft-interactions.ts";
@@ -29,6 +31,11 @@ export default async function NewDraftPage({ params, searchParams }: {
 
   let options: DraftOptions | undefined;
   let receiptInvoices: Awaited<ReturnType<typeof readReceiptAllocationOptions>> = [];
+  let receiptInvoiceError = "";
+  let supplierBills: Awaited<ReturnType<typeof readSupplierPaymentAllocationOptions>> = [];
+  let supplierBillError = "";
+  let creditSources: CreditNoteOptions | undefined;
+  let creditSourceError = "";
   let initial: Record<string, unknown> | undefined = query.party_id ? { party_id: query.party_id } : undefined;
   let duplicate = false;
   let forbidden = false;
@@ -51,11 +58,29 @@ export default async function NewDraftPage({ params, searchParams }: {
     };
     if (initial?.party_id && !options.parties.some(party => party.id === initial?.party_id)) initial = undefined;
     const selectedParty = typeof initial?.party_id === "string" ? initial.party_id : null;
-    if (documentType === "receipt" && selectedParty) receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, selectedParty, today);
-    if (query.original_document_id) {
-      const original = await readFinancialDocument(runtime.client, actor, query.original_document_id);
-      if (original.document_type !== "invoice" || documentType !== "customer_credit") throw CommandError.notFound();
-      initial = { ...(initial ?? {}), trade: { original_document_id: query.original_document_id } };
+    if (documentType === "receipt" && selectedParty) {
+      try { receiptInvoices = await readReceiptAllocationOptions(runtime.client, actor, selectedParty, today); }
+      catch { receiptInvoiceError = "Eligible invoices could not be loaded. Refresh the invoice list to retry."; }
+    }
+    if (documentType === "vendor_payment" && selectedParty) {
+      try { supplierBills = await readSupplierPaymentAllocationOptions(runtime.client, actor, selectedParty, today); }
+      catch { supplierBillError = "Eligible bills could not be loaded. Refresh the bill list to retry. Viewing bill balances requires dues.read."; }
+    }
+    if (query.original_document_id && documentType !== "customer_credit" && documentType !== "vendor_credit") throw CommandError.notFound();
+    if (documentType === "customer_credit" || documentType === "vendor_credit") {
+      if (query.original_document_id) {
+        let originalDocumentId;
+        try { originalDocumentId = parseUuid(query.original_document_id, "original_document_id"); }
+        catch { throw CommandError.notFound(); }
+        initial = { ...initial, trade: { original_document_id: originalDocumentId } };
+      }
+      try {
+        creditSources = await readCreditNoteOptions(runtime.client, actor, { documentType, accountingDate: today, partyId: selectedParty, originalDocumentId: query.original_document_id });
+        const original = creditSources.selectedSource;
+        if (original) initial = { party_id: original.partyId, trade: { original_document_id: original.id } };
+      } catch {
+        creditSourceError = "Original documents could not be loaded. Refresh the source list before preparing a credit.";
+      }
     }
     if (query.copy) {
       if (documentType !== "invoice" && documentType !== "bill") throw CommandError.validation({ copy: "Only an invoice or supplier bill can be duplicated as a draft." });
@@ -73,5 +98,8 @@ export default async function NewDraftPage({ params, searchParams }: {
   if (forbidden) return <main><h1>Access denied</h1><p>You do not have permission to create this source type.</p></main>;
   if (failure) throw failure;
   if (!options) throw new Error("Document draft options were unavailable.");
-  return <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial} receiptInvoices={receiptInvoices} defaultDate={today} />;
+  const creationIdentity = JSON.stringify([organizationId, documentType, query.party_id ?? null, query.copy ?? null, query.original_document_id ?? null]);
+  return <main><DraftEditor key={creationIdentity} organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial}
+    receiptInvoices={receiptInvoices} receiptInvoiceError={receiptInvoiceError} supplierBills={supplierBills} supplierBillError={supplierBillError}
+    creditSources={creditSources} creditSourceError={creditSourceError} defaultDate={today} /></main>;
 }
