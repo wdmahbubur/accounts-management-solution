@@ -84,7 +84,17 @@ export function invoiceDetailActions(document: DetailRecord, capabilities: reado
     downloadPdf: posted && has("sales.read"),
     sendEmail: active && has("sales.read", "sales.write"),
     recordReceipt: active && typeof document.party_id === "string" && has("sales.write", "documents.read", "dues.read"),
-    issueCredit: active && typeof document.party_id === "string" && has("sales.write", "documents.read")
+    issueCredit: active && typeof document.party_id === "string" && has("sales.read", "sales.write", "documents.read")
+  };
+}
+
+export function supplierDetailActions(document: DetailRecord, capabilities: readonly string[]) {
+  const active = document.document_type === "bill" && document.state === "posted" && !document.reversed_by_document_id;
+  const has = (...codes: string[]) => codes.every(code => capabilities.includes(code));
+  const hasSupplier = typeof document.party_id === "string";
+  return {
+    recordPayment: active && hasSupplier && has("purchases.write", "documents.read", "dues.read"),
+    issueCredit: active && hasSupplier && has("purchases.read", "purchases.write", "documents.read")
   };
 }
 
@@ -92,6 +102,20 @@ export function detailDate(value: unknown): string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "—";
   const date = new Date(`${value}T00:00:00Z`);
   return Number.isNaN(date.valueOf()) ? "—" : new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(date);
+}
+
+export function settlementStateLabel(allocation: DetailRecord, asOfDate: unknown): string {
+  const effectiveDate = detailText(allocation.effective_date, "");
+  const reversedOn = detailText(allocation.reversed_on, "");
+  const asOf = detailText(asOfDate, "");
+  if (reversedOn && (!asOf || reversedOn <= asOf)) return `Reversed effective ${detailDate(reversedOn)}`;
+  if (asOf && effectiveDate > asOf) return `Scheduled for ${detailDate(effectiveDate)}${reversedOn ? `; reverses ${detailDate(reversedOn)}` : ""}`;
+  return reversedOn ? `Active; reverses ${detailDate(reversedOn)}` : "Active";
+}
+
+export function settlementHistoryCaption(asOfDate: unknown): string {
+  const date = detailDate(asOfDate);
+  return `Linked settlement history · BDT${date === "—" ? "" : ` · status as of ${date}`}`;
 }
 
 export function detailTimestamp(value: unknown): string {

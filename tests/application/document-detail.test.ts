@@ -3,7 +3,7 @@ import test from "node:test";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import {
   accountLabel, detailDate, detailDecimal, detailRows, documentHeading, documentList, exactJournalTotals,
-  invoiceDetailActions, issuedPartyDetails, sourceStateExplanation, sourceStateLabel
+  invoiceDetailActions, supplierDetailActions, issuedPartyDetails, sourceStateExplanation, sourceStateLabel, settlementHistoryCaption, settlementStateLabel
 } from "../../apps/web/components/finance/document-detail-model.ts";
 import { readFinancialDocument } from "../../apps/web/server/documents/service.ts";
 import type { RequestClient } from "../../apps/web/server/request-client.ts";
@@ -68,6 +68,18 @@ test("invoice actions follow actual source, write, generic command and settlemen
   assert.equal(invoiceDetailActions({...invoice,document_type:"bill"},writer).recordReceipt,false);
 });
 
+test("supplier bill actions require a posted unreversed source and the permissions used by preparation commands", () => {
+  const bill = { ...invoice, document_type: "bill" };
+  const writer = ["purchases.read", "purchases.write", "documents.read", "dues.read"];
+  assert.deepEqual(supplierDetailActions(bill, writer), { recordPayment: true, issueCredit: true });
+  assert.deepEqual(supplierDetailActions(bill, ["purchases.read"]), { recordPayment: false, issueCredit: false });
+  assert.deepEqual(supplierDetailActions(bill, ["purchases.write", "documents.read"]), { recordPayment: false, issueCredit: false });
+  assert.deepEqual(supplierDetailActions(bill, ["purchases.read", "purchases.write", "documents.read"]), { recordPayment: false, issueCredit: true });
+  for (const source of [{ ...bill, state: "draft" }, { ...bill, state: "approved" }, { ...bill, reversed_by_document_id: id }, { ...bill, party_id: null }, invoice]) {
+    assert.deepEqual(supplierDetailActions(source, writer), { recordPayment: false, issueCredit: false });
+  }
+});
+
 test("document back links use an authorized existing module route and account IDs stay out of primary labels", () => {
   assert.equal(documentList(id,"receipt",["sales.read"]).href,`/o/${id}/sales/receipts`);
   assert.equal(documentList(id,"transfer",["banking.read"]).href,`/o/${id}/banking/transfers`);
@@ -76,6 +88,23 @@ test("document back links use an authorized existing module route and account ID
   assert.equal(accountLabel({account_id:id,account_code:"1100",account_name:"Accounts receivable"}),"1100 · Accounts receivable");
   assert.doesNotMatch(accountLabel({account_id:id}),new RegExp(id));
   assert.equal(detailDate("2026-10-08"),"08 Oct 2026");
+});
+
+test("settlement history caption includes an as-of date only when the response provides a displayable date", () => {
+  for (const absent of [undefined, null, "", "invalid", "2026-10-09T00:00:00Z"]) {
+    assert.equal(settlementHistoryCaption(absent), "Linked settlement history · BDT");
+  }
+  assert.equal(settlementHistoryCaption("2026-10-09"), "Linked settlement history · BDT · status as of 09 Oct 2026");
+});
+
+test("dated settlement history distinguishes scheduled events, active allocations and effective reversals", () => {
+  const allocation = { effective_date: "2026-10-10", reversed_on: null };
+  assert.equal(settlementStateLabel(allocation, "2026-10-09"), "Scheduled for 10 Oct 2026");
+  assert.equal(settlementStateLabel(allocation, "2026-10-10"), "Active");
+  const reversed = { ...allocation, reversed_on: "2026-10-12" };
+  assert.equal(settlementStateLabel(reversed, "2026-10-09"), "Scheduled for 10 Oct 2026; reverses 12 Oct 2026");
+  assert.equal(settlementStateLabel(reversed, "2026-10-11"), "Active; reverses 12 Oct 2026");
+  assert.equal(settlementStateLabel(reversed, "2026-10-12"), "Reversed effective 12 Oct 2026");
 });
 
 test("authorized source read preserves enriched account and journal evidence while fetching only issued line snapshots", async () => {

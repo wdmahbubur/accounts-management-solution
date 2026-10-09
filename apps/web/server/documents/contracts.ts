@@ -70,6 +70,12 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:"BDT",roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows,allocationPlan};
 }
 export function documentDatabaseError(error:{code?:string;message?:string}):CommandError|RetryableTransactionError{
+  if(error.code==="23514"){
+    if(error.message==="credit lines exceed remaining original quantity or amount")return CommandError.validation({lines:"This credit exceeds the remaining original quantity or amount. Refresh the original lines and adjust the credit."});
+    if(error.message==="credit total including rounding exceeds remaining original total")return CommandError.validation({rounding_adjustment:"The total credit, including rounding, exceeds the original document's remaining amount. Refresh the original capacity and adjust the credit or rounding."});
+    if(error.message==="credit lines must preserve the selected original accounting and tax snapshots")return CommandError.validation({lines:"Select lines from the original document and preserve their account, cost center and tax details."});
+    if(error.message==="credit original is reversed, future-dated, or incompatible")return CommandError.validation({original_document_id:"Choose an eligible posted original for this party, and a credit date on or after the original accounting date."});
+  }
   const retryable=retryableTransactionError(error);if(retryable)return retryable;
   if(error.code==="28000")return CommandError.unauthenticated();if(error.code==="42501")return CommandError.forbidden();if(error.code==="P0002")return CommandError.notFound();
   if(error.code==="40001")return CommandError.conflict("STALE_VERSION");if(error.code==="23505")return CommandError.conflict("IDEMPOTENCY_CONFLICT");

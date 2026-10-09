@@ -67,6 +67,7 @@ export function calculateTradeDraft(input: {
   lines: readonly TradeLineInput[];
   taxCodes: readonly { id: string; rate_percent?: string }[];
   savedLines?: readonly SavedLineTax[];
+  originalLines?: readonly Pick<SavedLineTax, "original_line_id" | "tax_rate_snapshot" | "tax_mode">[];
   credit?: boolean;
   rounding: { amount: string; reason: string; accountId: string };
 }): TradeDraftDisplay {
@@ -74,17 +75,20 @@ export function calculateTradeDraft(input: {
   const calculationLines: Record<string, unknown>[] = [];
   const savedById = new Map(input.savedLines?.filter(line => line.id).map(line => [line.id, line]));
   const taxById = new Map(input.taxCodes.map(tax => [tax.id, tax.rate_percent]));
+  const originals = new Map(input.originalLines?.map(line => [line.original_line_id, line]));
   const lines = input.lines.map((line, index): TradeLineDisplay => {
     const saved = line.id ? savedById.get(line.id) : undefined;
     let rate: string | undefined;
     let mode = line.tax_mode;
     if (input.credit) {
       // Credit tax comes from its original posted line, never a currently active rate.
-      if (!saved || !line.original_line_id || saved.original_line_id !== line.original_line_id) {
+      const original = line.original_line_id ? originals.get(line.original_line_id) : undefined;
+      const snapshot = original ?? (saved?.original_line_id === line.original_line_id ? saved : undefined);
+      if (!snapshot || !line.original_line_id) {
         return { amounts: null, notice: "Save this credit to load the original line’s tax and confirm its total." };
       }
-      rate = saved.tax_rate_snapshot;
-      mode = saved.tax_mode;
+      rate = snapshot.tax_rate_snapshot;
+      mode = snapshot.tax_mode;
     } else if (saved && saved.tax_code_id === line.tax_code_id) {
       rate = saved.tax_rate_snapshot;
     } else {
