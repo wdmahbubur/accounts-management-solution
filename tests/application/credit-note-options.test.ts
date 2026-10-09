@@ -111,3 +111,12 @@ test("authoritative credit guard errors reach the matching form fields without r
     assert.ok(error.fields?.[field]);
   }
 });
+
+test("unrecognized database details never become credit form messages", () => {
+  const literal = "credit lines exceed remaining original quantity or amount";
+  for (const databaseError of [{ code: "23514", message: `${literal}: private SQL detail` }, { code: "23503", message: literal }]) {
+    const error = documentDatabaseError(databaseError);
+    assert.ok(error instanceof CommandError);
+    assert.deepEqual(error.fields, { document: "The draft conflicts with a company, date, account, or source rule." });
+  }
+});

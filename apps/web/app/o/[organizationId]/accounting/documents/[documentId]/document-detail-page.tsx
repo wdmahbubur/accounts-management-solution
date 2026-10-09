@@ -28,7 +28,7 @@ import {
   DocumentTechnicalDetails, JournalTable, PlannedSettlements
 } from "../../../../../../components/finance/document-detail.tsx";
 import {
-  detailDate, detailRecord, detailRows, detailText, documentList, humanLabel, invoiceDetailActions, supplierDetailActions, settlementStateLabel, type DetailRecord
+  detailDate, detailRecord, detailRows, detailText, documentList, humanLabel, invoiceDetailActions, supplierDetailActions, settlementHistoryCaption, settlementStateLabel, type DetailRecord
 } from "../../../../../../components/finance/document-detail-model.ts";
 import { displayMoney } from "../../../../../../components/finance/contracts.ts";
 import styles from "../../../../../../components/finance/document-detail.module.css";
@@ -220,7 +220,7 @@ function SettlementSection({ organizationId, lifecycle, title, canUnapply }: {
 }) {
   const allocations = detailRows(lifecycle.allocations);
   return <section className={styles.section} aria-label={title}><h2>{title}</h2>
-    {allocations.length ? <div className={styles.tableScroll}><table><caption>Linked settlement history · BDT · status as of {detailDate(lifecycle.as_of_date)}</caption><thead><tr><th scope="col">Effective date</th><th scope="col">Source</th><th scope="col">Amount</th><th scope="col">Allocation state</th>{canUnapply ? <th scope="col">Correction</th> : null}</tr></thead>
+    {allocations.length ? <div className={styles.tableScroll}><table><caption>{settlementHistoryCaption(lifecycle.as_of_date)}</caption><thead><tr><th scope="col">Effective date</th><th scope="col">Source</th><th scope="col">Amount</th><th scope="col">Allocation state</th>{canUnapply ? <th scope="col">Correction</th> : null}</tr></thead>
       <tbody>{allocations.map((allocation, index) => <tr key={detailText(allocation.id, String(index))}>
         <td>{detailDate(allocation.effective_date)}</td><td>{allocation.counter_document_id ? <Link href={`/o/${organizationId}/accounting/documents/${String(allocation.counter_document_id)}`}>{detailText(allocation.counter_document_number, humanLabel(allocation.counter_document_type))}</Link> : detailText(allocation.counter_document_number, humanLabel(allocation.counter_document_type))}</td>
         <td className={styles.amount}>{displayMoney(allocation.amount)}</td><td>{settlementStateLabel(allocation, lifecycle.as_of_date)}</td>

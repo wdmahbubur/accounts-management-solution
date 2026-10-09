@@ -7,19 +7,20 @@ import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts
 import { CommandError } from "../../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
 import { ReportExportButton } from "../report-export-button.tsx";
+import { parseBalanceSheetDates, type BalanceSheetDateQuery } from "./date-filters.ts";
 
 export const dynamic="force-dynamic";export const revalidate=0;
 type Section="asset"|"liability"|"equity"|"untransferred_earnings";
 type Account={account_id:string;account_code:string;account_name:string;account_type:string;report_group:string;section:Section;amount:string};
 type Statement={as_of:string;assets:string;liabilities:string;equity_accounts:string;untransferred_earnings:string;equity:string;liabilities_and_equity:string;difference:string;accounts:Account[]};
 type Snapshot={snapshot_id:string;company:{name:string;timezone:string};generated_at:string;ledger_cutoff_at:string;data:{current:Statement;comparison:Statement|null}};
-const dateOk=(value:string|null|undefined)=>!!value&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(new Date(`${value}T00:00:00Z`).getTime())&&new Date(`${value}T00:00:00Z`).toISOString().slice(0,10)===value;
 const money=(value:string)=>{if(!/^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value))throw new Error("Invalid Balance Sheet money value.");return value;};
 const sectionTitle:Record<Section,string>={asset:"Assets",liability:"Liabilities",equity:"Equity accounts",untransferred_earnings:"Untransferred earnings"};
-export default async function BalanceSheetPage({params,searchParams}:{params:Promise<{organizationId:string}>;searchParams:Promise<{as_of?:string;comparison_as_of?:string}>}){
+export default async function BalanceSheetPage({params,searchParams}:{params:Promise<{organizationId:string}>;searchParams:Promise<BalanceSheetDateQuery>}){
  let organizationId;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}
- const q=await searchParams,today=bangladeshDate(),asOf=q.as_of??today,comparisonAsOf=q.comparison_as_of??null;
- if(!dateOk(asOf)||!dateOk(comparisonAsOf)||(comparisonAsOf!==null&&comparisonAsOf===asOf))return <main className="content"><h1>Balance Sheet</h1><p role="alert">Enter valid, different as-of dates.</p></main>;
+ const dates=parseBalanceSheetDates(await searchParams,bangladeshDate());
+ if(!dates)return <main className="content"><h1>Balance Sheet</h1><p role="alert">Enter a valid as-of date. If comparing, choose a different valid date.</p></main>;
+ const {asOf,comparisonAsOf}=dates;
  const runtime=await roleRuntime();if(!runtime.current||runtime.current.organizationId!==organizationId)redirect("/companies?error=context_mismatch");let capabilities:readonly string[];
  try{const actor=await resolveActorContext(organizationId,runtime.dependencies);capabilities=actor.capabilities;if(!capabilities.includes("reports.read"))throw CommandError.forbidden();}
  catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="FORBIDDEN")return <main className="content"><h1>Access denied</h1><p>You need reports.read to view Balance Sheet.</p></main>;throw error;}

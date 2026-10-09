@@ -145,8 +145,8 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  const supplierRequest=useRef(0);
  const supplierDisplay=supplierAllocationDisplay(movement.amount,allocationPlan,supplierTargets);
  async function refreshSupplierTargets(partyId:string,date:string):Promise<SupplierBillTarget[]|null>{
-  const request=++supplierRequest.current;setSupplierTargets([]);setSupplierError("");
-  if(!partyId||!date){setSupplierLoading(false);return null;}setSupplierLoading(true);
+  const request=++supplierRequest.current;setSupplierError("");
+  if(!partyId||!date){setSupplierTargets([]);setSupplierLoading(false);return null;}setSupplierLoading(true);
   try{
    const q=new URLSearchParams({party_id:partyId,accounting_date:date});
    const response=await fetch(`/api/v1/organizations/${organizationId}/supplier-payment-allocation-options?${q}`,{cache:"no-store"});
@@ -154,7 +154,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
    const targets=parseSupplierBillTargets(json.data);
    if(request!==supplierRequest.current)return null;
    setSupplierTargets(targets);return targets;
-  }catch(failure){if(request===supplierRequest.current)setSupplierError(failure instanceof Error?failure.message:"Eligible supplier bills could not be loaded.");return null;}
+  }catch(failure){if(request===supplierRequest.current){setSupplierTargets([]);setSupplierError(failure instanceof Error?failure.message:"Eligible supplier bills could not be loaded.");}return null;}
   finally{if(request===supplierRequest.current)setSupplierLoading(false);}
  }
  async function refreshReceiptTargets(partyId:string,date:string){
@@ -274,6 +274,11 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  const decimalPattern="(0|[1-9][0-9]{0,13})([.][0-9]{1,6})?";
  const moneyPattern="(0|[1-9][0-9]{0,17})([.][0-9]{1,2})?";
  function errorLabel(name:string){
+  if(documentType==="vendor_payment"){
+   if(name==="allocation_plan")return "Bill allocations";
+   const allocation=name.match(/^allocation_plan\.(\d+)(?:\.(.+))?$/);
+   if(allocation)return `Bill allocation ${allocation[1]}${allocation[2]==="amount"?" · Amount":""}`;
+  }
   const fields:Record<string,string>={party_id:partyLabel,issue_date:"Issue date",accounting_date:"Accounting date",due_date:"Due date",description:"Description",quantity:"Quantity",unit_price:"Unit price",discount_amount:"Discount",account_id:"Account",rounding_adjustment:"Rounding adjustment",rounding_reason:"Rounding reason",rounding_account_id:"Rounding account",expected_version:"Saved version",notes:"Invoice notes",terms:"Payment terms"};
   const line=name.match(/^lines\.(\d+)\.(.+)$/);
   return line?`Line ${line[1]} · ${fields[line[2]!]??line[2]!.replaceAll("_"," ")}`:fields[name]??name.replaceAll("_"," ").replaceAll("."," · ");

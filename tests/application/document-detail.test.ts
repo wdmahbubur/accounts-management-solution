@@ -3,7 +3,7 @@ import test from "node:test";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import {
   accountLabel, detailDate, detailDecimal, detailRows, documentHeading, documentList, exactJournalTotals,
-  invoiceDetailActions, supplierDetailActions, issuedPartyDetails, sourceStateExplanation, sourceStateLabel, settlementStateLabel
+  invoiceDetailActions, supplierDetailActions, issuedPartyDetails, sourceStateExplanation, sourceStateLabel, settlementHistoryCaption, settlementStateLabel
 } from "../../apps/web/components/finance/document-detail-model.ts";
 import { readFinancialDocument } from "../../apps/web/server/documents/service.ts";
 import type { RequestClient } from "../../apps/web/server/request-client.ts";
@@ -88,6 +88,13 @@ test("document back links use an authorized existing module route and account ID
   assert.equal(accountLabel({account_id:id,account_code:"1100",account_name:"Accounts receivable"}),"1100 · Accounts receivable");
   assert.doesNotMatch(accountLabel({account_id:id}),new RegExp(id));
   assert.equal(detailDate("2026-10-08"),"08 Oct 2026");
+});
+
+test("settlement history caption includes an as-of date only when the response provides a displayable date", () => {
+  for (const absent of [undefined, null, "", "invalid", "2026-10-09T00:00:00Z"]) {
+    assert.equal(settlementHistoryCaption(absent), "Linked settlement history · BDT");
+  }
+  assert.equal(settlementHistoryCaption("2026-10-09"), "Linked settlement history · BDT · status as of 09 Oct 2026");
 });
 
 test("dated settlement history distinguishes scheduled events, active allocations and effective reversals", () => {

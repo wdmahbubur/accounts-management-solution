@@ -72,7 +72,7 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
 export function documentDatabaseError(error:{code?:string;message?:string}):CommandError|RetryableTransactionError{
   if(error.code==="23514"){
     if(error.message==="credit lines exceed remaining original quantity or amount")return CommandError.validation({lines:"This credit exceeds the remaining original quantity or amount. Refresh the original lines and adjust the credit."});
-    if(error.message==="credit total including rounding exceeds remaining original total")return CommandError.validation({rounding_adjustment:"The total credit, including rounding, exceeds the original document's remaining amount."});
+    if(error.message==="credit total including rounding exceeds remaining original total")return CommandError.validation({rounding_adjustment:"The total credit, including rounding, exceeds the original document's remaining amount. Refresh the original capacity and adjust the credit or rounding."});
     if(error.message==="credit lines must preserve the selected original accounting and tax snapshots")return CommandError.validation({lines:"Select lines from the original document and preserve their account, cost center and tax details."});
     if(error.message==="credit original is reversed, future-dated, or incompatible")return CommandError.validation({original_document_id:"Choose an eligible posted original for this party, and a credit date on or after the original accounting date."});
   }

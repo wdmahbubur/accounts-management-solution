@@ -113,6 +113,11 @@ export function settlementStateLabel(allocation: DetailRecord, asOfDate: unknown
   return reversedOn ? `Active; reverses ${detailDate(reversedOn)}` : "Active";
 }
 
+export function settlementHistoryCaption(asOfDate: unknown): string {
+  const date = detailDate(asOfDate);
+  return `Linked settlement history · BDT${date === "—" ? "" : ` · status as of ${date}`}`;
+}
+
 export function detailTimestamp(value: unknown): string {
   if (typeof value !== "string") return "—";
   const date = new Date(value);
