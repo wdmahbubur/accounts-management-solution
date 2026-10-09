@@ -38,7 +38,7 @@ const definitions: { id: string; label: string; items: NavigationDefinition[] }[
     { path: "/banking/accounts", label: "Cash and bank accounts", anyCapability: ["banking.read"] },
     { path: "/banking/transfers", label: "Transfers", anyCapability: ["banking.read"] },
     { path: "/banking/import", label: "Import bank statement", anyCapability: ["banking.write"] },
-    { path: "/banking/reconciliations", label: "Reconciliation", anyCapability: ["banking.write"] }
+    { path: "/banking/reconciliations", label: "Reconciliation", anyCapability: ["banking.read", "banking.write"] }
   ] },
   { id: "accounting", label: "Accounting", items: [
     { path: "/accounting/documents", label: "Financial documents", anyCapability: ["documents.read"] },

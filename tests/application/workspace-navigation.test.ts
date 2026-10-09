@@ -19,10 +19,11 @@ test("navigation preserves capability boundaries and makes authorized reports di
     [root, `${root}/notifications`, `${root}/notifications/preferences`]);
 });
 
-test("banking setup links use the existing page write capability", () => {
+test("banking readers can discover reconciliation history while imports remain write-only", () => {
   const readOnly = workspaceNavigation(organization, ["banking.read"]).flatMap(group => group.items);
   assert.ok(readOnly.some(item => item.href === `${root}/banking/accounts`));
-  assert.ok(!readOnly.some(item => item.href === `${root}/banking/import` || item.href === `${root}/banking/reconciliations`));
+  assert.ok(readOnly.some(item => item.href === `${root}/banking/reconciliations`));
+  assert.ok(!readOnly.some(item => item.href === `${root}/banking/import`));
   const writable = workspaceNavigation(organization, ["banking.write"]).flatMap(group => group.items);
   assert.ok(writable.some(item => item.href === `${root}/banking/import`));
   assert.ok(writable.some(item => item.href === `${root}/banking/reconciliations`));

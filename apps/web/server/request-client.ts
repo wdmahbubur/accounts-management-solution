@@ -110,6 +110,7 @@ const procedures = new Set([
   "import_bank_statement_rows",
   "count_statement_fingerprint_matches",
   "create_reconciliation",
+  "read_reconciliation_list",
   "read_reconciliation_workspace",
   "add_reconciliation_match",
   "reverse_reconciliation_match",

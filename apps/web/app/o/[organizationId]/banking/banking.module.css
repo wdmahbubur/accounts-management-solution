@@ -1,0 +1,30 @@
+.heading { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap; }
+.heading h1 { margin-bottom:10px; }
+.heading p { margin-top:0; }
+.stack { display:grid; gap:22px; }
+.stack h2, .stack h3 { margin:0; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:18px; }
+.grid label { display:grid; align-content:start; gap:7px; }
+.actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.muted { color:#526176; font-size:.92rem; }
+.notice { padding:14px 16px; border:1px solid #cbd9ee; border-radius:10px; background:#f4f8ff; }
+.notice p, .error p, .success p { margin:0; }
+.error { padding:14px 16px; border:1px solid #edb5b5; border-radius:10px; background:#fff6f6; color:#8e2626; }
+.success { padding:14px 16px; border:1px solid #b9dbc9; border-radius:10px; background:#f0faf5; color:#205c42; }
+.fieldError { color:#9b2828; font-size:.88rem; }
+.summary { display:flex; gap:20px 32px; flex-wrap:wrap; margin:0; }
+.summary div { display:grid; gap:5px; }
+.summary dt { color:#526176; font-size:.86rem; }
+.summary dd { margin:0; font-weight:700; font-variant-numeric:tabular-nums; }
+.number { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.selected { background:#eef5ff; }
+.badge { display:inline-block; border-radius:20px; padding:4px 10px; background:#e9eef6; font-size:.8rem; white-space:nowrap; }
+.fieldSet { display:grid; gap:18px; margin:0; padding:0; border:0; min-width:0; }
+.scroll { overflow:auto; }
+.scroll table { width:100%; }
+.inlineForm { display:grid; gap:12px; padding:16px; border:1px solid #ccd8e8; border-radius:10px; background:#f8faff; }
+.inlineForm label { display:grid; gap:7px; }
+.comparison { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr)); }
+.comparison p { margin:0; }
+.comparison > div { border:1px solid #d8e1ef; border-radius:10px; padding:15px; }
+@media(max-width:640px) { .summary { gap:18px; } .actions > button { flex:1; } .heading { gap:10px; } }

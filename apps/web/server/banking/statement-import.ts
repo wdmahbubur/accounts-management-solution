@@ -114,7 +114,8 @@ function moneyValue(value: unknown, signed = false): string {
   const text = String(value ?? "").trim().replaceAll(",", "").replace(/^৳\s*/, "");
   if (!/^-?\d{1,12}(?:\.\d{1,2})?$/.test(text) || (!signed && text.startsWith("-"))) throw new Error("Use an exact BDT amount with up to two decimal places.");
   const [whole, fraction = ""] = text.replace(/^-/, "").split(".");
-  return `${text.startsWith("-") ? "-" : ""}${whole}.${fraction.padEnd(2, "0")}`;
+  const amount = `${whole!.replace(/^0+(?=\d)/, "")}.${fraction.padEnd(2, "0")}`;
+  return `${text.startsWith("-") && amount !== "0.00" ? "-" : ""}${amount}`;
 }
 
 export function mapStatementRows(matrix: unknown[][], mapping: StatementMapping): { rows: StatementRow[]; errors: { row_no: number; message: string }[]; preview: unknown[][]; repeatedFingerprints: number } {
@@ -134,7 +135,15 @@ export function mapStatementRows(matrix: unknown[][], mapping: StatementMapping)
       });
       const amount = mapping.amount !== undefined
         ? moneyValue(values[mapping.amount], true)
-        : (() => { const debit = moneyValue(values[mapping.debit!]); const credit = moneyValue(values[mapping.credit!]); const debitN = Number(debit); const creditN = Number(credit); if ((debitN > 0) === (creditN > 0)) throw new Error("Enter a value in exactly one of debit or credit."); return debitN > 0 ? `-${debit}` : credit; })();
+        : (() => {
+          // Bank exports normally leave the opposite movement column blank.
+          // Only these two optional sides treat blank as zero; an absent signed
+          // amount and a row with neither side populated must still fail.
+          const side = (value: unknown) => moneyValue(String(value ?? "").trim() === "" ? "0.00" : value);
+          const debit = side(values[mapping.debit!]); const credit = side(values[mapping.credit!]);
+          if ((debit !== "0.00") === (credit !== "0.00")) throw new Error("Enter a value in exactly one of debit or credit.");
+          return debit !== "0.00" ? `-${debit}` : credit;
+        })();
       if (/^-?0\.00$/.test(amount)) throw new Error("Zero-value rows are not imported.");
       const transactionDate = dateValue(values[mapping.date]);
       const valueDate = mapping.valueDate === undefined || !String(values[mapping.valueDate] ?? "").trim() ? "" : dateValue(values[mapping.valueDate]);

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
+import { readReconciliationWorkspace, type ReconciliationWorkspaceData } from "../../../../../../lib/reconciliation-workspace.ts";
 import { ReconciliationWorkspace } from "./workspace.tsx";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function ReconciliationPage({ params }: { params: Promise<{
   catch { redirect("/companies?error=not_found"); }
   const runtime = await roleRuntime();
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
-  let workspace: Record<string, unknown> = {};
+  let workspace: ReconciliationWorkspaceData;
   let canWrite = false;
   let canFinalize = false;
   let canReopen = false;
@@ -29,13 +30,12 @@ export default async function ReconciliationPage({ params }: { params: Promise<{
       if (result.error.code === "P0002") throw CommandError.notFound();
       throw new Error("Reconciliation could not be loaded.");
     }
-    if (!result.data || typeof result.data !== "object" || Array.isArray(result.data)) throw new Error("Invalid reconciliation response.");
-    workspace = result.data as Record<string, unknown>;
+    workspace = readReconciliationWorkspace(result.data, organizationId, reconciliationId);
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");
     if (error instanceof CommandError && error.code === "NOT_FOUND") redirect("/companies?error=not_found");
-    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>You need banking.read to view reconciliations.</p></main>;
+    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>You need permission to view or manage banking reconciliations.</p></main>;
     throw error;
   }
-  return <ReconciliationWorkspace organizationId={organizationId} data={workspace} canWrite={canWrite} canFinalize={canFinalize} canReopen={canReopen}/>;
+  return <ReconciliationWorkspace key={`${organizationId}:${reconciliationId}`} organizationId={organizationId} data={workspace} canWrite={canWrite} canFinalize={canFinalize} canReopen={canReopen}/>;
 }
