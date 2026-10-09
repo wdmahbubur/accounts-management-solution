@@ -86,8 +86,8 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
               <td>Opening {session.statementOpening}<br/>Closing {session.statementClosing}</td>
               <td><strong>{reconciliationStatusLabels[session.status]}</strong><br/><small>{eventLabel} <time dateTime={eventDate}>{timestampLabel(eventDate)}</time></small>{session.reopenCount > 0 ? <><br/><small>{session.reopenCount} recorded reopen {session.reopenCount === 1 ? "event" : "events"}</small></> : null}</td>
               <td>{session.activeMatchCount} active {session.activeMatchCount === 1 ? "match" : "matches"}</td>
-              {/* Always reload the authoritative workspace after matching or state changes. */}
-              <td><a href={`${root}/${session.id}`}>{reconciliationLinkLabel(session, canWrite)}</a></td></tr>;
+              {/* Keep a continuous click target when the action label wraps. */}
+              <td><Link className="secondary" href={`${root}/${session.id}`}>{reconciliationLinkLabel(session, canWrite)}</Link></td></tr>;
           })}
         </tbody></table></div> : <p>{filters.cashAccountId || filters.status ? "No sessions match these filters." : filters.page > 1 ? "No sessions on this page." : "No reconciliation sessions have been created yet."}</p>}
         {(history.page > 1 || history.hasMore) ? <nav className="toolbar" aria-label="Reconciliation history pages">
