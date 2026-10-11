@@ -33,7 +33,19 @@ type Dashboard = {
 const validDate = (value: string | undefined): value is string => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value)
   && Number.isFinite(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 const money = (value: string | undefined) => value && /^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value) ? value : "0.00";
-const label = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+const label = (value: string) => {
+  const words = value.replace(/[\p{P}\p{S}]+/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+function eventTime(value: string, timeZone: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  try {
+    return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone }).format(date);
+  } catch {
+    return value;
+  }
+}
 
 function Metric({ title, value, detail, href }: { title: string; value: string; detail?: string; href?: string }) {
   const content = <><span>{title}</span><strong><span>BDT</span> {money(value)}</strong>{detail && <small>{detail}</small>}</>;
@@ -113,9 +125,9 @@ export default async function OrganizationDashboardPage({
 
     {data.performance && <>
       <section className={styles.metricSection} aria-labelledby="performance-heading"><div className={styles.sectionHeading}><h2 id="performance-heading">Performance</h2><p>{period} · balances as of {snapshot.filters.as_of}</p></div><div className={styles.metrics}>
-        <Metric title="Earned revenue" value={data.performance.revenue} detail={data.performance.provisional ? "Provisional source detail" : period} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
+        <Metric title="Earned revenue" value={data.performance.revenue} detail={data.performance.provisional ? "Provisional" : period} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         <Metric title="Expenses" value={data.performance.expenses} detail="Accrual basis" href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
-        <Metric title="Net profit" value={data.performance.net_profit} detail={data.performance.provisional ? "Provisional" : "Posted ledger and approved opening summary"} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
+        <Metric title="Net profit" value={data.performance.net_profit} detail={data.performance.provisional ? "Provisional" : "Posted + approved opening totals"} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         {data.liquidity && <Metric title="Cash and bank" value={data.liquidity.closing_cash_equivalents} detail={`Cash equivalents · as of ${snapshot.filters.as_of}${data.liquidity.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/cash-flow?${new URLSearchParams({ from: from <= asOf ? from : asOf, to: asOf })}`} />}
         {data.balance_sheet && <Metric title="Total assets" value={data.balance_sheet.assets} detail={`Balance Sheet as of ${snapshot.filters.as_of}`} href={`/o/${organizationId}/reports/balance-sheet?as_of=${snapshot.filters.as_of}`} />}
       </div></section>
@@ -147,7 +159,7 @@ export default async function OrganizationDashboardPage({
       </>}
     </div></section>}
 
-    {data.recent_events && <section className={`panel ${styles.activity}`}><h2>Recent company activity</h2>{data.recent_events.length === 0 ? <p>No recent audited activity.</p> : <ul>{data.recent_events.map((event, index) => <li key={`${event.created_at}:${index}`}><div><strong>{label(event.action)}</strong><span>{label(event.entity_type)}</span></div><time dateTime={event.created_at}>{event.created_at}</time></li>)}</ul>}</section>}
+    {data.recent_events && <section className={`panel ${styles.activity}`}><h2>Recent company activity</h2>{data.recent_events.length === 0 ? <p>No recent audited activity.</p> : <ul>{data.recent_events.map((event, index) => <li key={`${event.created_at}:${index}`}><div><strong>{label(event.action)}</strong><span>{label(event.entity_type)}</span></div><time dateTime={event.created_at}>{eventTime(event.created_at, snapshot.company.timezone)}</time></li>)}</ul>}</section>}
 
     <section className={`panel ${styles.moduleSection}`}><h2>Quick links</h2><nav className={styles.modules} aria-label="Company modules">
       {actor.capabilities.includes("sales.read") && <Link href={`/o/${organizationId}/sales/invoices`}>Sales and invoices</Link>}
