@@ -8,11 +8,14 @@ import { readReconciliationHistory } from "../../../../../server/banking/reconci
 import { parseReconciliationFilters, reconciliationDate, reconciliationHistoryQuery, reconciliationLinkLabel, reconciliationStatusLabels,
   type ReconciliationAccount, type ReconciliationHistory, type ReconciliationFilters } from "../../../../../lib/reconciliation-history.ts";
 import { ReconciliationStart } from "./start.tsx";
+import styles from "../banking.module.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 type Search = Record<string, string | string[] | undefined>;
 const timestampLabel = (value: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+const statementDate = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
+const dateLabel = (value: string) => statementDate.format(new Date(`${value}T00:00:00Z`));
 
 export default async function ReconciliationsPage({ params, searchParams }: { params: Promise<{ organizationId: string }>; searchParams: Promise<Search> }) {
   let organizationId;
@@ -65,29 +68,29 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
   const endsOn = reconciliationDate(query.ends_on) ? query.ends_on : "";
   const handoffError = (query.starts_on !== undefined && !startsOn) || (query.ends_on !== undefined && !endsOn);
   const activeAccounts = accounts.filter(account => account.isActive);
+  const openStart = !canRead || !history?.sessions.length || filters.cashAccountId !== null || query.starts_on !== undefined || query.ends_on !== undefined;
   return <main className="content">
-    <header><p className="eyebrow">Banking</p><h1>Reconciliations</h1><p>Resume a saved statement session or review finalized history. Matching connects statement observations to posted cash lines and does not create a ledger entry.</p></header>
+    <header><p className="eyebrow">Banking</p><h1>Reconciliations</h1><p className={styles.muted}>Match a statement or resume a saved session.</p></header>
     {canRead ? <section className="panel" aria-labelledby="reconciliation-history-title">
-      <h2 id="reconciliation-history-title">Saved reconciliation sessions</h2>
+      <div className={styles.sectionHeading}><h2 id="reconciliation-history-title">Saved sessions</h2>{history ? <span className={styles.count}>{history.sessions.length} on this page</span> : null}</div>
       {filterError ? <p role="alert">{filterError} <Link href={root}>Clear filters</Link></p> : null}
       {loadError ? <p role="alert">{loadError} <a href={`${root}?${reconciliationHistoryQuery(filters)}`}>Try again</a></p> : null}
       {history ? <>
         <form method="get" className="toolbar">
           <label>Account<select name="cash_account_id" defaultValue={filters.cashAccountId ?? ""}><option value="">All accounts</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.name}{account.isActive ? "" : " · Archived"}</option>)}</select></label>
           <label>Status<select name="status" defaultValue={filters.status ?? ""}><option value="">All statuses</option><option value="draft">Draft</option><option value="reopened">Reopened</option><option value="finalized">Finalized</option></select></label>
-          <button type="submit">Find sessions</button><Link href={root}>Clear filters</Link>
+          <button type="submit" className="secondary">Apply filters</button>{filters.cashAccountId || filters.status ? <Link href={root}>Clear filters</Link> : null}
         </form>
-        {history.sessions.length ? <div className="table-scroll"><table><caption>Page {history.page} · newest sessions first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col">Statement balances (BDT)</th><th scope="col">Status</th><th scope="col">Progress</th><th scope="col">Open</th></tr></thead><tbody>
+        {history.sessions.length ? <div className="table-scroll"><table><caption>Page {history.page} · newest first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col" className={styles.number}>Closing · BDT</th><th scope="col">Status</th><th scope="col">Open</th></tr></thead><tbody>
           {history.sessions.map(session => {
             const eventDate = session.finalizedAt ?? session.lastReopenedAt ?? session.createdAt;
             const eventLabel = session.finalizedAt ? "Finalized" : session.lastReopenedAt ? "Reopened" : "Created";
-            return <tr key={session.id}><td>{session.accountName}<br/><small>{session.accountKind.replaceAll("_", " ")}{session.accountActive ? "" : " · Archived"}</small></td>
-              <td><time dateTime={session.startsOn}>{session.startsOn}</time> to <time dateTime={session.endsOn}>{session.endsOn}</time></td>
-              <td>Opening {session.statementOpening}<br/>Closing {session.statementClosing}</td>
-              <td><strong>{reconciliationStatusLabels[session.status]}</strong><br/><small>{eventLabel} <time dateTime={eventDate}>{timestampLabel(eventDate)}</time></small>{session.reopenCount > 0 ? <><br/><small>{session.reopenCount} recorded reopen {session.reopenCount === 1 ? "event" : "events"}</small></> : null}</td>
-              <td>{session.activeMatchCount} active {session.activeMatchCount === 1 ? "match" : "matches"}</td>
+            return <tr key={session.id}><td><strong>{session.accountName}</strong><span className={styles.entryMeta}>{session.accountKind.replaceAll("_", " ")}{session.accountActive ? "" : " · Archived"}</span></td>
+              <td><time dateTime={session.startsOn}>{dateLabel(session.startsOn)}</time>{session.endsOn !== session.startsOn ? <span className={styles.entryMeta}>to <time dateTime={session.endsOn}>{dateLabel(session.endsOn)}</time></span> : null}</td>
+              <td className={styles.number}><strong>{session.statementClosing}</strong><span className={styles.entryMeta}>Opening {session.statementOpening}</span></td>
+              <td><span className={styles.badge} data-tone={session.status === "finalized" ? "success" : "neutral"}>{reconciliationStatusLabels[session.status]}</span><span className={styles.entryMeta}>{session.activeMatchCount} active {session.activeMatchCount === 1 ? "match" : "matches"}{session.reopenCount > 0 ? ` · ${session.reopenCount} ${session.reopenCount === 1 ? "reopen" : "reopens"}` : ""}</span><span className={styles.entryMeta}>{eventLabel} <time dateTime={eventDate}>{timestampLabel(eventDate)}</time></span></td>
               {/* Keep a continuous click target when the action label wraps. */}
-              <td><Link className="secondary" href={`${root}/${session.id}`}>{reconciliationLinkLabel(session, canWrite)}</Link></td></tr>;
+              <td><Link className="secondary" href={`${root}/${session.id}`} aria-label={`${reconciliationLinkLabel(session, canWrite)} for ${session.accountName}, ${dateLabel(session.startsOn)} to ${dateLabel(session.endsOn)}`}>{reconciliationLinkLabel(session, canWrite)}</Link></td></tr>;
           })}
         </tbody></table></div> : <p>{filters.cashAccountId || filters.status ? "No sessions match these filters." : filters.page > 1 ? "No sessions on this page." : "No reconciliation sessions have been created yet."}</p>}
         {(history.page > 1 || history.hasMore) ? <nav className="toolbar" aria-label="Reconciliation history pages">
@@ -98,8 +101,11 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
     </section> : <section className="panel"><p>Your access allows you to start a session or resume one with its saved statement dates. Viewing the full history requires banking.read.</p></section>}
     {canWrite && !filterError && !loadError ? <>
       {handoffError ? <p role="alert">The supplied statement dates were invalid. Enter the dates shown on your statement.</p> : null}
-      {activeAccounts.length ? <ReconciliationStart key={`${filters.cashAccountId ?? ""}:${startsOn}:${endsOn}`} organizationId={organizationId} accounts={activeAccounts}
-        defaultAccountId={activeAccounts.some(account => account.id === filters.cashAccountId) ? filters.cashAccountId ?? "" : ""} startsOn={startsOn} endsOn={endsOn}/> : <section className="panel"><h2>Start a reconciliation</h2><p>Add an active cash or bank account before starting a new session.</p><Link href={`/o/${organizationId}/banking/accounts`}>Cash and bank accounts</Link></section>}
+      {activeAccounts.length ? <details className={`panel ${styles.details}`} open={openStart}>
+        <summary>Start a statement session</summary>
+        <ReconciliationStart key={`${filters.cashAccountId ?? ""}:${startsOn}:${endsOn}`} organizationId={organizationId} accounts={activeAccounts}
+          defaultAccountId={activeAccounts.some(account => account.id === filters.cashAccountId) ? filters.cashAccountId ?? "" : ""} startsOn={startsOn} endsOn={endsOn}/>
+      </details> : <section className="panel"><h2>Start a reconciliation</h2><p>Add an active cash or bank account before starting a new session.</p><Link href={`/o/${organizationId}/banking/accounts`}>Cash and bank accounts</Link></section>}
     </> : null}
   </main>;
 }

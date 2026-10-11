@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { ContractValidationError } from "@ams/contracts";
 import { CashAccountSaveGuard, parseCashAccountInput, performCashAccountSave } from "../../../../../lib/cash-account-requests.ts";
+import styles from "../banking.module.css";
 
 type Row = Record<string, unknown>;
 const labels: Record<string, string> = { name: "Name", kind: "Kind", account_id: "Ledger account", institution: "Institution",
@@ -12,11 +13,15 @@ const labels: Record<string, string> = { name: "Name", kind: "Kind", account_id:
 export function CashAccounts({ organizationId, rows, options, canWrite }: { organizationId: string; rows: Row[]; options: Row[]; canWrite: boolean }) {
   const router = useRouter(), prefix = useId();
   const formRef = useRef<HTMLFormElement>(null), errorRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
   const guard = useRef(new CashAccountSaveGuard()), pending = useRef(false);
   const [busy, setBusy] = useState<"create" | "archive" | null>(null);
   const [error, setError] = useState(""), [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [recovering, setRecovering] = useState(false), [dirty, setDirty] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
+  useEffect(() => {
+    if ((error || recovering) && detailsRef.current) detailsRef.current.open = true;
+  }, [error, recovering]);
   useEffect(() => {
     if (!dirty && !recovering) return;
     const warn = (event: BeforeUnloadEvent) => event.preventDefault();
@@ -25,7 +30,7 @@ export function CashAccounts({ organizationId, rows, options, canWrite }: { orga
   }, [dirty, recovering]);
   const focusError = () => requestAnimationFrame(() => errorRef.current?.focus());
   const control = (name: string) => ({ name, "aria-invalid": Boolean(fieldErrors[name]), "aria-describedby": fieldErrors[name] ? `${prefix}-${name}-error` : undefined });
-  const fieldError = (name: string) => fieldErrors[name] ? <small id={`${prefix}-${name}-error`} role="note">{fieldErrors[name]}</small> : null;
+  const fieldError = (name: string) => fieldErrors[name] ? <small className={styles.fieldError} id={`${prefix}-${name}-error`} role="note">{fieldErrors[name]}</small> : null;
 
   async function create(form?: FormData) {
     if (pending.current) return;
@@ -64,30 +69,35 @@ export function CashAccounts({ organizationId, rows, options, canWrite }: { orga
     finally { pending.current = false; setBusy(null); }
   }
 
-  return <main className="content"><p className="eyebrow">Banking</p><h1>Cash and bank accounts</h1>
-    <p>Balances come from posted ledger entries. Opening balances are entered through an opening journal; this setup has no editable balance field. Wallet entries do not connect to provider APIs.</p>
-    <p>{canWrite && <Link href={`/o/${organizationId}/banking/import`}>Import a bank statement</Link>} {rows.length > 0 && <Link href={`/o/${organizationId}/banking/reconciliations`}>Reconcile a statement</Link>}</p>
-    {error && <div ref={errorRef} tabIndex={-1} role="alert"><strong>{error}</strong>{Object.entries(fieldErrors).length > 0 && <ul>{Object.entries(fieldErrors).map(([name, message]) => <li key={name}>
-      <button type="button" className="secondary" onClick={() => { const field = formRef.current?.elements.namedItem(name); if (field instanceof HTMLElement) field.focus(); }}>{labels[name] ?? "Account details"}: {message}</button>
+  return <main className="content"><header className={styles.heading}><div><p className="eyebrow">Banking</p><h1>Cash and bank accounts</h1><p className={styles.metadata}>Posted book balances in BDT.</p></div>
+      <div className={styles.actions}>{canWrite && <Link className="secondary" href={`/o/${organizationId}/banking/import`}>Import statement</Link>}{rows.length > 0 && <Link className="secondary" href={`/o/${organizationId}/banking/reconciliations`}>Reconcile statement</Link>}</div>
+    </header>
+    {error && <div className={styles.error} ref={errorRef} tabIndex={-1} role="alert"><strong>{error}</strong>{Object.entries(fieldErrors).length > 0 && <ul>{Object.entries(fieldErrors).map(([name, message]) => <li key={name}>
+      <button type="button" className="secondary" onClick={() => { if (detailsRef.current) detailsRef.current.open = true; const field = formRef.current?.elements.namedItem(name); if (field instanceof HTMLElement) field.focus(); }}>{labels[name] ?? "Account details"}: {message}</button>
     </li>)}</ul>}</div>}
-    {savedId && <p role="status">Account saved. <Link href={`/o/${organizationId}/banking/accounts/${savedId}`}>Open the account ledger</Link></p>}
-    {recovering && <p role="status">The entered details are locked until the result is checked. <button type="button" disabled={busy !== null} onClick={() => void create()}>{busy === "create" ? "Checking…" : "Check save and retry"}</button></p>}
-    <section className="panel"><h2>Accounts</h2>{rows.length === 0 ? <p>No cash, bank or wallet accounts configured.</p> : <div className="table-scroll"><table><thead><tr><th>Name</th><th>Kind</th><th>Ledger account</th><th>Book balance (BDT)</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody>{rows.map(row => <tr key={String(row.id)}><td><Link href={`/o/${organizationId}/banking/accounts/${String(row.id)}`}>{String(row.name)}</Link></td><td>{String(row.kind).replaceAll("_", " ")}</td><td>{String(row.account_code)} · {String(row.account_name)}</td><td>{String(row.book_balance)}</td><td>{row.is_active ? "Active" : "Archived"}</td><td>{canWrite && row.is_active ? <button type="button" className="secondary" disabled={busy !== null || recovering} onClick={() => void archive(String(row.id))}>Archive</button> : "—"}</td></tr>)}</tbody>
+    {savedId && <p className={styles.success} role="status">Account saved. <Link href={`/o/${organizationId}/banking/accounts/${savedId}`}>Open the account ledger</Link></p>}
+    {recovering && <div className={styles.notice} role="status"><p>The entered details are locked until the result is checked.</p><div className={styles.actions}><button type="button" disabled={busy !== null} onClick={() => void create()}>{busy === "create" ? "Checking…" : "Check save and retry"}</button></div></div>}
+    <section className="panel"><h2>Accounts</h2>{rows.length === 0 ? <p className={styles.muted}>No cash, bank or wallet accounts configured.</p> : <div className="table-scroll"><table><thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Ledger account</th><th scope="col" className={styles.number}>Book balance · BDT</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+      <tbody>{rows.map(row => <tr key={String(row.id)}><td><Link href={`/o/${organizationId}/banking/accounts/${String(row.id)}`}>{String(row.name)}</Link></td><td>{String(row.kind).replaceAll("_", " ")}</td><td>{String(row.account_code)} · {String(row.account_name)}</td><td className={styles.number}>{String(row.book_balance)}</td><td><span className={styles.badge}>{row.is_active ? "Active" : "Archived"}</span></td><td>{canWrite && row.is_active ? <button type="button" className="secondary" disabled={busy !== null || recovering} onClick={() => void archive(String(row.id))}>Archive</button> : "—"}</td></tr>)}</tbody>
     </table></div>}</section>
-    {canWrite && <section className="panel"><h2>Add cash, bank or wallet</h2>
+    {canWrite && <details ref={detailsRef} className={styles.details} open={rows.length === 0}><summary>Add account</summary><div className={styles.detailsBody}>
+      <p className={styles.muted}>Add a cash, bank or wallet account linked to your asset ledger.</p>
       <form ref={formRef} aria-busy={busy === "create"} onSubmit={event => { event.preventDefault(); void create(new FormData(event.currentTarget)); }} onChange={() => { setDirty(true); setSavedId(null); setFieldErrors({}); }}>
-        <fieldset className="toolbar" disabled={busy !== null || recovering}><legend>Account details</legend>
+        <fieldset className={styles.fieldSet} disabled={busy !== null || recovering}><legend className={styles.srOnly}>Account details</legend><div className={styles.grid}>
           <label>Name<input {...control("name")} maxLength={120} required />{fieldError("name")}</label>
           <label>Kind<select {...control("kind")}><option value="cash">Physical cash</option><option value="bank">Bank</option><option value="mobile_wallet">Mobile wallet</option><option value="payment_clearing">Payment clearing</option></select>{fieldError("kind")}</label>
           <label>Ledger account<select {...control("account_id")} required><option value="">Choose an asset account</option>{options.map(option => <option key={String(option.id)} value={String(option.id)}>{String(option.code)} · {String(option.name)}</option>)}</select>{fieldError("account_id")}</label>
           <label>Institution (optional)<input {...control("institution")} maxLength={120} />{fieldError("institution")}</label>
           <label>Masked account number (optional)<input {...control("masked_account_number")} maxLength={80} autoComplete="off" />{fieldError("masked_account_number")}</label>
-          <label><input {...control("is_cash_equivalent")} type="checkbox" /> Include in cash equivalents{fieldError("is_cash_equivalent")}</label>
-          <label><input {...control("allow_negative_balance")} type="checkbox" /> Allow negative book balance{fieldError("allow_negative_balance")}</label>
-          <button type="submit">{busy === "create" ? "Saving…" : "Add account"}</button>
+        </div><div className={styles.stack}>
+          <div><label className="check-field"><input {...control("is_cash_equivalent")} type="checkbox" /> Include in cash equivalents</label>{fieldError("is_cash_equivalent")}</div>
+          <div><label className="check-field"><input {...control("allow_negative_balance")} type="checkbox" /> Allow negative book balance</label>{fieldError("allow_negative_balance")}</div>
+        </div><div className={styles.formFooter}>
+          <button type="submit">{busy === "create" ? "Saving…" : "Add account"}</button><p className={styles.muted}>Enter opening balances through an opening journal.</p>
+        </div>
         </fieldset>
       </form>
-    </section>}
+      <p className={styles.muted}>Wallet accounts record transactions here; they do not connect to a provider.</p>
+    </div></details>}
   </main>;
 }

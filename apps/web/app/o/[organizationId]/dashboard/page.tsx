@@ -36,8 +36,8 @@ const money = (value: string | undefined) => value && /^-?(0|[1-9]\d{0,13})(\.\d
 const label = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
 
 function Metric({ title, value, detail, href }: { title: string; value: string; detail?: string; href?: string }) {
-  const content = <><span>{title}</span><strong>BDT {money(value)}</strong>{detail && <small>{detail}</small>}</>;
-  return <article className={`panel ${styles.metric}`}>{href ? <Link href={href}>{content}</Link> : content}</article>;
+  const content = <><span>{title}</span><strong><span>BDT</span> {money(value)}</strong>{detail && <small>{detail}</small>}</>;
+  return <article className={styles.metric}>{href ? <Link href={href}>{content}</Link> : content}</article>;
 }
 
 export default async function OrganizationDashboardPage({
@@ -92,35 +92,34 @@ export default async function OrganizationDashboardPage({
   const peak = Math.max(1, ...months.map(item => Math.max(Number(item.revenue) || 0, Math.abs(Number(item.profit) || 0))));
   const period = `${snapshot.filters.from} to ${snapshot.filters.to}`;
 
-  return <main className="content">
-    <p className="eyebrow">Company dashboard · {snapshot.company.name}</p>
-    <h1>Financial overview</h1>
-    {actor.capabilities.includes("company.update") && <p><Link href={`/o/${organizationId}/settings/setup`}>Review company setup and opening position</Link></p>}
-    <p>BDT accrual books · {snapshot.company.timezone} · Period: {period} · Balances as of {snapshot.filters.as_of}</p>
-    <form method="get" className="panel toolbar">
+  return <main className={`content ${styles.dashboard}`}>
+    <header className={styles.header}>
+      <div><p className={styles.eyebrow}>{snapshot.company.name}</p><h1>Financial overview</h1><p className={styles.subtitle}>BDT accrual books · {snapshot.company.timezone}</p></div>
+      {actor.capabilities.includes("company.update") && <Link className={styles.setupLink} href={`/o/${organizationId}/settings/setup`}>Company setup</Link>}
+    </header>
+    <form method="get" className={styles.filters} aria-label="Dashboard dates">
       <label>Performance from<input required type="date" name="from" defaultValue={snapshot.filters.from} /></label>
       <label>Through<input required type="date" name="to" defaultValue={snapshot.filters.to} /></label>
       <label>Balances as of<input required type="date" name="as_of" defaultValue={snapshot.filters.as_of} /></label>
-      <button type="submit">Refresh overview</button>
+      <button type="submit">Apply dates</button>
     </form>
 
-    {data.empty && <section className="panel"><h2>No posted activity yet</h2><p>Once you post opening balances, invoices, bills, expenses or cash entries, this overview will use the company ledger.</p>
+    {data.empty && <section className={`panel ${styles.empty}`}><h2>No posted activity yet</h2><p>Once you post opening balances, invoices, bills, expenses or cash entries, this overview will use the company ledger.</p><div className={styles.quickLinks}>
       {["journal.write","documents.read","accounting.read"].every(capability=>actor.capabilities.includes(capability)) && <Link href={`/o/${organizationId}/settings/opening-balances`}>Set up opening balances</Link>}
       {actor.capabilities.includes("sales.write") && <Link href={`/o/${organizationId}/sales/invoices`}>Open invoices</Link>}
-    </section>}
+    </div></section>}
 
-    {data.exceptions.length > 0 && <section className="panel" aria-label="Provisional report notices"><h2>Needs attention</h2><ul>{data.exceptions.map(item => <li key={item.code}>{item.message}</li>)}</ul></section>}
+    {data.exceptions.length > 0 && <section className={`panel ${styles.notices}`} aria-label="Provisional report notices"><h2>Needs attention</h2><ul>{data.exceptions.map(item => <li key={item.code}>{item.message}</li>)}</ul></section>}
 
     {data.performance && <>
-      <section className={styles.metrics} aria-label="Accrual performance">
+      <section className={styles.metricSection} aria-labelledby="performance-heading"><div className={styles.sectionHeading}><h2 id="performance-heading">Performance</h2><p>{period} · balances as of {snapshot.filters.as_of}</p></div><div className={styles.metrics}>
         <Metric title="Earned revenue" value={data.performance.revenue} detail={data.performance.provisional ? "Provisional source detail" : period} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         <Metric title="Expenses" value={data.performance.expenses} detail="Accrual basis" href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         <Metric title="Net profit" value={data.performance.net_profit} detail={data.performance.provisional ? "Provisional" : "Posted ledger and approved opening summary"} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         {data.liquidity && <Metric title="Cash and bank" value={data.liquidity.closing_cash_equivalents} detail={`Cash equivalents · as of ${snapshot.filters.as_of}${data.liquidity.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/cash-flow?${new URLSearchParams({ from: from <= asOf ? from : asOf, to: asOf })}`} />}
         {data.balance_sheet && <Metric title="Total assets" value={data.balance_sheet.assets} detail={`Balance Sheet as of ${snapshot.filters.as_of}`} href={`/o/${organizationId}/reports/balance-sheet?as_of=${snapshot.filters.as_of}`} />}
-      </section>
-      <section className="panel"><h2>Monthly revenue and net profit</h2>
-        <p>Ledger detail from {data.cutover_detail_start ?? period.split(" to ")[0]}. Any approved pre-cutover year-to-date opening summary appears in the headline totals, not distributed across these months.</p>
+      </div></section>
+      <section className={`panel ${styles.trend}`}><div className={styles.sectionHeading}><h2>Monthly revenue and net profit</h2><p>Ledger detail from {data.cutover_detail_start ?? period.split(" to ")[0]}</p></div>
         {months.length === 0 ? <p>No ledger months in this date range.</p> : <>
           <div className={styles.chart} role="img" aria-label="Monthly revenue and net profit chart; table below contains exact amounts">
             {months.map(item => <div className={styles.month} key={item.month}>
@@ -130,13 +129,14 @@ export default async function OrganizationDashboardPage({
               </div><span>{item.month.slice(0, 7)}</span>
             </div>)}
           </div>
-          <p><span className={styles.legendRevenue} /> Revenue <span className={styles.legendProfit} /> Net profit</p>
-          <details><summary>View exact monthly amounts</summary><div className="table-scroll"><table><thead><tr><th>Month</th><th>Revenue (BDT)</th><th>Net profit (BDT)</th></tr></thead><tbody>{months.map(item => <tr key={item.month}><th>{item.month.slice(0, 7)}</th><td>{money(item.revenue)}</td><td>{money(item.profit)}</td></tr>)}</tbody></table></div></details>
+          <p className={styles.legend}><span><span className={styles.legendRevenue} /> Revenue</span><span><span className={styles.legendProfit} /> Net profit</span></p>
+          <details className={styles.disclosure}><summary>View exact monthly amounts</summary><div className="table-scroll"><table><thead><tr><th scope="col">Month</th><th scope="col" className={styles.amount}>Revenue (BDT)</th><th scope="col" className={styles.amount}>Net profit (BDT)</th></tr></thead><tbody>{months.map(item => <tr key={item.month}><th scope="row">{item.month.slice(0, 7)}</th><td className={styles.amount}>{money(item.revenue)}</td><td className={styles.amount}>{money(item.profit)}</td></tr>)}</tbody></table></div></details>
         </>}
+        <p className={styles.note}>Approved pre-cutover year-to-date opening summaries are included in headline totals, but are not distributed across these months.</p>
       </section>
     </>}
 
-    {(data.receivables || data.payables) && <section className={styles.metrics} aria-label="Customer and supplier dues">
+    {(data.receivables || data.payables) && <section className={styles.metricSection} aria-labelledby="dues-heading"><div className={styles.sectionHeading}><h2 id="dues-heading">Customer and supplier balances</h2><p>As of {snapshot.filters.as_of}</p></div><div className={styles.metrics}>
       {data.receivables && <>
         <Metric title="Receivables" value={data.receivables.net_trade} detail={`Open customer balances · as of ${data.receivables.as_of}${data.receivables.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/receivables?as_of=${asOf}`} />
         <Metric title="Overdue receivables" value={data.receivables.overdue} detail={`Unapplied customer credits: BDT ${money(data.receivables.credits)}`} href={`/o/${organizationId}/reports/receivables?as_of=${asOf}`} />
@@ -145,11 +145,11 @@ export default async function OrganizationDashboardPage({
         <Metric title="Payables" value={data.payables.net_trade} detail={`Open supplier balances · as of ${data.payables.as_of}${data.payables.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/payables?as_of=${asOf}`} />
         <Metric title="Overdue payables" value={data.payables.overdue} detail={`Due within 30 days: BDT ${money(data.payables.due_in_30_days)}`} href={`/o/${organizationId}/reports/payables?as_of=${asOf}`} />
       </>}
-    </section>}
+    </div></section>}
 
-    {data.recent_events && <section className="panel"><h2>Recent company activity</h2>{data.recent_events.length === 0 ? <p>No recent audited activity.</p> : <ul>{data.recent_events.map((event, index) => <li key={`${event.created_at}:${index}`}>{label(event.action)} · {label(event.entity_type)} · {event.created_at}</li>)}</ul>}</section>}
+    {data.recent_events && <section className={`panel ${styles.activity}`}><h2>Recent company activity</h2>{data.recent_events.length === 0 ? <p>No recent audited activity.</p> : <ul>{data.recent_events.map((event, index) => <li key={`${event.created_at}:${index}`}><div><strong>{label(event.action)}</strong><span>{label(event.entity_type)}</span></div><time dateTime={event.created_at}>{event.created_at}</time></li>)}</ul>}</section>}
 
-    <section className="panel"><h2>Modules</h2><nav className={styles.modules} aria-label="Company modules">
+    <section className={`panel ${styles.moduleSection}`}><h2>Quick links</h2><nav className={styles.modules} aria-label="Company modules">
       {actor.capabilities.includes("sales.read") && <Link href={`/o/${organizationId}/sales/invoices`}>Sales and invoices</Link>}
       {actor.capabilities.includes("purchases.read") && <Link href={`/o/${organizationId}/purchases/bills`}>Purchases and bills</Link>}
       {(canReadReports || canReadAr || canReadAp) && <Link href={`/o/${organizationId}/reports`}>Reports</Link>}
@@ -157,6 +157,6 @@ export default async function OrganizationDashboardPage({
       {actor.capabilities.includes("banking.read") && <Link href={`/o/${organizationId}/banking/accounts`}>Cash and bank</Link>}
       {actor.capabilities.includes("users.read") && <Link href={`/o/${organizationId}/settings/users`}>Users and roles</Link>}
     </nav></section>
-    <p className="muted">Ledger cutoff {snapshot.ledger_cutoff_at} · Dashboard generated {snapshot.generated_at} · {snapshot.provisional ? "Provisional data present" : "Posted snapshot"}</p>
+    <details className={`${styles.disclosure} ${styles.snapshot}`}><summary>Snapshot details · {snapshot.provisional ? "Provisional data present" : "Posted snapshot"}</summary><dl><div><dt>Ledger cutoff</dt><dd>{snapshot.ledger_cutoff_at}</dd></div><div><dt>Dashboard generated</dt><dd>{snapshot.generated_at}</dd></div></dl></details>
   </main>;
 }
