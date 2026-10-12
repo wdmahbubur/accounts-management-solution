@@ -1,3 +1,4 @@
+import styles from "../workspace.module.css";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -60,14 +61,14 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
     if (error instanceof CommandError && error.code === "FORBIDDEN") forbidden = true;
     else if (!(error instanceof CommandError)) throw error;
   }
-  if (forbidden) return <main><p className="eyebrow">Company controls</p><h1>Access denied</h1><p>You need audit.read to view company history.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
+  if (forbidden) return <main className={styles.page}><p className="eyebrow">Company controls</p><h1>Access denied</h1><p>You need audit.read to view company history.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
   const nextUrl = new URLSearchParams();
   for (const [key, value] of Object.entries({ actor_member_id: actorRaw, from, to, entity_type: entityType, entity_id: entityIdRaw, action })) if (value) nextUrl.set(key, value);
   if (hasMore && nextCreatedAt && nextId) { nextUrl.set("before_created_at", nextCreatedAt); nextUrl.set("before_id", nextId); }
-  return <main>
-    <p className="eyebrow">Company controls · Read only</p><h1>Audit trail</h1>
-    <p>Search append-only company activity. Change details are recursively redacted, and module events are limited to areas you can read.</p>
-    <form method="get" className="panel" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem", alignItems: "end" }}>
+  return <main className={styles.page}>
+    <header className={styles.pageHeader}><p className="eyebrow">Company controls · Read only</p><h1>Audit trail</h1>
+    <p>Review company activity in the areas you can access. Sensitive information is hidden from change details.</p></header>
+    <form method="get" className={`panel ${styles.formGrid}`}>
       <label>Actor member ID<input name="actor_member_id" defaultValue={actorRaw} inputMode="text" /></label>
       <label>From date (Dhaka)<input name="from" type="date" defaultValue={from} /></label>
       <label>To date (Dhaka)<input name="to" type="date" defaultValue={to} /></label>
@@ -76,16 +77,16 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
       <label>Action contains<input name="action" defaultValue={action} maxLength={120} /></label>
       <button type="submit">Search history</button>
     </form>
-    <section aria-label="Audit events" style={{ display: "grid", gap: "1rem", marginTop: "1.25rem" }}>
+    <section aria-label="Audit events" className={styles.stack}>
       {events.length === 0 ? <div className="panel"><h2>No matching events</h2><p>Try a wider date range or clear a filter.</p></div> : events.map((event) => <article className="panel" key={event.id}>
-        <p className="eyebrow">{new Date(event.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" })} · {event.actor_kind}{event.actor_member_id ? ` · ${event.actor_member_id}` : ""}</p>
+        <p className={styles.metadata}>{new Date(event.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" })} · {event.actor_kind}{event.actor_member_id ? ` · ${event.actor_member_id}` : ""}</p>
         <h2>{event.action}</h2><p>{event.entity_type}{event.entity_id ? ` · ${event.entity_id}` : ""}</p>
         {event.document_id && <p><Link href={`/o/${organizationId}/accounting/documents/${event.document_id}`}>Open source document</Link></p>}
         {event.reason && <p>Reason: {event.reason}</p>}
-        <details><summary>Redacted change details</summary><pre style={{ overflowX: "auto", whiteSpace: "pre-wrap" }}>{JSON.stringify(event.change, null, 2)}</pre></details>
-        <small>Request ID: {event.request_id}</small>
+        <details className={styles.details}><summary>Redacted change details</summary><pre className={styles.evidence} tabIndex={0} role="region" aria-label="Redacted audit change details">{JSON.stringify(event.change, null, 2)}</pre></details>
+        <small className={styles.metadata}>Request ID: {event.request_id}</small>
       </article>)}
     </section>
-    {hasMore && <p style={{ marginTop: "1rem" }}><Link href={`/o/${organizationId}/audit?${nextUrl.toString()}`}>Load older events</Link></p>}
+    {hasMore && <p className={styles.actions}><Link href={`/o/${organizationId}/audit?${nextUrl.toString()}`}>Load older events</Link></p>}
   </main>;
 }

@@ -9,13 +9,15 @@
 .preview caption { text-align: left; padding: 12px; font-size: .76rem; font-weight: 500; color: var(--muted, #647184); }
 .preview th, .preview td { padding: 12px; }
 .preview tbody th { font-weight: 500; }
+.preview tbody th, .preview td { max-width: 420px; overflow-wrap: anywhere; }
+.scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
 .preview tfoot th, .preview tfoot td { font-weight: 600; background: #f8fafc; }
 .preview .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .detail { display: block; max-width: 22rem; margin-top: 4px; overflow-wrap: anywhere; font-size: .75rem; font-weight: 400; color: var(--muted, #647184); }
 .totals { display: flex; justify-content: flex-end; gap: 16px 28px; flex-wrap: wrap; margin: 0; padding-top: 2px; }
-.totals div { display: grid; gap: 6px; }
+.totals div { display: grid; gap: 6px; min-width: 0; max-width: 100%; }
 .totals dt { font-size: .76rem; color: var(--muted, #647184); }
-.totals dd { margin: 0; font-size: .88rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.totals dd { margin: 0; font-size: .88rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .allocations { display: grid; gap: 14px; border-top: 1px solid var(--border, #e2e6ec); padding-top: 18px; }
 .allocations p { margin: 0; font-size: .83rem; line-height: 1.6; }
 .note { font-size: .76rem; color: var(--muted, #647184); line-height: 1.6; }

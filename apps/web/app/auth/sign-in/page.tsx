@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AccountShell } from "../../../components/shell/account-shell.tsx";
+import styles from "../account-pages.module.css";
 
 import { demoSignInAction, signInAction } from "../actions.ts";
 import { getDemoAccountCredentials } from "../../../server/auth/demo-login.ts";
@@ -18,11 +20,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
   const demoCredentials = getDemoAccountCredentials();
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Secure access</p>
-      <h1>Sign in</h1>
-      <section className="panel" aria-labelledby="sign-in-title">
-        <h2 id="sign-in-title">Company account</h2>
+    <AccountShell title="Sign in" eyebrow="Your account" description="Use your verified email to open your workspace.">
+      <section className="panel" aria-label="Account sign in">
         {error === "demo_failed" ? (
           <p className="alert" role="alert">Demo sign-in failed. Please try again.</p>
         ) : error ? (
@@ -30,7 +29,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
             Email or password is incorrect, or the account is not verified.
           </p>
         ) : null}
-        {status === "signed_out" ? <p className="alert">You have been signed out.</p> : null}
+        {status === "signed_out" ? <p className="alert" role="status">You have been signed out.</p> : null}
         {status === "verified" ? <p className="alert" role="status">Email verified. Sign in to open your company workspace.</p> : null}
         {status === "password_changed" ? <p className="alert" role="status">Password changed. Sign in with your new password.</p> : null}
         <form action={signInAction} className="auth-form">
@@ -45,16 +44,15 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
           </label>
           <button type="submit">Sign in</button>
         </form>
-        <form action={demoSignInAction} className="auth-form">
+        <div className={styles.secondarySection}><form action={demoSignInAction} className="auth-form">
           <input type="hidden" name="next" value={next} />
-          <button type="submit">Sign in with demo account</button>
-          <p className="muted">Email: {demoCredentials.email} · Password: {demoCredentials.password}</p>
-        </form>
+          <button type="submit" className="secondary">Sign in with demo account</button>
+        </form><details className={styles.details}><summary>Demo sign-in details</summary><dl className={styles.facts}><div><dt>Email</dt><dd>{demoCredentials.email}</dd></div><div><dt>Password</dt><dd>{demoCredentials.password}</dd></div></dl></details></div>
         <div className="link-row">
           <Link href="/auth/sign-up">Create account</Link>
           <Link href="/auth/recover">Forgot password?</Link>
         </div>
       </section>
-    </main>
+    </AccountShell>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import styles from "../workspace.module.css";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -82,21 +83,21 @@ export function MasterDataImports({ organizationId, capabilities }: { organizati
   }
 
   const availableType = (value: ImportType) => value === "contacts" ? canContacts : canItems;
-  return <main className="content"><p className="eyebrow">Data tools · Master data</p><h1>Imports</h1>
-    <p>Only contacts and service catalogue items are supported. Rows are previewed first and then saved through the same permission checked commands as manual entry. A file import never creates journals or posts money.</p>
+  return <main className={styles.page}><header className={styles.pageHeader}><p className="eyebrow">Data tools · Master data</p><h1>Imports</h1>
+    <p>Import contacts or service items from a CSV. Review and validate the rows before saving. Imports do not create financial transactions.</p></header>
     {(canContacts || canItems) && <form className="panel" onSubmit={stage}>
-      <h2>Stage a CSV</h2><label>Import type<select value={type} onChange={event => setType(event.target.value as ImportType)}>
+      <h2>Upload a CSV for review</h2><label>Import type<select value={type} onChange={event => setType(event.target.value as ImportType)}>
         {canContacts && <option value="contacts">Contacts</option>}{canItems && <option value="items">Service items</option>}
       </select></label>
-      <p>{fieldGuide[type]}</p><label>CSV file<input id="master-data-import-file" type="file" accept=".csv,text/csv" required onChange={event => setFile(event.target.files?.[0] ?? null)} /></label>
-      <p>UTF-8 CSV · maximum 2 MiB and 500 rows. Existing contacts and items are not updated by import.</p>
+      <details className={styles.details}><summary>CSV column requirements</summary><p>{fieldGuide[type]}</p></details><label>CSV file<input id="master-data-import-file" type="file" accept=".csv,text/csv" required onChange={event => setFile(event.target.files?.[0] ?? null)} /></label>
+      <p className={styles.metadata}>UTF-8 CSV · maximum 2 MiB and 500 rows. Existing contacts and items are not updated by import.</p>
       <button type="submit" disabled={busy || !file || !availableType(type)}>{busy ? "Working…" : "Stage CSV"}</button>
     </form>}
-    {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
-    <section className="panel"><div className="toolbar"><h2>Your import jobs</h2><button type="button" className="secondary" disabled={busy || loading} onClick={() => void refresh()}>Refresh</button></div>
+    {error && <p role="alert" className={styles.error}>{error}</p>}{notice && <p role="status" className={styles.notice}>{notice}</p>}
+    <section className="panel"><div className={styles.heading}><h2>Your import jobs</h2><button type="button" className="secondary" disabled={busy || loading} onClick={() => void refresh()}>Refresh</button></div>
       {loading ? <p role="status">Loading import jobs…</p> : jobs.length === 0 ? <p>No import jobs yet.</p> :
-        <div className="table-scroll"><table><thead><tr><th>Type and file</th><th>Status</th><th>Rows</th><th>Created</th><th>Details</th></tr></thead><tbody>
-          {jobs.map(job => <tr key={job.id}><td>{job.import_type === "contacts" ? "Contacts" : "Service items"}<br /><small>{job.source_name}</small></td><td>{job.status}</td>
+        <div className={`table-scroll ${styles.table}`} tabIndex={0} role="region" aria-label="Import jobs"><table><thead><tr><th scope="col">Type and file</th><th scope="col">Status</th><th scope="col">Rows</th><th scope="col">Created</th><th scope="col">Details</th></tr></thead><tbody>
+          {jobs.map(job => <tr key={job.id}><td>{job.import_type === "contacts" ? "Contacts" : "Service items"}<br /><small>{job.source_name}</small></td><td><span className={styles.badge}>{job.status}</span></td>
             <td>{job.result_summary.imported ?? 0} imported · {job.result_summary.invalid ?? 0} with errors · {job.result_summary.valid ?? job.row_count} ready</td>
             <td>{when(job.created_at)}</td><td><button type="button" className="secondary" onClick={() => void refresh(job.id)}>Open details</button></td></tr>)}
         </tbody></table></div>}
@@ -106,8 +107,8 @@ export function MasterDataImports({ organizationId, capabilities }: { organizati
       {selected.status === "validating" && canRun && <button type="button" disabled={busy} onClick={() => void action("validate")}>Validate rows</button>}
       {selected.status === "ready" && canRun && (selected.result_summary.valid ?? 0) > 0 && <button type="button" disabled={busy} onClick={() => void action("commit")}>{selected.result_summary.imported ? "Continue import" : "Import valid rows"} · up to 25</button>}
       {selected.status === "completed" && <p role="status">Import processing is complete. Rows with errors were skipped and can be corrected in a new CSV.</p>}
-      {selected.rows && selected.rows.length > 0 && <div className="table-scroll"><table><thead><tr><th>CSV row</th><th>Preview</th><th>Result</th><th>Errors</th><th>Created record</th></tr></thead><tbody>
-        {selected.rows.map(row => <tr key={row.row_no}><td>{row.row_no}</td><td>{row.preview?.name ?? "Preview unavailable"}<br /><small>{row.preview?.detail ?? row.preview?.unit ?? ""}</small></td><td>{row.status}</td><td>{row.errors.map((item, index) => <span key={index}>{item.field ? `${item.field}: ` : ""}{item.message ?? item.code}<br /></span>)}</td>
+      {selected.rows && selected.rows.length > 0 && <div className={`table-scroll ${styles.table}`} tabIndex={0} role="region" aria-label="Import row preview"><table><thead><tr><th scope="col">CSV row</th><th scope="col">Preview</th><th scope="col">Result</th><th scope="col">Errors</th><th scope="col">Created record</th></tr></thead><tbody>
+        {selected.rows.map(row => <tr key={row.row_no}><td>{row.row_no}</td><td>{row.preview?.name ?? "Preview unavailable"}<br /><small>{row.preview?.detail ?? row.preview?.unit ?? ""}</small></td><td><span className={styles.badge}>{row.status}</span></td><td>{row.errors.map((item, index) => <span key={index}>{item.field ? `${item.field}: ` : ""}{item.message ?? item.code}<br /></span>)}</td>
           <td>{row.result_contact_id ?? row.result_item_id ?? "—"}</td></tr>)}
       </tbody></table></div>}
     </section>}

@@ -7,6 +7,7 @@ import { readTransferRegister, type TransferPage } from "../../../../../server/d
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
 import { registerHref } from "../../../../../lib/register-navigation.ts";
 import styles from "../banking.module.css";
+import { detailDate } from "../../../../../components/finance/document-detail-model.ts";
 
 export const dynamic = "force-dynamic"; export const revalidate = 0;
 export default async function TransfersPage({ params, searchParams }: {
@@ -30,7 +31,7 @@ export default async function TransfersPage({ params, searchParams }: {
     else if (error instanceof ContractValidationError || (error instanceof CommandError && error.code === "VALIDATION_FAILED")) filterError = "This page link or filter is invalid. Return to the first page or update your search.";
     else throw error;
   }
-  if (forbidden) return <main className="content"><h1>Access denied</h1><p>You need banking.read to view transfers.</p></main>;
+  if (forbidden) return <main className="content"><h1>Access denied</h1><section className="panel"><p>You do not have permission to view transfers.</p><Link href={`/o/${organizationId}/dashboard`}>Back to overview</Link></section></main>;
   const base = `/o/${organizationId}/banking/transfers`, firstPage = registerHref(base, { search });
   return <main className="content"><header className={styles.heading}><div><p className="eyebrow">Banking</p><h1>Transfers</h1><p className={styles.metadata}>Move money between your company accounts.</p></div>
       {canWrite && <Link className="primary" href={`${base}/new`}>New transfer</Link>}
@@ -42,8 +43,8 @@ export default async function TransfersPage({ params, searchParams }: {
     <section className="panel"><h2>Transfer history</h2>
       {!filterError && (page.items.length === 0 ? <p className={styles.muted}>{after ? "No more transfers match these filters." : "No transfers match these filters."}</p> : <>
         <p className={styles.muted}>{page.items.length} transfers on this page{page.nextCursor ? " · More results available" : ""}</p>
-        <div className="table-scroll"><table><thead><tr><th scope="col">Number</th><th scope="col">Date</th><th scope="col">From</th><th scope="col">To</th><th scope="col" className={styles.number}>Principal · BDT</th><th scope="col" className={styles.number}>Fee · BDT</th><th scope="col">State</th><th scope="col">Reference</th></tr></thead>
-          <tbody>{page.items.map(row => <tr key={row.id}><td><Link href={`${base}/${row.id}`}>{row.documentNumber ?? "Draft"}</Link></td><td>{row.accountingDate}</td><td>{row.fromAccount}</td><td>{row.toAccount}</td><td className={styles.number}>{row.amount}</td><td className={styles.number}>{row.feeAmount}</td><td><span className={styles.badge}>{row.state.replaceAll("_", " ")}</span></td><td>{row.externalReference ?? "—"}</td></tr>)}</tbody>
+        <div className="table-scroll" role="region" aria-label="Transfer history" tabIndex={0}><table><thead><tr><th scope="col">Transfer</th><th scope="col">From</th><th scope="col">To</th><th scope="col" className={styles.number}>Principal · BDT</th><th scope="col" className={styles.number}>Fee · BDT</th><th scope="col">State</th></tr></thead>
+          <tbody>{page.items.map(row => <tr key={row.id}><td><Link href={`${base}/${row.id}`}>{row.documentNumber ?? "Draft"}</Link><time className={styles.entryMeta} dateTime={row.accountingDate}>{detailDate(row.accountingDate)}</time>{row.externalReference && <span className={styles.entryMeta}>Ref: {row.externalReference}</span>}</td><td>{row.fromAccount}</td><td>{row.toAccount}</td><td className={styles.number}>{row.amount}</td><td className={styles.number}>{row.feeAmount}</td><td><span className={styles.badge}>{row.state.replaceAll("_", " ")}</span></td></tr>)}</tbody>
         </table></div>
       </>)}
       {!filterError && (after || page.nextCursor) && <nav className="toolbar" aria-label="Transfer history pages">

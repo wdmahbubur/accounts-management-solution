@@ -39,7 +39,7 @@ export default function Home() {
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}><span className={styles.liveDot} /> ACCOUNTING WORKSPACE FOR SERVICE BUSINESSES</p>
+          <p className={styles.eyebrow}>ACCOUNTING WORKSPACE FOR SERVICE BUSINESSES</p>
           <h1>Your company books,<br /><span>clear and connected.</span></h1>
           <p className={styles.lede}>
             Manage separate company accounts, team access and accounting periods in one place.
@@ -54,32 +54,31 @@ export default function Home() {
 
         <div className={styles.preview} aria-label="Illustrative product preview">
           <div className={styles.previewTop}>
-            <div><span className={styles.previewIcon}>A</span><span className={styles.previewCompany}>Northstar Studio <small>COMPANY WORKSPACE</small></span></div>
-            <span className={styles.previewBadge}>DEMO PREVIEW</span>
+            <div><span className={styles.previewIcon} aria-hidden="true">A</span><span className={styles.previewCompany}>Northstar Studio <small>Company workspace</small></span></div>
+            <span className={styles.previewBadge}>Sample preview</span>
           </div>
           <div className={styles.previewBody}>
-            <div className={styles.previewHeading}><div><small>MONDAY, 2 MARCH 2026</small><h2>Workspace overview</h2></div><span>BDT · Accrual</span></div>
+            <div className={styles.previewHeading}><div><small>Monday, 2 March 2026</small><h2>Workspace overview</h2></div><span>BDT · Accrual</span></div>
             <div className={styles.previewCards}>
-              <div><small>FISCAL YEAR</small><strong>2026</strong><span>January – December</span></div>
-              <div><small>YOUR ACCESS</small><strong>Owner</strong><span>All current workspace tools</span></div>
+              <div><small>Fiscal year</small><strong>2026</strong><span>January – December</span></div>
+              <div><small>Your access</small><strong>Owner</strong><span>All current workspace tools</span></div>
             </div>
-            <div className={styles.previewSection}><div><strong>Workspace tools</strong><span>Available to this role</span></div><span className={styles.arrow}>↗</span></div>
+            <div className={styles.previewSection}><div><strong>Workspace tools</strong><span>Available to this role</span></div></div>
             <div className={styles.previewTools}>
-              <div><span className={styles.toolIcon}>◫</span><span><strong>Team & roles</strong><small>People and capabilities</small></span><b>›</b></div>
-              <div><span className={styles.toolIcon}>◷</span><span><strong>Fiscal periods</strong><small>Open period controls</small></span><b>›</b></div>
-              <div><span className={styles.toolIcon}>⌂</span><span><strong>Company settings</strong><small>Workspace preferences</small></span><b>›</b></div>
+              <div><span className={styles.toolIcon} aria-hidden="true">◫</span><span><strong>Team & roles</strong><small>People and capabilities</small></span></div>
+              <div><span className={styles.toolIcon} aria-hidden="true">◷</span><span><strong>Fiscal periods</strong><small>Open period controls</small></span></div>
+              <div><span className={styles.toolIcon} aria-hidden="true">⌂</span><span><strong>Company settings</strong><small>Workspace preferences</small></span></div>
             </div>
             <p className={styles.previewFoot}>Illustrative interface · sample company and values</p>
           </div>
-          <div className={styles.previewStamp}><span>BDT</span><span>01</span></div>
         </div>
       </section>
 
       <section className={styles.trustStrip} aria-label="Product scope">
-        <span>MADE FOR SEPARATE COMPANY BOOKS</span><i />
-        <span>BDT ONLY</span><i />
-        <span>ROLE BASED ACCESS</span><i />
-        <span>ACCRUAL ACCOUNTING</span>
+        <span>Separate company books</span>
+        <span>BDT only</span>
+        <span>Role based access</span>
+        <span>Accrual accounting</span>
       </section>
 
       <section className={styles.features} id="features">
@@ -105,7 +104,7 @@ export default function Home() {
       </section>
 
       <footer className={styles.footer}>
-        <Link href="/" className={styles.brand}><span className={styles.brandMark}>A</span><span>Accounts<span className={styles.brandSub}>Management Solution</span></span></Link>
+        <Link href="/" className={styles.brand}><span className={styles.brandMark} aria-hidden="true">A</span><span>Accounts<span className={styles.brandSub}>Management Solution</span></span></Link>
         <span>Company accounting workspace · Bangladesh · BDT</span>
         <Link href="/auth/sign-in">Already have an account? Sign in</Link>
       </footer>

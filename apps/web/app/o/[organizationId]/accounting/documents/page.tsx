@@ -83,7 +83,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
               <tbody>{rows.map((row) => (
                 <tr key={row.id}>
                   <td><Link href={`/o/${organizationId}/accounting/documents/${row.id}`}>{row.documentNumber ?? "Draft"}</Link></td>
-                  <td>{row.documentType.replaceAll("_", " ")}</td><td>{row.accountingDate}</td><td>{row.state}</td><td>{row.totalAmount}</td>
+                  <td>{row.documentType.replaceAll("_", " ")}</td><td>{row.accountingDate}</td><td>{row.state.replaceAll("_", " ")}</td><td>{row.totalAmount}</td>
                 </tr>
               ))}</tbody>
             </table>

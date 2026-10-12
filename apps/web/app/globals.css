@@ -202,6 +202,7 @@ code.inline {
   gap: 8px;
   padding: 0;
   list-style: none;
+  margin: 0;
 }
 
 .wizard-steps li {
@@ -227,20 +228,25 @@ code.inline {
   display: grid;
   grid-template-columns: minmax(120px, 0.4fr) 1fr;
   gap: 12px;
+  min-width: 0;
 }
 
 .review-list dt {
-  font-weight: 700;
+  color: var(--muted);
+  font-size: .8125rem;
+  font-weight: 500;
 }
 
 .review-list dd {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 640px) {
   .wizard-steps {
     grid-auto-flow: row;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .review-list div {
@@ -251,6 +257,7 @@ code.inline {
 
 .company-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -261,6 +268,8 @@ code.inline {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: white;
+  min-width: 0;
+  align-content: start;
 }
 
 .company-card[data-current="true"] {
@@ -272,7 +281,19 @@ code.inline {
   justify-content: space-between;
   gap: 16px;
   align-items: start;
+  flex-wrap: wrap;
 }
+
+.company-card-heading > div { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.company-card form { align-self: end; }
+.company-card button { max-width: 100%; text-align: left; overflow-wrap: anywhere; }
+.company-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.company-footer p { margin: 0; }
+.wizard-actions { justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--border); }
+.wizard-actions > .secondary { margin-right: auto; }
+.quiet-details { min-width: 0; padding: 16px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: .8125rem; }
+.quiet-details > summary { min-height: 24px; color: var(--muted); font-weight: 500; }
+.quiet-details > :last-child { margin-bottom: 0; }
 
 .company-card-heading h2,
 .company-card-heading p {
@@ -281,11 +302,16 @@ code.inline {
 
 .current-badge {
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: var(--accent-soft);
   color: var(--accent-hover);
-  font-size: 0.8rem;
+  font-size: .6875rem;
+  font-weight: 500;
 }
+
+main, form, label, .field, .management-grid > *, .panel > * { min-width: 0; }
+input, select, textarea { max-width: 100%; }
+h1, h2, h3, .alert, .muted { overflow-wrap: anywhere; }
 
 .management-shell { width: min(1060px, calc(100% - 32px)); display: grid; gap: 20px; }
 .management-shell h1, .management-shell h2, .management-shell p { margin: 0; }
@@ -450,6 +476,7 @@ textarea:focus-visible { outline: 2px solid #6487b0; outline-offset: 3px; }
 button:disabled { cursor: not-allowed; }
 
 .table-scroll {
+  min-width: 0;
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
@@ -471,8 +498,16 @@ button:disabled { cursor: not-allowed; }
 .table-scroll tfoot { background: #f8fafc; font-weight: 600; }
 .table-scroll tfoot th, .table-scroll tfoot td { border-top: 1px solid var(--border); border-bottom: 0; }
 .table-scroll caption { text-align: left; padding: 12px 14px; color: var(--muted); }
+.table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.viewport-review { width: min(1500px, calc(100% - 32px)); display: grid; gap: 18px; padding: 24px 0; }
+.viewport-review header > p { margin: 0; color: var(--muted); }
+.viewport-review-scroll { min-width: 0; max-width: 100%; overflow: auto; }
+.viewport-review iframe { display: block; margin: 0 auto; }
 
 @media (max-width: 640px) {
+  .company-grid { grid-template-columns: minmax(0, 1fr); }
+  .company-card { padding: 16px; }
   .panel { padding: 16px; gap: 16px; }
   input, select, textarea { font-size: 1rem; }
   .toolbar { gap: 12px; }

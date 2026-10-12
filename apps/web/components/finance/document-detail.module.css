@@ -19,11 +19,11 @@
 .badge[data-state="pending_approval"] { color: #875b16; background: #fff5dd; }
 .badge[data-state="void"] { color: #7f3844; background: #faedf0; }
 .hint { color: var(--muted, #647184); font-size: .81rem; line-height: 1.6; }
-.headAmount { display: grid; gap: 7px; text-align: right; flex: 0 0 auto; }
+.headAmount { display: grid; gap: 7px; min-width: 0; max-width: 100%; text-align: right; flex: 0 1 auto; overflow-wrap: anywhere; }
 .headAmount > span { font-size: .76rem; color: var(--muted, #647184); }
 .headAmount > strong { font-size: clamp(1.35rem, 2.5vw, 1.65rem); font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .statusStrip { display: flex; flex-wrap: wrap; gap: 18px 36px; padding: 18px 0 0; margin: 0; border-top: 1px solid var(--border, #e2e6ec); }
-.statusStrip > div { display: grid; gap: 7px; }
+.statusStrip > div { display: grid; gap: 7px; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .statusStrip dt { font-size: .74rem; color: var(--muted, #647184); }
 .statusStrip dd { display: flex; gap: 10px; align-items: center; margin: 0; font-size: .9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .overdue { color: #a33438; font-size: .8rem; font-weight: 600; }
@@ -31,7 +31,7 @@
 .actions > div { max-width: 450px; }
 .actions > div > p { font-size: .8rem; margin-top: 8px; }
 .section { display: grid; gap: 18px; padding: 20px; }
-.detailsGrid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px 44px; }
+.detailsGrid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px 44px; }
 .party { display: grid; align-content: start; gap: 5px; overflow-wrap: anywhere; }
 .party > h3 { margin-bottom: 5px; color: var(--muted, #647184); font-size: .76rem; font-weight: 600; }
 .party > .partyName { font-weight: 600; font-size: 1rem; }
@@ -51,6 +51,7 @@
 .notes > div { display: grid; gap: 7px; }
 .notes p { font-size: .87rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tableScroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--border, #e2e6ec); border-radius: 8px; }
+.tableScroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
 .tableScroll table { width: 100%; min-width: 530px; border-collapse: collapse; text-align: left; font-size: .83rem; font-variant-numeric: tabular-nums; }
 .tableScroll .itemsTable { min-width: 900px; }
 .tableScroll .journalTable { min-width: 700px; }
@@ -65,7 +66,7 @@
 .totals { display: grid; width: min(100%, 330px); gap: 10px; margin: 0 0 0 auto; font-size: .87rem; font-variant-numeric: tabular-nums; }
 .totals > div { display: flex; justify-content: space-between; gap: 28px; }
 .totals dt { color: var(--muted, #647184); }
-.totals dd { margin: 0; font-weight: 600; text-align: right; }
+.totals dd { min-width: 0; margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
 .totals > .total { border-top: 1px solid var(--border, #e2e6ec); margin-top: 3px; padding-top: 14px; font-size: 1rem; }
 .total dt { color: var(--text, #263244); font-weight: 600; }
 .transfer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; padding: 16px; background: #f8fafc; border-radius: 8px; }
@@ -77,7 +78,7 @@
 .disclosure { scroll-margin-top: 18px; }
 .disclosure > summary { padding: 16px 20px; margin: 0; font-size: .9rem; line-height: 1.4; font-weight: 600; color: var(--text, #263244); }
 .disclosure[open] > summary { border-bottom: 1px solid var(--border, #e2e6ec); }
-.disclosureBody { display: grid; gap: 16px; padding: 20px; }
+.disclosureBody { display: grid; gap: 16px; min-width: 0; padding: 20px; overflow-wrap: anywhere; }
 .count { margin-left: 10px; border-radius: 5px; background: #f3f5f7; padding: 2px 6px; color: var(--muted, #647184); font-size: .72rem; }
 .timeline { display: grid; gap: 0; list-style: none; padding: 0; margin: 0; }
 .timeline li { display: grid; gap: 5px; padding: 14px 0; border: 0; border-bottom: 1px solid var(--border, #e2e6ec); border-radius: 0; background: transparent; font-size: .83rem; }

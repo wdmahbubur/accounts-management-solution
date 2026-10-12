@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import styles from "./report.module.css";
 
 export function ReportExportButton({ organizationId, exportType, filters, snapshotId }: {
   organizationId: string; exportType: "trial_balance" | "profit_and_loss" | "balance_sheet" | "customer_statement" | "vendor_statement";
@@ -27,5 +28,5 @@ export function ReportExportButton({ organizationId, exportType, filters, snapsh
       setMessage(error instanceof Error ? error.message : "Export could not be queued.");
     } finally { setBusy(false); }
   }
-  return <span>{exportType !== "trial_balance"&&<><label>File format <select value={format} onChange={(event) => setFormat(event.target.value as "csv" | "pdf" | "xlsx")} disabled={busy}><option value="csv">CSV</option><option value="pdf">PDF</option><option value="xlsx">XLSX</option></select></label> </>}<button type="button" className="secondary" disabled={busy} onClick={requestExport}>{busy ? "Queuing…" : "Queue export"}</button>{message&&<span role="status"> {message} <Link href={`/o/${organizationId}/exports`}>Export jobs</Link></span>}</span>;
+  return <span className={styles.exportControls}>{exportType !== "trial_balance"&&<><label>File format <select value={format} onChange={(event) => setFormat(event.target.value as "csv" | "pdf" | "xlsx")} disabled={busy}><option value="csv">CSV</option><option value="pdf">PDF</option><option value="xlsx">XLSX</option></select></label> </>}<button type="button" className="secondary" disabled={busy} onClick={requestExport}>{busy ? "Queuing…" : "Queue export"}</button>{message&&<span role="status"> {message} <Link href={`/o/${organizationId}/exports`}>Export jobs</Link></span>}</span>;
 }

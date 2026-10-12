@@ -6,6 +6,7 @@ import { CommandError } from "../../../../../server/commands/errors.ts";
 import { readInvoiceRegister, type InvoiceTab } from "../../../../../server/documents/invoice-register.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
 import { InvoiceFilters } from "./invoice-filters.tsx";
+import styles from "../../../../../components/finance/finance.module.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -50,12 +51,23 @@ export default async function InvoiceRegisterPage({ params, searchParams }: {
   };
 
   return <main className="content">
-    <p className="eyebrow">Sales</p><h1>Invoices</h1><p>Invoice status, settlement and delivery are tracked independently. Drafts have no ledger effect.</p>
-    <div className="toolbar"><Link className="primary" href={`/o/${organizationId}/sales/invoices/new`}>Create invoice</Link><Link className="secondary" href={`/api/v1/organizations/${organizationId}/invoices/export?tab=${tab}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>Export filtered invoices (CSV)</Link></div>
-    <nav className="toolbar" aria-label="Invoice status">{tabs.map(([value, label]) => <Link key={value} aria-current={tab === value ? "page" : undefined} className={tab === value ? "primary" : "secondary"} href={makeHref(value)}>{label}</Link>)}</nav>
+    <header className={styles.pageHeader}><div><p className="eyebrow">Sales</p><h1>Invoices</h1><p>Track customer invoices, outstanding balances and delivery.</p></div>
+      <div className={styles.actions}><Link className="primary" href={`/o/${organizationId}/sales/invoices/new`}>Create invoice</Link><Link className="secondary" href={`/api/v1/organizations/${organizationId}/invoices/export?tab=${tab}${search ? `&search=${encodeURIComponent(search)}` : ""}`}>Export CSV</Link></div>
+    </header>
+    <nav className={styles.tabs} aria-label="Invoice status">{tabs.map(([value, label]) => <Link key={value} aria-current={tab === value ? "page" : undefined} href={makeHref(value)}>{label}</Link>)}</nav>
     <InvoiceFilters organizationId={organizationId} userId={userId} tab={tab} search={search}/>
-    <section className="panel"><h2>{tabs.find(([value]) => value === tab)?.[1]} invoices</h2>{page.items.length === 0 ? <p>No invoices match these filters.</p> : <div className="table-scroll"><table><thead><tr><th>Number</th><th>Customer</th><th>Issue date</th><th>Due date</th><th>Total (BDT)</th><th>Residual (BDT)</th><th>Settlement</th><th>Delivery</th><th>Due status</th><th>Actions</th></tr></thead><tbody>{page.items.map(invoice => <tr key={invoice.id}><td><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>{invoice.documentNumber ?? "Draft"}</Link></td><td>{invoice.customerName}</td><td>{invoice.issueDate}</td><td>{invoice.dueDate ?? "—"}</td><td>{invoice.totalAmount}</td><td>{invoice.residualAmount ?? "—"}</td><td>{invoice.settlementStatus.replaceAll("_", " ")}</td><td>{invoice.deliveryStatus.replaceAll("_", " ")}</td><td>{invoice.overdue ? "Overdue" : "—"}</td><td><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>Open</Link> · <Link href={`/o/${organizationId}/sales/invoices/new?copy=${invoice.id}`}>Duplicate</Link></td></tr>)}</tbody></table></div>}
-      {page.nextCursor && <p><Link className="secondary" href={makeHref(tab, page.nextCursor)}>Next page</Link></p>}
+    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value]) => value === tab)?.[1]} invoices</h2><p>Amounts in BDT</p></div>
+      {page.items.length === 0 ? <p className={styles.empty}>No invoices match these filters.</p> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Invoice register"><table>
+        <thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Dates</th><th scope="col" className={styles.amount}>Total</th><th scope="col" className={styles.amount}>Outstanding</th><th scope="col">Settlement</th><th scope="col">Delivery</th><th scope="col">Actions</th></tr></thead>
+        <tbody>{page.items.map(invoice => <tr key={invoice.id}>
+          <th scope="row"><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>{invoice.documentNumber ?? "Draft"}</Link></th><td>{invoice.customerName}</td>
+          <td>{invoice.issueDate}<span className={styles.meta}>Due {invoice.dueDate ?? "—"}</span>{invoice.overdue && <span className={styles.warning}>Overdue</span>}</td>
+          <td className={styles.amount}>{invoice.totalAmount}</td><td className={styles.amount}>{invoice.residualAmount ?? "—"}</td>
+          <td><span className={styles.badge}>{invoice.settlementStatus.replaceAll("_", " ")}</span></td><td>{invoice.deliveryStatus.replaceAll("_", " ")}</td>
+          <td><div className={styles.actions}><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>Open</Link><Link href={`/o/${organizationId}/sales/invoices/new?copy=${invoice.id}`}>Duplicate</Link></div></td>
+        </tr>)}</tbody></table></div>}
+      <p className={styles.filterHint}>Posting, settlement and delivery are separate statuses. Drafts do not affect the ledger.</p>
+      {page.nextCursor && <p className={styles.pagination}><Link className="secondary" href={makeHref(tab, page.nextCursor)}>Next page</Link></p>}
     </section>
   </main>;
 }

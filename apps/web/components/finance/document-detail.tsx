@@ -86,8 +86,8 @@ export function DocumentItems({ document }: { document: DetailRecord }) {
   if (!rows.length) return null;
   return <section className={styles.section} aria-labelledby="document-items-title">
     <h2 id="document-items-title">Items and services</h2>
-    <div className={styles.tableScroll}><table className={styles.itemsTable}>
-      <caption>Saved line amounts · BDT</caption><thead><tr><th scope="col">Item / description</th><th scope="col">Quantity</th><th scope="col">Unit rate</th><th scope="col">Discount</th><th scope="col">Net</th><th scope="col">Tax</th><th scope="col">Total</th></tr></thead>
+    <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Document items"><table className={styles.itemsTable}>
+      <caption>Saved line amounts · BDT</caption><thead><tr><th scope="col">Item / description</th><th scope="col" className={styles.amount}>Quantity</th><th scope="col" className={styles.amount}>Unit rate</th><th scope="col" className={styles.amount}>Discount</th><th scope="col" className={styles.amount}>Net</th><th scope="col" className={styles.amount}>Tax</th><th scope="col" className={styles.amount}>Total</th></tr></thead>
       <tbody>{rows.map((row, index) => {
         const item = detailRecord(row.item_snapshot), center = detailRecord(row.cost_center_snapshot);
         return <tr key={detailText(row.id, String(index))}>
@@ -134,8 +134,8 @@ export function CashMovementDetails({ document }: { document: DetailRecord }) {
 export function JournalTable({ rows, caption }: { rows: DetailRecord[]; caption: string }) {
   const totals = exactJournalTotals(rows);
   if (!rows.length) return <p className={styles.hint}>No journal lines are available.</p>;
-  return <><div className={styles.tableScroll}><table className={styles.journalTable}><caption>{caption} · All {rows.length} lines · BDT</caption>
-    <thead><tr><th scope="col">Account</th><th scope="col">Line details</th><th scope="col">Debit</th><th scope="col">Credit</th></tr></thead>
+  return <><div className={styles.tableScroll} tabIndex={0} role="region" aria-label={caption}><table className={styles.journalTable}><caption>{caption} · All {rows.length} lines · BDT</caption>
+    <thead><tr><th scope="col">Account</th><th scope="col">Line details</th><th scope="col" className={styles.amount}>Debit</th><th scope="col" className={styles.amount}>Credit</th></tr></thead>
     <tbody>{rows.map((row, index) => <tr key={detailText(row.line_id, String(row.line_no ?? index))}>
       <th scope="row"><span>{accountLabel(row)}</span>{row.party_id ? <small>Party: {detailText(row.party_name, "Name not recorded")}</small> : null}</th>
       <td>{detailText(row.description, "No description")}
@@ -153,7 +153,7 @@ export function PlannedSettlements({ organizationId, document }: { organizationI
   if (!rows.length) return null;
   return <section className={styles.section} aria-labelledby="planned-settlements-title"><h2 id="planned-settlements-title">Saved allocation plan</h2>
     <p className={styles.hint}>{document.state === "posted" ? "The plan recorded with this source. Later settlement changes are separate dated events." : "These amounts are planned only. Settlement takes effect when the document is posted."}</p>
-    <div className={styles.tableScroll}><table><caption>Planned invoice or bill allocations · BDT</caption><thead><tr><th scope="col">Target document</th><th scope="col">Amount</th></tr></thead><tbody>{rows.map((row, index) => <tr key={detailText(row.target_open_item_id, String(index))}>
+    <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Saved allocation plan"><table><caption>Planned invoice or bill allocations · BDT</caption><thead><tr><th scope="col">Target document</th><th scope="col" className={styles.amount}>Amount</th></tr></thead><tbody>{rows.map((row, index) => <tr key={detailText(row.target_open_item_id, String(index))}>
       <td>{row.target_document_id ? <Link href={`/o/${organizationId}/accounting/documents/${String(row.target_document_id)}`}>{detailText(row.target_document_number, "Unnumbered source")}</Link> : "Target document is outside this view"}</td><td className={styles.amount}>{displayMoney(row.amount)}</td>
     </tr>)}</tbody></table></div></section>;
 }

@@ -151,7 +151,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
     </section>}
 
     <details className={styles.details}>
-      <summary><span>Match history <span className={styles.count}>{matches.length}</span></span><span className={styles.detailMeta}>{activeCount} active{reversedCount>0?` · ${reversedCount} reversed`:""}</span></summary>
+      <summary><span>Match history <span className={styles.count}>{matches.length}</span></span><span className={styles.detailMeta}>{activeCount} active{reversedCount>0?` · ${reversedCount} reversed`:""}{reverseId?" · Reversal form open":""}</span></summary>
       {!matches.length?<div className={styles.detailsBody}><p className={styles.muted}>No matches recorded yet.</p></div>:<div className={styles.historyList}>{matches.map(match=>{
         const bank=bankLines.find(row=>row.id===match.statement_line_id)!;
         const ledger=bookLines.find(row=>row.id===match.journal_line_id)!;

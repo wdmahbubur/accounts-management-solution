@@ -61,7 +61,7 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");
     if (error instanceof CommandError && error.code === "NOT_FOUND") redirect("/companies?error=not_found");
-    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>You need banking.read to view reconciliation history or banking.write to start a session.</p></main>;
+    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>Your current role does not allow you to view or start bank reconciliations in this company.</p></main>;
     throw error;
   }
   const startsOn = reconciliationDate(query.starts_on) ? query.starts_on : "";
@@ -81,7 +81,7 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
           <label>Status<select name="status" defaultValue={filters.status ?? ""}><option value="">All statuses</option><option value="draft">Draft</option><option value="reopened">Reopened</option><option value="finalized">Finalized</option></select></label>
           <button type="submit" className="secondary">Apply filters</button>{filters.cashAccountId || filters.status ? <Link href={root}>Clear filters</Link> : null}
         </form>
-        {history.sessions.length ? <div className="table-scroll"><table><caption>Page {history.page} · newest first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col" className={styles.number}>Closing · BDT</th><th scope="col">Status</th><th scope="col">Open</th></tr></thead><tbody>
+        {history.sessions.length ? <div className="table-scroll" tabIndex={0} role="region" aria-label="Saved reconciliation sessions"><table><caption>Page {history.page} · newest first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col" className={styles.number}>Closing · BDT</th><th scope="col">Status</th><th scope="col">Open</th></tr></thead><tbody>
           {history.sessions.map(session => {
             const eventDate = session.finalizedAt ?? session.lastReopenedAt ?? session.createdAt;
             const eventLabel = session.finalizedAt ? "Finalized" : session.lastReopenedAt ? "Reopened" : "Created";
@@ -98,7 +98,7 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
           <span>Page {history.page}</span>{history.hasMore ? <Link href={`${root}?${reconciliationHistoryQuery(filters, history.page + 1)}`}>Next page</Link> : null}
         </nav> : null}
       </> : null}
-    </section> : <section className="panel"><p>Your access allows you to start a session or resume one with its saved statement dates. Viewing the full history requires banking.read.</p></section>}
+    </section> : <section className="panel"><p>You can start a session or resume one using its saved statement dates. Your current access does not include the full reconciliation history.</p></section>}
     {canWrite && !filterError && !loadError ? <>
       {handoffError ? <p role="alert">The supplied statement dates were invalid. Enter the dates shown on your statement.</p> : null}
       {activeAccounts.length ? <details className={`panel ${styles.details}`} open={openStart}>

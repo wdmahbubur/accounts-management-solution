@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "../../../lib/database/server.ts";
 import { CompanyOnboardingWizard } from "./wizard.tsx";
 import { switchCompanyAction } from "../../companies/actions.ts";
+import { AccountShell } from "../../../components/shell/account-shell.tsx";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -35,9 +36,7 @@ export default async function CompanyOnboardingPage({
   const organization = first(params.organization);
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Company onboarding</p>
-      <h1>Start your books</h1>
+    <AccountShell title="Start your books" description="Set up your company and financial calendar." backHref="/companies" backLabel="Your companies">
 
       {status === "created" && organization ? (
         <section className="panel">
@@ -65,6 +64,6 @@ export default async function CompanyOnboardingPage({
           <CompanyOnboardingWizard initialIdempotencyKey={randomBytes(16).toString("base64url")} />
         </>
       )}
-    </main>
+    </AccountShell>
   );
 }
