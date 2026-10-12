@@ -1,3 +1,4 @@
+import styles from "../../workspace.module.css";
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -19,7 +20,7 @@ export default async function NotificationPreferencesPage({params}:{params:Promi
     if(result.error){if(result.error.code==="42501")throw CommandError.forbidden();if(result.error.code==="28000")throw CommandError.unauthenticated();if(result.error.code==="P0002")redirect("/companies?error=not_found");throw new Error("Notification preferences could not be loaded.");}
     preferences=parsePreferences(result.data);
   }catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="FORBIDDEN")forbidden=true;else throw error;}
-  if(forbidden)return <main><h1>Email preferences</h1><p role="alert">You cannot view these preferences.</p><Link href={`/o/${organizationId}/notifications`}>Back to notifications</Link></main>;
-  return <main><p className="eyebrow">Workspace</p><h1>Email preferences</h1><p>Emails are off until you enable a category. Daily reminder events are queued once per company-local date when scheduled.</p>
+  if(forbidden)return <main className={styles.page}><h1>Email preferences</h1><p role="alert">You cannot view these preferences.</p><Link href={`/o/${organizationId}/notifications`}>Back to notifications</Link></main>;
+  return <main className={styles.page}><header className={styles.pageHeader}><p className="eyebrow">Workspace</p><h1>Email preferences</h1><p>Choose which daily reminders you receive by email. All categories are off until you enable them.</p></header>
     <NotificationPreferences organizationId={organizationId} initial={preferences!} capabilities={capabilities}/></main>;
 }

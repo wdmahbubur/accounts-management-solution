@@ -8,21 +8,23 @@ import { readDocumentDirectory, type DirectoryRow } from "../../../../../server/
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
 import styles from "./documents.module.css";
 
-const draftTypes = [
-  ["invoice", "Invoice"], ["customer_credit", "Customer credit"], ["bill", "Supplier bill"],
-  ["vendor_credit", "Supplier credit"], ["paid_expense", "Paid expense"], ["receipt", "Receipt"],
-  ["vendor_payment", "Supplier payment"], ["customer_refund", "Customer refund"],
-  ["vendor_refund", "Supplier refund"], ["customer_advance", "Customer advance"],
-  ["vendor_advance", "Supplier advance"], ["transfer", "Transfer"],
-  ["manual_journal", "Manual journal"], ["controlled_adjustment", "Controlled adjustment"],
-  ["opening_balance", "Opening balance"]
-] as const;
+type DraftGroup = { title: string; entries: readonly (readonly [string, string])[]; includeWriteOff?: boolean };
+const commonDraftGroups: readonly DraftGroup[] = [
+  { title: "Sales", entries: [["invoice", "Invoice"], ["receipt", "Receipt"]] },
+  { title: "Purchases", entries: [["bill", "Supplier bill"], ["vendor_payment", "Supplier payment"], ["paid_expense", "Paid expense"]] },
+  { title: "Accounting", entries: [["transfer", "Transfer"], ["manual_journal", "Manual journal"]] }
+];
+const otherDraftGroups: readonly DraftGroup[] = [
+  { title: "Customer credits and advances", entries: [["customer_credit", "Customer credit"], ["customer_refund", "Customer refund"], ["customer_advance", "Customer advance"]] },
+  { title: "Supplier credits and advances", entries: [["vendor_credit", "Supplier credit"], ["vendor_refund", "Supplier refund"], ["vendor_advance", "Supplier advance"]] },
+  { title: "Adjustments and opening balances", entries: [["controlled_adjustment", "Controlled adjustment"], ["opening_balance", "Opening balance"]], includeWriteOff: true }
+];
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function DocumentDirectoryPage({ params }: { params: Promise<{ organizationId: string }> }) {
-  let organizationId;
+  let organizationId: ReturnType<typeof parseOrganizationId>;
   try {
     organizationId = parseOrganizationId((await params).organizationId);
   } catch {
@@ -57,6 +59,18 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
     throw failure;
   }
 
+  function draftGroups(groups: readonly DraftGroup[]) {
+    return groups.map((group) => <div className={styles.draftGroup} key={group.title}>
+      <h3>{group.title}</h3>
+      <ul className={styles.draftLinks}>
+        {group.entries.filter(([type]) => type !== "opening_balance" || canPrepareOpening).map(([type, label]) => (
+          <li key={type}><Link href={type === "opening_balance" ? `/o/${organizationId}/settings/opening-balances` : `/o/${organizationId}/accounting/documents/new?type=${type}`}>{label}</Link></li>
+        ))}
+        {group.includeWriteOff && canAdjust && <li><Link href={`/o/${organizationId}/accounting/write-offs/new`}>Bad-debt write-off</Link></li>}
+      </ul>
+    </div>);
+  }
+
   return (
     <main className={styles.main}>
       <p className="eyebrow">Finance workspace</p>
@@ -64,15 +78,11 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
       <p className={styles.hint}>Drafts are saved without ledger effect. Posting, settlement and delivery stay separate actions.</p>
       <section className={`panel ${styles.panel}`}>
         <h2>Create a draft</h2>
-        {canWriteJournal && <p><Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=manual_journal`}>New manual journal</Link></p>}
-        <div className={styles.toolbar}>
-          {draftTypes.filter(([type])=>type!=="opening_balance"||canPrepareOpening).map(([type, label]) => (
-            <Link key={type} className="secondary" href={type==="opening_balance"?`/o/${organizationId}/settings/opening-balances`:`/o/${organizationId}/accounting/documents/new?type=${type}`}>
-              New {label}
-            </Link>
-          ))}
-          {canAdjust && <Link className="secondary" href={`/o/${organizationId}/accounting/write-offs/new`}>New bad-debt write-off</Link>}
-        </div>
+        <div className={styles.draftGroups}>{draftGroups(commonDraftGroups)}</div>
+        <details className={styles.draftMore}>
+          <summary>Credits, refunds, advances and adjustments</summary>
+          <div className={styles.draftGroups}>{draftGroups(otherDraftGroups)}</div>
+        </details>
       </section>
       <section className={`panel ${styles.panel}`}>
         <h2>Recent sources</h2>
@@ -83,7 +93,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
               <tbody>{rows.map((row) => (
                 <tr key={row.id}>
                   <td><Link href={`/o/${organizationId}/accounting/documents/${row.id}`}>{row.documentNumber ?? "Draft"}</Link></td>
-                  <td>{row.documentType.replaceAll("_", " ")}</td><td>{row.accountingDate}</td><td>{row.state}</td><td>{row.totalAmount}</td>
+                  <td>{row.documentType.replaceAll("_", " ")}</td><td>{row.accountingDate}</td><td>{row.state.replaceAll("_", " ")}</td><td>{row.totalAmount}</td>
                 </tr>
               ))}</tbody>
             </table>

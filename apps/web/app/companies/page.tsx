@@ -6,6 +6,7 @@ import { createClient } from "../../lib/database/server.ts";
 import { readCompanyContext } from "../../server/company-context.ts";
 import { listActiveMemberships } from "../../server/companies/memberships.ts";
 import { switchCompanyAction } from "./actions.ts";
+import { AccountShell } from "../../components/shell/account-shell.tsx";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -45,9 +46,7 @@ export default async function CompaniesPage({
   const error = first(params.error);
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Company context</p>
-      <h1>Your companies</h1>
+    <AccountShell title="Your companies" description="Choose the company whose books you want to work on." wide>
 
       {error ? (
         <p className="alert" role="alert">
@@ -59,9 +58,9 @@ export default async function CompaniesPage({
 
       {memberships.length === 0 ? (
         <section className="panel">
-          <h2>No active company membership</h2>
+          <h2>Create your first company</h2>
           <p>Create a company to start a separate set of books.</p>
-          <Link href="/onboarding/company">Create company</Link>
+          <Link href="/onboarding/company" className="primary">Create company</Link>
         </section>
       ) : (
         <section className="company-grid" aria-label="Active company memberships">
@@ -87,14 +86,14 @@ export default async function CompaniesPage({
                 <dl className="review-list">
                   <div>
                     <dt>Status</dt>
-                    <dd>{membership.organizationStatus}</dd>
+                    <dd>{membership.organizationStatus === "onboarding" ? "Setup in progress" : membership.organizationStatus.charAt(0).toUpperCase() + membership.organizationStatus.slice(1).replaceAll("_", " ")}</dd>
                   </div>
                   <div>
                     <dt>Roles</dt>
                     <dd>
                       {membership.roleNames.length
                         ? membership.roleNames.join(", ")
-                        : "Role template pending capability setup"}
+                        : "Access setup pending"}
                     </dd>
                   </div>
                 </dl>
@@ -115,10 +114,10 @@ export default async function CompaniesPage({
         </section>
       )}
 
-      <p className="muted">
-        Choose the company whose books you want to work on. Each company keeps its own accounts, transactions, and reports.
-      </p>
-      <Link href="/onboarding/company">Create another company</Link>
-    </main>
+      {memberships.length > 0 && <div className="company-footer">
+        <p className="muted">Each company has its own accounts, transactions and reports.</p>
+        <Link href="/onboarding/company" className="secondary">Create another company</Link>
+      </div>}
+    </AccountShell>
   );
 }

@@ -75,7 +75,7 @@ export function PostingPreview({ state, data }: { state: "loading" | "error" | "
   if (!data) return <ViewState kind="error" />;
   return <section aria-label="Posting preview"><h2>Posting preview</h2><p>Not posted · reviewed source version {data.sourceVersion}</p>
     <div className={styles.table} tabIndex={0} role="region" aria-label="Posting preview table"><table><caption>Server-provided journal preview</caption>
-      <thead><tr><th scope="col">Account</th><th scope="col">Debit</th><th scope="col">Credit</th></tr></thead>
+      <thead><tr><th scope="col">Account</th><th scope="col" className={styles.amount}>Debit</th><th scope="col" className={styles.amount}>Credit</th></tr></thead>
       <tbody>{data.rows.map((row) => <tr key={row.id}><th scope="row">{row.accountLabel}</th><td><MoneyCell value={row.debit} /></td><td><MoneyCell value={row.credit} /></td></tr>)}</tbody>
       <tfoot><tr><th scope="row">Server totals</th><td><MoneyCell value={data.totalDebit} /></td><td><MoneyCell value={data.totalCredit} /></td></tr></tfoot>
     </table></div></section>;

@@ -15,7 +15,7 @@ export default async function ApprovalInboxPage({params}:{params:Promise<{organi
   try{actor=await resolveActorContext(organizationId,runtime.dependencies);rows=await readApprovalInbox(runtime.client,actor,"pending");
   }catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");
     if(error instanceof CommandError&&error.code==="FORBIDDEN")forbidden=true;
-    if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");throw error;}
+    else if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");else throw error;}
   if(forbidden)return <main><h1>Approval inbox</h1><p role="alert">You do not have permission to view approval requests.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
   return <ApprovalInbox organizationId={organizationId} canDecide={actor!.capabilities.includes("approvals.decide")} initialRows={rows!}/>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import styles from "../workspace.module.css";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -84,16 +85,16 @@ export function ExportJobs({ organizationId, canRequest }: { organizationId: str
     finally { setBusy(false); }
   }
 
-  return <main className="content">
-    <p className="eyebrow">Reports · Private files</p><h1>Export jobs</h1>
-    <p>Each export captures the requested date and ledger cutoff. Files are private, available to the requester for 24 hours, and permission is checked again when downloaded.</p>
+  return <main className={styles.page}>
+    <header className={styles.pageHeader}><p className="eyebrow">Reports · Private files</p><h1>Export jobs</h1>
+    <p>Each export captures the requested date and ledger cutoff. Files are private, available to the requester for 24 hours, and permission is checked again when downloaded.</p></header>
     {canRequest && <p className="panel">Exports use the snapshot currently shown by each report. <Link className="secondary" href={`/o/${organizationId}/reports/trial-balance`}>Open Trial Balance to export</Link></p>}
-    {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
-    <section className="panel"><div className="toolbar"><h2>Your exports</h2><button type="button" className="secondary" onClick={() => void refresh()} disabled={loading || busy}>Refresh jobs</button></div>
+    {error && <p role="alert" className={styles.error}>{error}</p>}{notice && <p role="status" className={styles.notice}>{notice}</p>}
+    <section className="panel"><div className={styles.heading}><h2>Your exports</h2><button type="button" className="secondary" onClick={() => void refresh()} disabled={loading || busy}>Refresh jobs</button></div>
       {loading ? <p role="status">Loading export jobs…</p> : jobs.length === 0 ? <p>No export jobs yet.</p> :
-        <div className="table-scroll"><table><thead><tr><th>Report and cutoff</th><th>Status</th><th>Requested</th><th>File expires</th><th>Details</th><th>Actions</th></tr></thead><tbody>
+        <div className={`table-scroll ${styles.table}`} tabIndex={0} role="region" aria-label="Export jobs"><table><thead><tr><th scope="col">Report and cutoff</th><th scope="col">Status</th><th scope="col">Requested</th><th scope="col">File expires</th><th scope="col">Details</th><th scope="col">Actions</th></tr></thead><tbody>
           {jobs.map(job => <tr key={job.id}><td>{reportLabels[job.export_type] ?? "Report export"} · {period(job)}<br /><small>Ledger cutoff: {dateTime(job.ledger_cutoff_at)}</small></td>
-            <td><span className={`status status-${job.status}`}>{job.status}</span></td><td>{dateTime(job.created_at)}</td><td>{dateTime(job.expires_at)}</td>
+            <td><span className={styles.badge}>{job.status}</span></td><td>{dateTime(job.created_at)}</td><td>{dateTime(job.expires_at)}</td>
             <td>{job.error_code ? errorText[job.error_code] ?? "The export failed. Request a new export." : job.status === "running" ? "Rendering a fixed report snapshot…" : `${job.format.toUpperCase()} · BDT`}</td>
             <td>{job.status === "completed" ? <a className="secondary" href={`/api/v1/organizations/${organizationId}/exports/${job.id}/download`}>Download {job.format.toUpperCase()}</a> :
               job.status === "queued" && canRequest ? <button type="button" className="secondary" disabled={busy} onClick={() => void cancel(job.id)}>Cancel queued job</button> : "—"}</td>

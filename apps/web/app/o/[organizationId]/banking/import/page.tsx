@@ -29,7 +29,7 @@ export default async function StatementImportPage({ params }: { params: Promise<
   } catch (error) {
     if (error instanceof CommandError && error.code === "UNAUTHENTICATED") redirect("/auth/sign-in?next=/companies");
     if (error instanceof CommandError && error.code === "NOT_FOUND") redirect("/companies?error=not_found");
-    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>You need banking.write to import statements.</p></main>;
+    if (error instanceof CommandError && error.code === "FORBIDDEN") return <main className="content"><h1>Access denied</h1><p>Your current role does not allow you to import bank statements in this company.</p></main>;
     throw error;
   }
   return <StatementImport organizationId={organizationId} accounts={accounts}/>;

@@ -70,17 +70,130 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
   const direction=(value:string)=>bankingCents(value)<0n?"Money out":"Money in";
   const securityNeeded=/recent authentication|reauthenticate/i.test(error);
 
-  return <main className="content"><header className={styles.heading}><div><p className="eyebrow">Banking · Reconciliation</p><h1>{account.name} statement match</h1><p>{formatDate(session.starts_on)} to {formatDate(session.ends_on)} · <span className={styles.badge}>{session.state==="finalized"?"Finalized":evidence?"Reopened":"Draft"}</span></p></div><div className={styles.actions}><Link href={`/o/${organizationId}/banking/reconciliations`}>All reconciliations</Link><button type="button" className="secondary" disabled={busy||refreshing} onClick={refresh}>{refreshing?"Refreshing…":"Refresh saved state"}</button></div></header><div className={styles.stack}>
-    <section className="panel"><h2>Statement overview</h2><dl className={styles.summary}><div><dt>Opening balance · BDT</dt><dd>{session.statement_opening}</dd></div><div><dt>Statement movements · BDT</dt><dd>{bankingAmount(statementMovement)}</dd></div><div><dt>Closing balance · BDT</dt><dd>{session.statement_closing}</dd></div><div><dt>Unmatched statement rows</dt><dd>{unmatched.length} of {bankLines.length}</dd></div><div><dt>Active matches</dt><dd>{activeCount}</dd></div></dl><p className={styles.muted}>Match imported statement rows to existing posted cashbook entries. A match does not move money or create another journal.</p>{statementDifference!==0n&&<p className={styles.error}>Opening balance plus imported movements differs from statement closing by BDT {bankingAmount(statementDifference)}. Check the statement dates and balances before finalizing.</p>}</section>
-    {error&&<div role="alert" className={styles.error}><p>{error}</p>{securityNeeded&&<p><Link href="/settings/security">Reauthenticate in Security</Link>, then return to this reconciliation.</p>}</div>}{success&&<div role="status" className={styles.success}>{success}</div>}
+  const matchedCount=bankLines.length-unmatched.length;
+  const reversedCount=matches.length-activeCount;
+  const savedAt=evidence?String(evidence.finalized_at):"";
+  const savedDate=new Date(savedAt);
+  const savedDateLabel=Number.isNaN(savedDate.getTime())?savedAt:new Intl.DateTimeFormat("en-GB",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Dhaka"}).format(savedDate);
+
+  return <main className="content">
+    <header className={styles.heading}>
+      <div>
+        <p className="eyebrow">Banking</p>
+        <div className={styles.titleLine}><h1>Bank reconciliation</h1><span className={styles.badge} data-tone={session.state==="finalized"?"success":"neutral"}>{session.state==="finalized"?"Finalized":evidence?"Reopened":"Draft"}</span></div>
+        <p className={styles.metadata}><strong>{account.name}</strong><span>{formatDate(session.starts_on)} – {formatDate(session.ends_on)}</span><span>BDT</span></p>
+      </div>
+      <div className={styles.actions}>
+        <Link href={`/o/${organizationId}/banking/reconciliations`} className={styles.textAction}>All reconciliations</Link>
+        <button type="button" className="secondary" disabled={busy||refreshing} onClick={refresh}>{refreshing?"Refreshing…":"Refresh saved state"}</button>
+      </div>
+    </header>
+
+    {error&&<div role="alert" className={styles.error}><p>{error}</p>{securityNeeded&&<p><Link href="/settings/security">Reauthenticate in Security</Link>, then return to this reconciliation.</p>}</div>}
+    {success&&<div role="status" className={styles.success}>{success}</div>}
     {uncertain&&<section className={styles.notice} aria-label="Check saved change"><p>The result is not yet confirmed. Check the saved state and review its history before choosing another action.</p><div className={styles.actions}><button type="button" disabled={busy||refreshing} onClick={refresh}>{refreshing?"Checking…":"Check saved change"}</button></div></section>}
-    {session.state==="finalized"&&<div className={styles.notice}>This reconciliation is finalized. Reopen it with an authorized account before changing any match.</div>}
-    <section className="panel"><h2>Statement rows</h2>{!bankLines.length?<div><p>No statement rows are imported for this account and date range.</p>{canWrite&&<Link href={`/o/${organizationId}/banking/import`}>Import a statement</Link>}</div>:<div className={styles.scroll}><table><caption>Select a statement row, then a cashbook entry with the same direction.</caption><thead><tr><th scope="col">Date / row</th><th scope="col">Description / reference</th><th scope="col">Direction</th><th scope="col" className={styles.number}>Amount · BDT</th><th scope="col" className={styles.number}>Remaining · BDT</th><th scope="col">Match</th></tr></thead><tbody>{bankLines.map(row=><tr key={row.id} className={statementId===row.id?styles.selected:undefined}><td>{formatDate(row.transaction_date)}<br/><span className={styles.muted}>Row {row.row_no}</span></td><td>{row.description}{row.reference&&<><br/><span className={styles.muted}>{row.reference}</span></>}{row.review_required&&<p className={styles.muted}>Possible duplicate: review against the original statement.</p>}</td><td>{direction(row.amount)}</td><td className={styles.number}>{row.amount}</td><td className={styles.number}>{row.remaining}</td><td>{bankingCents(row.remaining)===0n?<span className={styles.badge}>Matched</span>:canWrite&&session.state==="draft"?<button type="button" className="secondary" disabled={!editable} aria-pressed={statementId===row.id} aria-label={`Select statement row ${row.row_no}: ${row.description}`} onClick={()=>chooseStatement(row)}>{statementId===row.id?"Selected":"Select"}</button>:"Unmatched"}</td></tr>)}</tbody></table></div>}</section>
-    <section className="panel"><h2>Posted cashbook entries</h2>{!bookLines.length?<p>No posted cashbook entries fall within this statement date range.</p>:<div className={styles.scroll}><table><caption>Posted entries for {account.name}; matched amounts stay visible in history.</caption><thead><tr><th scope="col">Date</th><th scope="col">Description / document</th><th scope="col">Direction</th><th scope="col" className={styles.number}>Amount · BDT</th><th scope="col" className={styles.number}>Remaining · BDT</th><th scope="col">Match</th></tr></thead><tbody>{bookLines.map(row=><tr key={row.id} className={bookId===row.id?styles.selected:undefined}><td>{formatDate(row.accounting_date)}</td><td>{row.description||"Cashbook entry"}{row.document_number&&<><br/><strong>{row.document_number}</strong></>}{row.reference&&<><br/><span className={styles.muted}>{row.reference}</span></>}{statement&&statement.transaction_date===row.accounting_date&&statement.amount===row.signed_amount&&bankingCents(row.remaining)>0n&&<p className={styles.muted}>Same date and amount as selected statement row.</p>}</td><td>{direction(row.signed_amount)}</td><td className={styles.number}>{row.signed_amount}</td><td className={styles.number}>{row.remaining}</td><td>{bankingCents(row.remaining)===0n?<span className={styles.badge}>Matched</span>:canWrite&&session.state==="draft"?<button type="button" className="secondary" disabled={!editable} aria-pressed={bookId===row.id} aria-label={`Select cashbook entry: ${row.document_number||row.description||row.accounting_date}`} onClick={()=>chooseBook(row)}>{bookId===row.id?"Selected":"Select"}</button>:"Outstanding"}</td></tr>)}</tbody></table></div>}</section>
-    {canWrite&&session.state==="draft"&&<section className="panel"><h2>Confirm selected match</h2><div className={styles.comparison}><div><p className={styles.muted}>Statement row</p><strong>{statement?`Row ${statement.row_no} · ${statement.description}`:"Choose a statement row above"}</strong>{statement&&<p>Available BDT {statement.remaining} · {direction(statement.amount)}</p>}</div><div><p className={styles.muted}>Cashbook entry</p><strong>{book?book.document_number||book.description||"Selected entry":"Choose a cashbook entry above"}</strong>{book&&<p>Available BDT {book.remaining} · {direction(book.signed_amount)}</p>}</div></div><form onSubmit={saveMatch} className={styles.inlineForm}><label htmlFor="match-amount">Amount to match · BDT<input id="match-amount" value={amount} inputMode="decimal" autoComplete="off" disabled={!editable} aria-invalid={!!matchError} aria-describedby={matchError?"match-amount-error":"match-amount-help"} onChange={event=>{if(!editable)return;setAmount(event.target.value);setMatchError("");}}/></label>{matchError?<p id="match-amount-error" role="alert" className={styles.fieldError}>{matchError}</p>:<p id="match-amount-help" className={styles.muted}>A partial match leaves the remaining balance available for another entry.</p>}<div className={styles.actions}><button type="submit" disabled={!editable||!statement||!book}>{busy?"Saving…":"Save match"}</button><button type="button" className="secondary" disabled={!editable||(!statement&&!book)} onClick={()=>{setStatementId("");setBookId("");setAmount("");setMatchError("");}}>Clear selection</button></div></form></section>}
-    <section className="panel"><h2>Match history</h2>{!matches.length?<p>No matches have been recorded for this reconciliation.</p>:<div className={styles.stack}>{matches.map(match=>{const bank=bankLines.find(row=>row.id===match.statement_line_id)!;const ledger=bookLines.find(row=>row.id===match.journal_line_id)!;return <div key={match.id} className={styles.inlineForm}><div className={styles.heading}><div><strong>Row {bank.row_no} · {bank.description}</strong><p className={styles.muted}>{ledger.document_number||ledger.description||"Cashbook entry"} · BDT {match.amount}</p></div><span className={styles.badge}>{match.reversed?"Reversed":"Active"}</span></div>{!match.reversed&&canWrite&&session.state==="draft"&&(reverseId===match.id?<form onSubmit={event=>saveReason(event,"reverse")} className={styles.inlineForm}><label htmlFor="reverse-match-reason">Reason for reversing this match<textarea id="reverse-match-reason" value={reason} required maxLength={500} disabled={locked} onChange={event=>setReason(event.target.value)}/></label><div className={styles.actions}><button type="submit" disabled={locked}>Confirm match reversal</button><button type="button" className="secondary" disabled={locked} onClick={()=>{setReverseId("");setReason("");}}>Cancel</button></div></form>:<button type="button" className="secondary" disabled={locked} onClick={()=>{setReverseId(match.id);setReason("");setError("");}}>Reverse match</button>)}</div>;})}</div>}</section>
-    {evidence&&<section className="panel"><h2>{session.state==="finalized"?"Finalized evidence":"Previous finalized evidence"}</h2><dl className={styles.summary}><div><dt>Book closing · BDT</dt><dd>{String(evidence.book_closing)}</dd></div><div><dt>Adjusted statement closing · BDT</dt><dd>{String(evidence.adjusted_statement_closing)}</dd></div><div><dt>Difference · BDT</dt><dd>{String(evidence.unexplained_difference)}</dd></div></dl><p className={styles.muted}>Saved {String(evidence.finalized_at)}{session.state==="draft"?". This earlier snapshot remains preserved while the reopened reconciliation is edited.":"."}</p></section>}
-    {session.state==="draft"&&canFinalize&&<section className="panel"><h2>Finalize reconciliation</h2><p>Every statement movement must be matched. Outstanding cashbook deposits and payments are retained in the closing evidence. Finalization checks the balances again and requires recent authentication.</p>{unmatched.length>0&&<p className={styles.notice}>{unmatched.length} statement row(s) still need matching. Record any missing fee, receipt or other transaction before matching it.</p>}{finalizeOpen?<div className={styles.inlineForm}><p>Finalize this statement for {account.name}, {formatDate(session.starts_on)} to {formatDate(session.ends_on)}? Its match set and evidence will be protected until an authorized reopen.</p><div className={styles.actions}><button type="button" disabled={locked||unmatched.length>0||statementDifference!==0n} onClick={()=>void perform({kind:"finalize"})}>Confirm finalization</button><button type="button" className="secondary" disabled={locked} onClick={()=>setFinalizeOpen(false)}>Cancel</button></div></div>:<button type="button" disabled={locked||unmatched.length>0||statementDifference!==0n} onClick={()=>{setFinalizeOpen(true);setError("");}}>Review finalization</button>}</section>}
-    {session.state==="finalized"&&canReopen&&<section className="panel"><h2>Reopen reconciliation</h2><p>Reopening requires recent authentication and a reason. Previous finalized evidence is preserved.</p>{reopenOpen?<form onSubmit={event=>saveReason(event,"reopen")} className={styles.inlineForm}><label htmlFor="reopen-reconciliation-reason">Reason for reopening<textarea id="reopen-reconciliation-reason" value={reason} minLength={10} maxLength={1000} required disabled={locked} onChange={event=>setReason(event.target.value)}/></label><div className={styles.actions}><button type="submit" disabled={locked}>Confirm reopen</button><button type="button" className="secondary" disabled={locked} onClick={()=>{setReopenOpen(false);setReason("");}}>Cancel</button></div></form>:<button type="button" className="secondary" disabled={locked} onClick={()=>{setReopenOpen(true);setReason("");setError("");}}>Reopen with reason</button>}</section>}
-  </div></main>;
+
+    <section className={styles.overview} aria-label="Statement overview">
+      <dl className={styles.metrics}>
+        <div><dt>Opening balance</dt><dd>{session.statement_opening}</dd></div>
+        <div><dt>Statement movement</dt><dd>{bankingAmount(statementMovement)}</dd></div>
+        <div><dt>Closing balance</dt><dd>{session.statement_closing}</dd></div>
+        <div><dt>Statement rows matched</dt><dd>{matchedCount}<span className={styles.metricUnit}> / {bankLines.length}</span></dd></div>
+      </dl>
+      {statementDifference!==0n&&<p className={styles.error}>Opening balance plus imported movements differs from statement closing by BDT {bankingAmount(statementDifference)}. Check the dates and balances before finalizing.</p>}
+    </section>
+
+    <div className={styles.matchingGrid}>
+      <section className={styles.tablePanel} aria-labelledby="statement-rows-title">
+        <div className={styles.sectionHeading}><h2 id="statement-rows-title">Bank statement</h2><span className={styles.count}>{bankLines.length} rows</span></div>
+        {!bankLines.length?<div className={styles.empty}><p>No statement rows for this account and period.</p>{canWrite&&<Link href={`/o/${organizationId}/banking/import`}>Import a statement</Link>}</div>:<div className={styles.scroll} tabIndex={0} role="region" aria-label="Statement rows">
+          <table className={styles.matchTable}>
+            <caption className={styles.srOnly}>Statement rows. Select a row, then a cashbook entry with the same direction. Amounts in BDT.</caption>
+            <thead><tr><th scope="col">Entry</th><th scope="col" className={styles.number}>Amount</th><th scope="col" className={styles.number}>Remaining</th><th scope="col"><span className={styles.srOnly}>Match</span></th></tr></thead>
+            <tbody>{bankLines.map(row=><tr key={row.id} className={statementId===row.id?styles.selected:undefined}>
+              <td><strong className={styles.entryTitle}>{row.description}</strong><span className={styles.entryMeta}>{formatDate(row.transaction_date)} · Row {row.row_no}</span>{row.reference&&<span className={styles.entryMeta}>{row.reference}</span>}{row.review_required&&<span className={styles.reviewNote}>Possible duplicate — review original.</span>}</td>
+              <td className={styles.number}><strong>{row.amount}</strong><span className={styles.entryMeta}>{direction(row.amount)}</span></td>
+              <td className={styles.number}>{row.remaining}</td>
+              <td className={styles.rowAction}>{bankingCents(row.remaining)===0n?<span className={styles.badge} data-tone="success">Matched</span>:canWrite&&session.state==="draft"?<button type="button" className="secondary" disabled={!editable} aria-pressed={statementId===row.id} aria-label={`Select statement row ${row.row_no}: ${row.description}`} onClick={()=>chooseStatement(row)}>{statementId===row.id?"Selected":"Select"}</button>:<span className={styles.muted}>Unmatched</span>}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
+      </section>
+
+      <section className={styles.tablePanel} aria-labelledby="cashbook-entries-title">
+        <div className={styles.sectionHeading}><h2 id="cashbook-entries-title">Cashbook</h2><span className={styles.count}>{bookLines.length} entries</span></div>
+        {!bookLines.length?<div className={styles.empty}><p>No posted entries for this period.</p></div>:<div className={styles.scroll} tabIndex={0} role="region" aria-label="Posted cashbook entries">
+          <table className={styles.matchTable}>
+            <caption className={styles.srOnly}>Posted cashbook entries for {account.name}. Amounts in BDT; matched amounts remain in history.</caption>
+            <thead><tr><th scope="col">Entry</th><th scope="col" className={styles.number}>Amount</th><th scope="col" className={styles.number}>Remaining</th><th scope="col"><span className={styles.srOnly}>Match</span></th></tr></thead>
+            <tbody>{bookLines.map(row=><tr key={row.id} className={bookId===row.id?styles.selected:undefined}>
+              <td><strong className={styles.entryTitle}>{row.document_number||row.description||"Cashbook entry"}</strong><span className={styles.entryMeta}>{formatDate(row.accounting_date)}</span>{row.document_number&&row.description&&<span className={styles.entryMeta}>{row.description}</span>}{row.reference&&<span className={styles.entryMeta}>{row.reference}</span>}{statement&&statement.transaction_date===row.accounting_date&&statement.amount===row.signed_amount&&bankingCents(row.remaining)>0n&&<span className={styles.matchHint}>Same date and amount</span>}</td>
+              <td className={styles.number}><strong>{row.signed_amount}</strong><span className={styles.entryMeta}>{direction(row.signed_amount)}</span></td>
+              <td className={styles.number}>{row.remaining}</td>
+              <td className={styles.rowAction}>{bankingCents(row.remaining)===0n?<span className={styles.badge} data-tone="success">Matched</span>:canWrite&&session.state==="draft"?<button type="button" className="secondary" disabled={!editable} aria-pressed={bookId===row.id} aria-label={`Select cashbook entry: ${row.document_number||row.description||row.accounting_date}`} onClick={()=>chooseBook(row)}>{bookId===row.id?"Selected":"Select"}</button>:<span className={styles.muted}>Outstanding</span>}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
+      </section>
+    </div>
+
+    {canWrite&&session.state==="draft"&&<section className={styles.matchComposer} aria-labelledby="selected-match-title">
+      <div className={styles.sectionHeading}><h2 id="selected-match-title">Match selected entries</h2><button type="button" className={styles.textAction} disabled={!editable||(!statement&&!book)} onClick={()=>{setStatementId("");setBookId("");setAmount("");setMatchError("");}}>Clear selection</button></div>
+      <div className={styles.comparison}>
+        <div><span className={styles.entryMeta}>Statement row</span><strong>{statement?`Row ${statement.row_no} · ${statement.description}`:"Select a statement row"}</strong>{statement&&<span className={styles.entryMeta}>Available {statement.remaining} BDT · {direction(statement.amount)}</span>}</div>
+        <div><span className={styles.entryMeta}>Cashbook entry</span><strong>{book?book.document_number||book.description||"Selected entry":"Select a cashbook entry"}</strong>{book&&<span className={styles.entryMeta}>Available {book.remaining} BDT · {direction(book.signed_amount)}</span>}</div>
+      </div>
+      <form onSubmit={saveMatch} className={styles.matchForm}>
+        <label htmlFor="match-amount">Amount to match · BDT<input id="match-amount" value={amount} inputMode="decimal" autoComplete="off" placeholder="0.00" disabled={!editable} aria-invalid={!!matchError} aria-describedby={matchError?"match-amount-error":"match-amount-help"} onChange={event=>{if(!editable)return;setAmount(event.target.value);setMatchError("");}}/></label>
+        <button type="submit" disabled={!editable||!statement||!book}>{busy?"Saving…":"Save match"}</button>
+        {matchError?<p id="match-amount-error" role="alert" className={styles.fieldError}>{matchError}</p>:<p id="match-amount-help" className={styles.muted}>Partial amounts are allowed. The remaining balance stays available.</p>}
+      </form>
+    </section>}
+
+    <details className={styles.details}>
+      <summary><span>Match history <span className={styles.count}>{matches.length}</span></span><span className={styles.detailMeta}>{activeCount} active{reversedCount>0?` · ${reversedCount} reversed`:""}{reverseId?" · Reversal form open":""}</span></summary>
+      {!matches.length?<div className={styles.detailsBody}><p className={styles.muted}>No matches recorded yet.</p></div>:<div className={styles.historyList}>{matches.map(match=>{
+        const bank=bankLines.find(row=>row.id===match.statement_line_id)!;
+        const ledger=bookLines.find(row=>row.id===match.journal_line_id)!;
+        return <div key={match.id} className={styles.historyItem}>
+          <div className={styles.historyRow}>
+            <div><strong className={styles.entryTitle}>Row {bank.row_no} · {bank.description}</strong><span className={styles.entryMeta}>{ledger.document_number||ledger.description||"Cashbook entry"}</span></div>
+            <strong className={styles.number}>{match.amount}<span className={styles.entryMeta}>BDT</span></strong>
+            <span className={styles.badge} data-tone={match.reversed?"neutral":"success"}>{match.reversed?"Reversed":"Active"}</span>
+            {!match.reversed&&canWrite&&session.state==="draft"&&reverseId!==match.id&&<button type="button" className={styles.textAction} disabled={locked} onClick={()=>{setReverseId(match.id);setReason("");setError("");}}>Reverse match</button>}
+          </div>
+          {!match.reversed&&canWrite&&session.state==="draft"&&reverseId===match.id&&<form onSubmit={event=>saveReason(event,"reverse")} className={styles.inlineForm}>
+            <label htmlFor="reverse-match-reason">Reason for reversing this match<textarea id="reverse-match-reason" value={reason} required maxLength={500} disabled={locked} onChange={event=>setReason(event.target.value)}/></label>
+            <div className={styles.actions}><button type="submit" disabled={locked}>Confirm match reversal</button><button type="button" className="secondary" disabled={locked} onClick={()=>{setReverseId("");setReason("");}}>Cancel</button></div>
+          </form>}
+        </div>;
+      })}</div>}
+    </details>
+
+    {evidence&&<details className={styles.details}>
+      <summary><span>{session.state==="finalized"?"Finalized evidence":"Previous finalized evidence"}</span><span className={styles.detailMeta}>Difference {String(evidence.unexplained_difference)} BDT</span></summary>
+      <div className={styles.detailsBody}>
+        <dl className={styles.summary}><div><dt>Book closing · BDT</dt><dd>{String(evidence.book_closing)}</dd></div><div><dt>Adjusted statement closing · BDT</dt><dd>{String(evidence.adjusted_statement_closing)}</dd></div><div><dt>Difference · BDT</dt><dd>{String(evidence.unexplained_difference)}</dd></div></dl>
+        <p className={styles.muted}>Saved <time dateTime={savedAt}>{savedDateLabel}</time> · Asia/Dhaka{session.state==="draft"?". This snapshot is preserved while you edit the reopened session.":"."}</p>
+      </div>
+    </details>}
+
+    {session.state==="draft"&&canFinalize&&<section className={styles.closingActions} aria-labelledby="finalize-title">
+      <div><h2 id="finalize-title">Finalize reconciliation</h2><p className={styles.muted}>{unmatched.length>0?`${unmatched.length} statement row(s) still need matching.`:"All statement rows are matched. Review the closing balances to finish."}</p></div>
+      {!finalizeOpen&&<button type="button" disabled={locked||unmatched.length>0||statementDifference!==0n} onClick={()=>{setFinalizeOpen(true);setError("");}}>Review finalization</button>}
+      {finalizeOpen&&<div className={styles.inlineForm}>
+        <p>Finalize {account.name} for {formatDate(session.starts_on)} to {formatDate(session.ends_on)}? Matching will be locked and closing evidence saved. Outstanding cashbook entries remain in that evidence. Recent authentication is required.</p>
+        <div className={styles.actions}><button type="button" disabled={locked||unmatched.length>0||statementDifference!==0n} onClick={()=>void perform({kind:"finalize"})}>Confirm finalization</button><button type="button" className="secondary" disabled={locked} onClick={()=>setFinalizeOpen(false)}>Cancel</button></div>
+      </div>}
+    </section>}
+    {session.state==="finalized"&&<section className={styles.closingActions} aria-labelledby="reopen-title">
+      <div><h2 id="reopen-title">Reconciliation complete</h2><p className={styles.muted}>Matches and closing evidence are protected.{canReopen?" Reopen with a reason to make changes.":" An authorized account is required to reopen."}</p></div>
+      {canReopen&&!reopenOpen&&<button type="button" className="secondary" disabled={locked} onClick={()=>{setReopenOpen(true);setReason("");setError("");}}>Reopen with reason</button>}
+      {canReopen&&reopenOpen&&<form onSubmit={event=>saveReason(event,"reopen")} className={styles.inlineForm}>
+        <label htmlFor="reopen-reconciliation-reason">Reason for reopening<textarea id="reopen-reconciliation-reason" value={reason} minLength={10} maxLength={1000} required disabled={locked} onChange={event=>setReason(event.target.value)}/></label>
+        <p className={styles.muted}>Recent authentication is required. Previous finalized evidence stays preserved.</p>
+        <div className={styles.actions}><button type="submit" disabled={locked}>Confirm reopen</button><button type="button" className="secondary" disabled={locked} onClick={()=>{setReopenOpen(false);setReason("");}}>Cancel</button></div>
+      </form>}
+    </section>}
+  </main>;
 }

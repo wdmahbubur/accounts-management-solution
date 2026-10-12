@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
 
+import styles from "../../../../../components/finance/finance.module.css";
+
 type InvoiceTab = "all" | "drafts" | "awaiting_approval" | "posted";
 type SavedFilter = { id: string; name: string; tab: InvoiceTab; search: string };
 const tabs: InvoiceTab[] = ["all", "drafts", "awaiting_approval", "posted"];
@@ -87,18 +89,21 @@ export function InvoiceFilters({ organizationId, userId, tab, search }: {
     event.currentTarget.form?.requestSubmit();
   }
 
-  return <>
-    <form className="panel toolbar" action={base} method="get">
+  return <section className="panel" aria-label="Invoice filters">
+    <form className="toolbar" action={base} method="get">
       <input type="hidden" name="tab" value={tab}/>
       <label>Search invoices<input ref={searchRef} onKeyDown={onSearchKeyDown} type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, customer or reference" aria-keyshortcuts="/"/></label>
       <button type="submit">Search</button>{search && <Link className="secondary" href={`${base}?tab=${tab}`}>Clear</Link>}
-      <label>Saved filters<select value={selectedId} onChange={applyFilter}><option value="">Choose saved filter</option>{saved.map((filter) => <option key={filter.id} value={filter.id}>{filter.name}</option>)}</select></label>
-      {selectedId && <button type="button" className="secondary" onClick={() => persist(saved.filter((filter) => filter.id !== selectedId))}>Delete saved filter</button>}
-      <span className="muted">Press / to focus search; Esc clears it.</span>
     </form>
-    <form className="toolbar" onSubmit={saveFilter}>
-      <label>Save current filters as<input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="e.g. Posted invoices"/></label>
-      <button type="submit" disabled={!name.trim()}>Save filter</button>
-    </form>
-  </>;
+    <details className={styles.savedFilters}><summary>Saved filters{saved.length > 0 ? ` (${saved.length})` : ""}</summary><div className={styles.filterBody}>
+      <div className="toolbar"><label>Apply a saved filter<select value={selectedId} onChange={applyFilter}><option value="">Choose saved filter</option>{saved.map((filter) => <option key={filter.id} value={filter.id}>{filter.name}</option>)}</select></label>
+        {selectedId && <button type="button" className="secondary" onClick={() => persist(saved.filter((filter) => filter.id !== selectedId))}>Delete saved filter</button>}
+      </div>
+      <form className="toolbar" onSubmit={saveFilter}>
+        <label>Save current filters as<input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="e.g. Posted invoices"/></label>
+        <button type="submit" className="secondary" disabled={!name.trim()}>Save filter</button>
+      </form>
+      <p className={styles.filterHint}>Keyboard shortcuts: / focuses search; Esc clears it.</p>
+    </div></details>
+  </section>;
 }

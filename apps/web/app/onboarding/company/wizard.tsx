@@ -107,7 +107,7 @@ export function CompanyOnboardingWizard({
 
       <ol className="wizard-steps" aria-label="Company setup steps">
         {stepNames.map((name, index) => (
-          <li key={name} data-current={step === index ? "true" : "false"}>
+          <li key={name} data-current={step === index ? "true" : "false"} aria-current={step === index ? "step" : undefined}>
             {index + 1}. {name}
           </li>
         ))}
@@ -231,18 +231,12 @@ export function CompanyOnboardingWizard({
           </>
         ) : null}
 
-        <div className="actions">
+        <div className="actions wizard-actions">
           {step > 0 ? (
             <button type="button" className="secondary" onClick={() => setStep(step - 1)}>
               Back
             </button>
           ) : null}
-          <button type="button" className="secondary" onClick={saveDraft}>
-            Save draft
-          </button>
-          <button type="button" className="secondary" onClick={restoreDraft}>
-            Restore saved draft
-          </button>
           {step < stepNames.length - 1 ? (
             <button
               key="continue"
@@ -261,8 +255,16 @@ export function CompanyOnboardingWizard({
             </button>
           )}
         </div>
-        {saved ? <p className="muted" role="status">Draft saved in this browser session.</p> : null}
       </section>
+      <details className="quiet-details">
+        <summary>Save or restore a draft</summary>
+        <p className="muted">Drafts are kept in this browser session while you prepare your company details.</p>
+        <div className="actions">
+          <button type="button" className="secondary" onClick={saveDraft}>Save draft</button>
+          <button type="button" className="secondary" onClick={restoreDraft}>Restore saved draft</button>
+        </div>
+        {saved ? <p className="muted" role="status">Draft saved in this browser session.</p> : null}
+      </details>
     </form>
   );
 }

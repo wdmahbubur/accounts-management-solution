@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AccountShell } from "../../../components/shell/account-shell.tsx";
+import styles from "../account-pages.module.css";
 
 import { resendVerificationAction, signUpAction } from "../actions.ts";
 
@@ -14,9 +16,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Searc
   const error = first(params.error);
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Verified account</p>
-      <h1>Create account</h1>
+    <AccountShell title="Create account" eyebrow="Your account" description="Create your personal login, then verify your email.">
       <section className="panel">
         {status ? (
           <p className="alert" role="status">
@@ -41,22 +41,23 @@ export default async function SignUpPage({ searchParams }: { searchParams: Searc
           </label>
           <label className="field">
             <span>Password</span>
-            <input name="password" type="password" autoComplete="new-password" minLength={10} required />
+            <input name="password" type="password" autoComplete="new-password" minLength={10} required aria-describedby="signup-password-help" />
+            <small id="signup-password-help" className={styles.help}>At least 10 characters, including uppercase, lowercase and a number.</small>
           </label>
           <button type="submit">Create account</button>
         </form>
-        <form action={resendVerificationAction} className="auth-form">
+        <details className={styles.details} open={Boolean(status)||undefined}><summary>Need another verification email?</summary><form action={resendVerificationAction} className="auth-form">
           <label className="field">
-            <span>Resend verification</span>
+            <span>Email</span>
             <input name="email" type="email" autoComplete="email" required />
           </label>
           <button type="submit" className="secondary">Request verification email</button>
         </form>
         <p className="muted">
-          Verification requests use the same public response whether or not an account exists.
-        </p>
+          Check your inbox and spam folder. Please wait before requesting another email.
+        </p></details>
         <Link href="/auth/sign-in">Back to sign in</Link>
       </section>
-    </main>
+    </AccountShell>
   );
 }

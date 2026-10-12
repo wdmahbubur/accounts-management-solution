@@ -12,7 +12,7 @@ export function PostingPreview({ result }: { result: PostingPreviewResult }) {
       </p>}
     </header>
     {preview.kind === "trade" ? <>
-      <div className="table-scroll"><table>
+      <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Document calculation"><table>
         <caption>Document calculation</caption>
         <thead><tr><th scope="col">Description</th><th scope="col" className={styles.amount}>Net</th><th scope="col" className={styles.amount}>Tax</th><th scope="col" className={styles.amount}>Gross</th></tr></thead>
         <tbody>{preview.lines.map((line, index) => <tr key={index}>
@@ -23,7 +23,7 @@ export function PostingPreview({ result }: { result: PostingPreviewResult }) {
       <dl className={styles.totals}><div><dt>Net</dt><dd>{displayMoney(preview.net)}</dd></div><div><dt>Tax</dt><dd>{displayMoney(preview.tax)}</dd></div>
         {preview.rounding_adjustment !== "0.00" && <div><dt>Rounding</dt><dd>{displayMoney(preview.rounding_adjustment)}</dd></div>}
         <div><dt>Document total</dt><dd>{displayMoney(preview.total)}</dd></div></dl>
-    </> : <div className="table-scroll"><table>
+    </> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Journal preview"><table>
       <caption>{preview.kind === "cash" ? "Planned journal entries" : "Saved journal rows"}</caption>
       <thead><tr><th scope="col">Account</th><th scope="col">Description / party</th><th scope="col" className={styles.amount}>Debit</th><th scope="col" className={styles.amount}>Credit</th></tr></thead>
       <tbody>{preview.lines.map(line => <tr key={line.lineNo}>
@@ -35,7 +35,7 @@ export function PostingPreview({ result }: { result: PostingPreviewResult }) {
     </table></div>}
     {preview.kind === "cash" && preview.unallocatedAmount !== null && <section className={styles.allocations} aria-label="Planned settlements">
       <h3>Planned settlements</h3>
-      {preview.allocations.length > 0 ? <div className="table-scroll"><table>
+      {preview.allocations.length > 0 ? <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Planned settlements"><table>
         <thead><tr><th scope="col">Invoice / open item</th><th scope="col" className={styles.amount}>Available at accounting date</th><th scope="col" className={styles.amount}>Planned amount</th></tr></thead>
         <tbody>{preview.allocations.map(allocation => <tr key={allocation.targetOpenItemId}>
           <th scope="row">{allocation.documentNumber ?? `Open item ${allocation.targetOpenItemId.slice(0, 8)}`}</th>
