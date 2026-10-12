@@ -7,13 +7,13 @@ import { bangladeshDate } from "../../../../lib/date.ts";
 import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../server/roles/runtime.ts";
+import { reportMoney as money } from "./report-money.ts";
 
 type Control="ar"|"ap";
 type Item={open_item_id:string;journal_line_id:string;source_document_id:string;document_number:string;party_id:string;party_name:string;control_kind:string;side:"debit"|"credit";reference:string;issue_date:string;due_date:string|null;bucket:string;residual:string};
 type AgingData={as_of:string;timezone:string;control_kind:string;buckets:Record<string,string>;trade_debt:string;unapplied_trade_credits:string;net_trade_control_items:string;trade_control_ledger:string;trade_control_difference:string;trade_credit_items:Item[];advances:{control_kind:string;normal_balance:string;opposite_side_credits:string;ledger_balance:string;difference:string;items:Item[]};items:Item[];net_bridge_difference:string;provisional:boolean};
 type Snapshot={company:{name:string;timezone:string};generated_at:string;ledger_cutoff_at:string;data:AgingData};
 const dateOk=(value:string|null|undefined)=>!!value&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(new Date(`${value}T00:00:00Z`).getTime())&&new Date(`${value}T00:00:00Z`).toISOString().slice(0,10)===value;
-const money=(value:string)=>{if(!/^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value))throw new Error("Invalid aging money value.");return value;};
 const bucketLabels:Record<string,string>={not_due:"Not yet due",days_1_30:"1–30 days overdue",days_31_60:"31–60 days overdue",days_61_90:"61–90 days overdue",days_91_plus:"91+ days overdue",no_due_date:"No due date"};
 export async function AgingReport({params,searchParams,control}:{params:Promise<{organizationId:string}>;searchParams:Promise<{as_of?:string}>;control:Control}){
  let organizationId:ReturnType<typeof parseOrganizationId>;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}

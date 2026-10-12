@@ -286,7 +286,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  return <section className={`${styles.main} ${styles.editor}`} data-company-context={nonce} aria-labelledby={`${editorId}-heading`}>
   <header className={styles.editorHeader}>
    {(!initial||createNew)&&<p className="eyebrow">{duplicate?"Copy as a new draft":"Draft"} · BDT</p>}
-   <Heading id={`${editorId}-heading`}>{initial&&!createNew?`Edit ${labels[documentType].toLowerCase()}`:`${duplicate?"Duplicate · ":"New "}${labels[documentType]}`}</Heading>
+   <Heading id={`${editorId}-heading`}>{initial&&!createNew?`Edit ${labels[documentType].toLowerCase()}`:`${duplicate?"Duplicate · ":"New "}${labels[documentType].toLowerCase()}`}</Heading>
    <p className={styles.hint}>Save your draft, check the saved preview, then submit it for approval. Saving a draft does not post to your books.</p>
   </header>
   {error&&<div ref={errorRef} tabIndex={-1} role="alert" className={styles.error}>
@@ -320,7 +320,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
         {isCredit&&receiptParty!==field("party_id")&&!options.parties.some(p=>p.id===receiptParty)&&receiptParty&&<option value={receiptParty}>{selectedCreditSource?.partyName??"Original document’s party"}</option>}
         {options.parties.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}
        </select>{fieldError("party_id")}
-       {options.parties.length===0&&<small>No active {partyLabel.toLowerCase()} is available. Add one in {partyLabel==="Customer"?"Sales → Customers":"Purchases → Vendors"} before saving.</small>}
+       {options.parties.length===0&&<small>No active {partyLabel.toLowerCase()} is available. Add one in {partyLabel==="Customer"?"Sales → Customers":"Purchases → Suppliers"} before saving.</small>}
       </label>}
       <label>Issue date<input {...fieldAttributes("issue_date")} type="date" required value={issueDate} onChange={event=>setIssueDate(event.target.value)}/>{fieldError("issue_date")}</label>
       <label>Accounting date<input {...fieldAttributes("accounting_date")} type="date" required value={scopedSelection?receiptDate:undefined}

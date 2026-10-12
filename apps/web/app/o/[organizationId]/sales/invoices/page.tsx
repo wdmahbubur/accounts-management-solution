@@ -60,11 +60,11 @@ export default async function InvoiceRegisterPage({ params, searchParams }: {
       {page.items.length === 0 ? <p className={styles.empty}>No invoices match these filters.</p> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Invoice register"><table>
         <thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Dates</th><th scope="col" className={styles.amount}>Total</th><th scope="col" className={styles.amount}>Outstanding</th><th scope="col">Settlement</th><th scope="col">Delivery</th><th scope="col">Actions</th></tr></thead>
         <tbody>{page.items.map(invoice => <tr key={invoice.id}>
-          <th scope="row"><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>{invoice.documentNumber ?? "Draft"}</Link></th><td>{invoice.customerName}</td>
+          <th scope="row"><Link href={`/o/${organizationId}/sales/invoices/${invoice.id}`}>{invoice.documentNumber ?? "Draft"}</Link></th><td>{invoice.customerName}</td>
           <td>{invoice.issueDate}<span className={styles.meta}>Due {invoice.dueDate ?? "—"}</span>{invoice.overdue && <span className={styles.warning}>Overdue</span>}</td>
           <td className={styles.amount}>{invoice.totalAmount}</td><td className={styles.amount}>{invoice.residualAmount ?? "—"}</td>
           <td><span className={styles.badge}>{invoice.settlementStatus.replaceAll("_", " ")}</span></td><td>{invoice.deliveryStatus.replaceAll("_", " ")}</td>
-          <td><div className={styles.actions}><Link href={`/o/${organizationId}/accounting/documents/${invoice.id}`}>Open</Link><Link href={`/o/${organizationId}/sales/invoices/new?copy=${invoice.id}`}>Duplicate</Link></div></td>
+          <td><div className={styles.actions}><Link href={`/o/${organizationId}/sales/invoices/${invoice.id}`}>Open</Link><Link href={`/o/${organizationId}/sales/invoices/new?copy=${invoice.id}`}>Duplicate</Link></div></td>
         </tr>)}</tbody></table></div>}
       <p className={styles.filterHint}>Posting, settlement and delivery are separate statuses. Drafts do not affect the ledger.</p>
       {page.nextCursor && <p className={styles.pagination}><Link className="secondary" href={makeHref(tab, page.nextCursor)}>Next page</Link></p>}

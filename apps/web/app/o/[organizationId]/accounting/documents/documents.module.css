@@ -116,3 +116,17 @@
 .receiptTable input:not([type="checkbox"]) { min-width: 110px; text-align: right; }
 .receiptTable td:first-child label { display: flex; align-items: center; gap: 6px; }
 @media(max-width: 520px) { .form { grid-template-columns: minmax(0, 1fr); } .editorSection { padding: 16px; } .editor :is(input, select, textarea) { font-size: 1rem; } }
+
+/* Directory creation menu; does not change draft-editor controls. */
+.draftGroups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 24px; }
+.draftGroup { min-width: 0; }
+.draftGroup h3 { margin: 0 0 6px; color: var(--muted); font-size: .8rem; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.draftLinks { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.draftLinks > li { display: block; min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.draftLinks a { display: inline-flex; align-items: center; min-height: 40px; max-width: 100%; padding: 8px 0; color: var(--accent); font-size: .87rem; text-decoration: none; overflow-wrap: anywhere; }
+.draftLinks a:hover { text-decoration: underline; }
+.draftLinks a:focus-visible, .draftMore summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.draftMore { min-width: 0; border-top: 1px solid var(--border); padding-top: 8px; }
+.draftMore > summary { min-height: 40px; padding: 10px 0; color: var(--text); font-size: .85rem; font-weight: 500; cursor: pointer; overflow-wrap: anywhere; }
+.draftMore[open] > .draftGroups { margin-top: 12px; }
+@media (max-width: 640px) { .draftGroups { grid-template-columns: 1fr; gap: 16px; } .draftLinks { display: flex; flex-wrap: wrap; gap: 0 20px; } }
