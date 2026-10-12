@@ -7,6 +7,7 @@ import { bangladeshDate } from "../../../../../lib/date.ts";
 import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+import { reportMoney as money } from "../report-money.ts";
 import { ReportExportButton } from "../report-export-button.tsx";
 import { parseBalanceSheetDates, type BalanceSheetDateQuery } from "./date-filters.ts";
 
@@ -15,7 +16,6 @@ type Section="asset"|"liability"|"equity"|"untransferred_earnings";
 type Account={account_id:string;account_code:string;account_name:string;account_type:string;report_group:string;section:Section;amount:string};
 type Statement={as_of:string;assets:string;liabilities:string;equity_accounts:string;untransferred_earnings:string;equity:string;liabilities_and_equity:string;difference:string;accounts:Account[]};
 type Snapshot={snapshot_id:string;company:{name:string;timezone:string};generated_at:string;ledger_cutoff_at:string;data:{current:Statement;comparison:Statement|null}};
-const money=(value:string)=>{if(!/^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value))throw new Error("Invalid Balance Sheet money value.");return value;};
 const sectionTitle:Record<Section,string>={asset:"Assets",liability:"Liabilities",equity:"Equity accounts",untransferred_earnings:"Untransferred earnings"};
 export default async function BalanceSheetPage({params,searchParams}:{params:Promise<{organizationId:string}>;searchParams:Promise<BalanceSheetDateQuery>}){
  let organizationId;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}

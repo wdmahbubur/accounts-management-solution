@@ -47,3 +47,10 @@
 .exportControls select { width: 100%; }
 .exportControls button { font-size: .8rem; }
 .exportControls > [role="status"] { flex-basis: 100%; font-size: .78rem; line-height: 1.5; }
+
+.statementHeader { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 24px; min-width: 0; }
+.statementIdentity { display: grid; gap: 12px; flex: 1 1 280px; min-width: 0; }
+.statementIdentity h2, .statementIdentity p { margin: 0; }
+.statementIdentity > p:not(:global(.eyebrow)) { color: var(--muted); font-size: .84rem; }
+.statementActions { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; min-width: 0; max-width: 100%; }
+.statementActions > p { margin: 0; }

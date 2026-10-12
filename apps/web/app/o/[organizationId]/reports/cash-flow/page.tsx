@@ -7,6 +7,7 @@ import { bangladeshDate } from "../../../../../lib/date.ts";
 import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+import { reportMoney as money } from "../report-money.ts";
 
 export const dynamic="force-dynamic";export const revalidate=0;
 type CashRow={cash_account_id:string;account_id:string;account_code:string;account_name:string;opening:string;closing:string};
@@ -14,7 +15,6 @@ type Activity={date:string;flow_class:string;cash_account:string;account_id:stri
 type Data={from:string;to:string;opening_cash:string;operating:string;investing:string;financing:string;internal_transfer_inflows:string;internal_transfer_outflows:string;internal_transfer_net:string;unclassified:string;unclassified_count:number;cash_equivalent_account_count:number;closing_cash:string;calculated_closing:string;reconciliation_difference:string;provisional:boolean;cash_accounts:CashRow[];activity:Activity[];exceptions:Activity[];cutoff_at:string;timezone:string};
 type Snapshot={company:{name:string};generated_at:string;ledger_cutoff_at:string;provisional:boolean;data:Data};
 const dateOk=(value:string|null|undefined)=>!!value&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(new Date(`${value}T00:00:00Z`).getTime())&&new Date(`${value}T00:00:00Z`).toISOString().slice(0,10)===value;
-const money=(value:string)=>{if(!/^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value))throw new Error("Invalid cash-flow money value.");return value;};
 const labels:Record<string,string>={operating:"Operating",investing:"Investing",financing:"Financing",internal_transfer:"Internal transfer",unclassified:"Unclassified"};
 export default async function CashFlowPage({params,searchParams}:{params:Promise<{organizationId:string}>;searchParams:Promise<{from?:string;to?:string}>}){
  let organizationId:ReturnType<typeof parseOrganizationId>;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}

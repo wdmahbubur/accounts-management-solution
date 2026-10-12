@@ -6,6 +6,7 @@ import * as accounting from "@ams/accounting";
 import * as contracts from "@ams/contracts";
 import { CommandError } from "../../apps/web/server/commands/errors.ts";
 import { reportMoney } from "../../apps/web/app/o/[organizationId]/reports/report-money.ts";
+import { parseBalanceSheetDates } from "../../apps/web/app/o/[organizationId]/reports/balance-sheet/date-filters.ts";
 
 const organizationId = "d937174a-7022-4b26-a1e0-7a6ebac1f485";
 const partyId = "6a31db48-ecf5-455b-a043-33d1036a71ee";
@@ -31,6 +32,22 @@ function statementData(scope) {
   };
 }
 
+function balanceSheetData() {
+  return { current: { as_of: "2026-10-12", assets: "0", liabilities: "0", equity_accounts: "0", untransferred_earnings: "0", equity: "0", liabilities_and_equity: "0", difference: "0", accounts: [] }, comparison: null };
+}
+function cashFlowData() {
+  return {
+    from: "2026-10-01", to: "2026-10-12", opening_cash: "0", operating: "0", investing: "0", financing: "0",
+    internal_transfer_inflows: "0", internal_transfer_outflows: "0", internal_transfer_net: "0", unclassified: "0", unclassified_count: 0,
+    cash_equivalent_account_count: 0, closing_cash: "0", calculated_closing: "0", reconciliation_difference: "0", provisional: true,
+    cash_accounts: [], activity: [], exceptions: [], cutoff_at: common.ledger_cutoff_at, timezone: "Asia/Dhaka"
+  };
+}
+function profitLossData() {
+  const totals = Object.fromEntries(["revenue", "direct_costs", "gross_profit", "operating_costs", "other_income", "other_expenses", "net_profit"].flatMap(name => [[name, "0"], [`comparison_${name}`, "0"]]));
+  return { periods: { current: { from: "2026-10-01", to: "2026-10-12", ytd_summary_included: false }, comparison: null }, accounts: [], totals, warnings: [], provisional: false };
+}
+
 // Execute the actual server components with a scoped RPC response; only their
 // framework/runtime edges are replaced. JSX is collected without a browser or DB.
 const compiled = new Map();
@@ -51,9 +68,14 @@ async function renderReport(filename, data, capabilities, query, control) {
     if (name.endsWith("/errors.ts")) return { CommandError };
     if (name.endsWith("/resolve-actor.ts")) return { resolveActorContext: async () => ({ capabilities }) };
     if (name.endsWith("/runtime.ts")) return { roleRuntime: async () => ({
-      current: { organizationId }, dependencies: {}, client: { rpc: async (name, args) => { calls.push({ name, args }); return { error: null, data: { ...common, data } }; } }
+      current: { organizationId }, dependencies: {}, client: { rpc: async (name, args) => {
+        calls.push({ name, args });
+        if (name === "list_profit_loss_options") return { error: null, data: { company: { books_start_date: "2026-01-01" }, fiscal_years: [], cost_centers: [] } };
+        return { error: null, data: { ...common, provisional: data.provisional ?? false, data } };
+      } }
     }) };
     if (name.endsWith("/report-money.ts")) return { reportMoney };
+    if (name.endsWith("/date-filters.ts")) return { parseBalanceSheetDates };
     if (name.endsWith("/print-button.tsx")) return { PrintStatement: () => null };
     if (name.endsWith("/report-export-button.tsx")) return { ReportExportButton: () => null };
     throw new Error(`Unexpected report import: ${name}`);
@@ -141,4 +163,79 @@ test("report money and actual rendering reject malformed or numeric money respon
   await assert.rejects(() => renderReport("aging-report.tsx", aging, ["dues.read"], { as_of: "2026-10-12" }, "ar"), /Invalid report money/);
   const statement = statementData("customer"); statement.control_bridge.trade_difference = "not money";
   await assert.rejects(() => renderReport("statements/page.tsx", statement, ["dues.read"], { party_id: partyId, from: "2026-10-01", to: "2026-10-12" }), /Invalid report money/);
+});
+
+test("empty Balance Sheet totals and comparison render canonical zeros without concealing imbalance", async () => {
+  const data = balanceSheetData();
+  data.comparison = { ...data.current, as_of: "2026-09-30" };
+  const query = { as_of: "2026-10-12", comparison_as_of: "2026-09-30" };
+  const result = await renderReport("balance-sheet/page.tsx", data, ["reports.read"], query);
+  assert.match(text(result.tree), /Balanced · no balancing plug was added/);
+  assert.match(text(result.tree), /Comparison totals: assets BDT 0\.00/);
+  assert.deepEqual(result.calls, [{ name: "capture_report_export_snapshot", args: { p_organization_id: organizationId, p_report_type: "balance_sheet", p_filters: query } }]);
+  data.current.assets = "9007199254740993.17"; data.current.liabilities = "9007199254740993.18"; data.current.liabilities_and_equity = "9007199254740993.18"; data.current.difference = "-0.01";
+  const unbalanced = await renderReport("balance-sheet/page.tsx", data, ["reports.read"], query);
+  assert.match(text(unbalanced.tree), /Out of balance/);
+  assert.ok(text(unbalanced.tree).includes("9007199254740993.17"));
+  assert.ok(text(unbalanced.tree).includes("-0.01"));
+});
+
+test("empty Cash flow remains provisional until configured and retains its exact read filters", async () => {
+  const data = cashFlowData();
+  const query = { from: "2026-10-01", to: "2026-10-12" };
+  const result = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);
+  assert.match(text(result.tree), /BDT 0\.00/);
+  assert.match(text(result.tree), /Provisional · configure at least one cash-equivalent account/);
+  assert.deepEqual(result.calls, [{ name: "read_cash_flow_snapshot", args: { p_organization_id: organizationId, p_from: query.from, p_to: query.to } }]);
+  data.cash_equivalent_account_count = 1; data.provisional = false;
+  data.cash_accounts = [{ cash_account_id: documentId, account_id: partyId, account_code: "1000", account_name: "Bank", opening: "0", closing: "0" }];
+  const configured = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);
+  assert.match(text(configured.tree), /Classified cash movements reconcile to the ledger/);
+  assert.deepEqual(hrefs(configured.tree), []);
+});
+
+test("Cash flow keeps signed movement, mismatch and classification warnings", async () => {
+  const data = cashFlowData();
+  data.cash_equivalent_account_count = 1; data.provisional = false; data.opening_cash = "10"; data.operating = "-3.5"; data.calculated_closing = "6.5"; data.closing_cash = "6.49"; data.reconciliation_difference = "-0.01";
+  const query = { from: "2026-10-01", to: "2026-10-12" };
+  const mismatch = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);
+  assert.match(text(mismatch.tree), /BDT -3\.50/);
+  assert.match(text(mismatch.tree), /Cash reconciliation mismatch/);
+  data.provisional = true; data.unclassified_count = 1;
+  const provisional = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);
+  assert.match(text(provisional.tree), /Provisional · 1 cash-line movement\(s\) need classification/);
+  assert.match(text(provisional.tree), /Classification exceptions/);
+});
+
+test("P&L uses exact two-decimal totals while keeping expense direction and provisional warnings", async () => {
+  const data = profitLossData(), query = { from: "2026-10-01", to: "2026-10-12" };
+  const empty = await renderReport("profit-loss/page.tsx", data, ["reports.read"], query);
+  assert.match(text(empty.tree), /RevenueBDT 0\.00/);
+  assert.match(text(empty.tree), /Net profitBDT 0\.00/);
+  assert.deepEqual(empty.calls, [
+    { name: "list_profit_loss_options", args: { p_organization_id: organizationId } },
+    { name: "capture_report_export_snapshot", args: { p_organization_id: organizationId, p_report_type: "profit_and_loss", p_filters: query } }
+  ]);
+  data.provisional = true; data.warnings = ["Fixture reporting warning"];
+  data.totals.operating_costs = "3.5"; data.totals.net_profit = "-3.5";
+  data.accounts = [{ account_id: partyId, account_code: "5000", account_name: "Operating costs", account_type: "expense", report_group: "operating_expense", current_amount: "-3.5", comparison_amount: "0", current_ledger_debit: "3.5", current_ledger_credit: "0", current_summary_debit: "0", current_summary_credit: "0", comparison_ledger_debit: "0", comparison_ledger_credit: "0", comparison_summary_debit: "0", comparison_summary_credit: "0", current_evidence_reference: null }];
+  const populated = await renderReport("profit-loss/page.tsx", data, ["reports.read"], query);
+  assert.match(text(populated.tree), /Operating costsBDT 3\.50/);
+  assert.match(text(populated.tree), /Net profitBDT -3\.50/);
+  assert.match(text(populated.tree), /Operating costs3\.50Posted ledger/);
+  assert.match(text(populated.tree), /Provisional report/);
+  assert.match(text(populated.tree), /Fixture reporting warning/);
+  assert.equal(data.accounts[0].current_amount, "-3.5");
+  data.periods.comparison = { from: "2026-09-01", to: "2026-09-30", ytd_summary_included: false };
+  const comparison = await renderReport("profit-loss/page.tsx", data, ["reports.read"], { ...query, comparison_from: "2026-09-01", comparison_to: "2026-09-30" });
+  assert.match(text(comparison.tree), /Operating costs3\.500\.00Posted ledger/);
+  assert.ok(!text(comparison.tree).includes("-0.00"));
+});
+
+test("balance, cash flow and P&L still deny readers without report access before any RPC", async () => {
+  for (const [filename, data] of [["balance-sheet/page.tsx", balanceSheetData()], ["cash-flow/page.tsx", cashFlowData()], ["profit-loss/page.tsx", profitLossData()]]) {
+    const denied = await renderReport(filename, data, [], {});
+    assert.match(text(denied.tree), /Access denied/);
+    assert.deepEqual(denied.calls, []);
+  }
 });
