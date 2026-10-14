@@ -59,6 +59,7 @@ select ok(
   'draft invoice stores server-derived totals and has no posted state'
 );
 
+reset role;
 select is(
   (select count(*)::bigint from finance.journal_entries
    where source_document_id=current_setting('test.us017_document_id')::uuid),
@@ -73,6 +74,8 @@ select is(
   10000::finance.amount,
   'T-01 draft save leaves posted revenue unchanged'
 );
+set local role authenticated;
+set local request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
 
 select is(
   (select document_version from public.save_financial_document(
@@ -90,6 +93,7 @@ select is(
   'draft edit recalculates its server-owned total'
 );
 
+reset role;
 select is(
   (select count(*)::bigint from finance.journal_entries
    where source_document_id=current_setting('test.us017_document_id')::uuid),
@@ -104,6 +108,8 @@ select is(
   10000::finance.amount,
   'draft update leaves posted revenue unchanged'
 );
+set local role authenticated;
+set local request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
 
 select throws_ok(
   $$select * from public.save_financial_document(
@@ -135,6 +141,7 @@ select is(
   'saving a draft leaves one authoritative current line'
 );
 
+reset role;
 select is(
   (select count(*)::bigint from finance.audit_events
    where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
@@ -143,9 +150,11 @@ select is(
   2::bigint,
   'draft create and update each write audit evidence'
 );
+set local role authenticated;
+set local request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
 
 select is(
-  (select state from finance.business_documents where id=current_setting('test.us017_document_id')::uuid),
+  (select state::text from finance.business_documents where id=current_setting('test.us017_document_id')::uuid),
   'draft'::text,
   'draft lifecycle remains distinct from posting'
 );
