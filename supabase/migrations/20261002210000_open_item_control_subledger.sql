@@ -108,8 +108,9 @@ BEGIN
   SELECT * INTO v_account FROM finance.accounts a WHERE a.organization_id=v_line.organization_id AND a.id=v_line.account_id;
   IF v_entry.state<>'building' OR v_account.control_kind IS NULL OR v_line.party_id IS NULL OR
      NEW.account_id<>v_line.account_id OR NEW.party_id<>v_line.party_id OR NEW.control_kind<>v_account.control_kind OR
-     NEW.side<>CASE WHEN v_line.debit>0 THEN 'debit' ELSE 'credit' END OR
-     NEW.original_amount<>CASE WHEN v_line.debit>0 THEN v_line.debit ELSE v_line.credit END OR NEW.issue_date<>v_entry.accounting_date THEN
+     NEW.side IS DISTINCT FROM (CASE WHEN v_line.debit>0 THEN 'debit' ELSE 'credit' END) OR
+     NEW.original_amount IS DISTINCT FROM (CASE WHEN v_line.debit>0 THEN v_line.debit ELSE v_line.credit END) OR
+     NEW.issue_date IS DISTINCT FROM v_entry.accounting_date THEN
     RAISE EXCEPTION 'open item does not agree with its source control line' USING ERRCODE='23514';
   END IF;
   RETURN NEW;
