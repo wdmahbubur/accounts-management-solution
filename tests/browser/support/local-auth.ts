@@ -53,6 +53,7 @@ export async function openCompany(page: Page, user: { email: string; password: s
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/companies/);
   await page.getByRole("button", { name: `Open ${companyName}`, exact: true }).click();
+  await expect(page).toHaveURL(/\/o\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: companyName, exact: true })).toBeVisible();
 }
 export async function companyNonce(page: Page) {
