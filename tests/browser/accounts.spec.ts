@@ -18,6 +18,11 @@ test("US-014 account management and mapping commands enforce chart rules", async
   });
   expect(created.error).toBeNull();
   const organizationId = created.data[0].organization_id as string;
+  const membership = await owner.client.rpc("resolve_active_membership", {
+    p_organization_id: organizationId
+  });
+  expect(membership.error).toBeNull();
+  expect(membership.data?.[0]?.capabilities).toContain("journal.write");
 
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -34,7 +39,14 @@ test("US-014 account management and mapping commands enforce chart rules", async
   await page.getByLabel("Code", { exact: true }).fill(accountCode);
   await page.getByLabel("Name", { exact: true }).fill(accountName);
   await page.getByLabel("Report group", { exact: true }).fill("other-assets");
+  const accountSave = page.waitForResponse((response) =>
+    response.url().endsWith(`/api/v1/organizations/${organizationId}/accounts`) &&
+    response.request().method() === "POST"
+  );
   await page.getByRole("button", { name: "Create account", exact: true }).click();
+  const savedAccount = await accountSave;
+  const savedAccountBody = await savedAccount.json();
+  expect(savedAccount.status(), JSON.stringify(savedAccountBody)).toBe(200);
 
   let accountRow = page.getByRole("row").filter({ hasText: accountCode });
   await expect(accountRow).toContainText(accountName);
