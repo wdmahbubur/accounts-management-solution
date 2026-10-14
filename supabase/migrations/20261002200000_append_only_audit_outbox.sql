@@ -101,7 +101,7 @@ CREATE TRIGGER audit_events_no_truncate BEFORE TRUNCATE ON finance.audit_events
   FOR EACH STATEMENT EXECUTE FUNCTION finance_private.reject_audit_mutation();
 
 CREATE FUNCTION finance_private.guard_outbox_update()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $guard$
 DECLARE v_invitation_cancel boolean:=false;
 BEGIN
   IF TG_OP='UPDATE' THEN
@@ -125,7 +125,7 @@ BEGIN
     RAISE EXCEPTION 'invalid outbox delivery transition' USING ERRCODE='23514';
   END IF;
   RETURN NEW;
-END $;
+END $guard$;
 REVOKE ALL ON FUNCTION finance_private.guard_outbox_update() FROM PUBLIC,anon,authenticated;
 CREATE TRIGGER outbox_events_guard_update BEFORE UPDATE OR DELETE ON finance.outbox_events
   FOR EACH ROW EXECUTE FUNCTION finance_private.guard_outbox_update();
