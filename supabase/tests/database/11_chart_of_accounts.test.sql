@@ -27,6 +27,11 @@ where p.code in ('accounting.read', 'journal.write');
 insert into finance.member_roles (organization_id, member_id, role_id)
 values ('cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000003', 'cc000000-0000-4000-8000-000000000004');
 
+insert into finance.accounts
+  (id, organization_id, code, name, account_type, normal_side, report_group)
+values
+  ('cc000000-0000-4000-8000-000000000009', 'cc000000-0000-4000-8000-000000000002', 'US14-OFFSET', 'Offset liability', 'liability', 'credit', 'other-liabilities');
+
 insert into finance.fiscal_years (id, organization_id, label, starts_on, ends_on)
 values ('cc000000-0000-4000-8000-000000000005', 'cc000000-0000-4000-8000-000000000002', 'FY2026', '2026-01-01', '2026-12-31');
 
@@ -34,14 +39,17 @@ insert into finance.accounting_periods (id, organization_id, fiscal_year_id, lab
 values ('cc000000-0000-4000-8000-000000000006', 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000005', 'FY2026', '2026-01-01', '2026-12-31');
 
 insert into finance.business_documents
-  (id, organization_id, document_type, issue_date, accounting_date, created_by_member_id)
+  (id, organization_id, document_type, state, document_number, issue_date, accounting_date,
+   created_by_member_id, posted_by_member_id, posted_at)
 values
-  ('cc000000-0000-4000-8000-000000000007', 'cc000000-0000-4000-8000-000000000002', 'manual_journal', '2026-10-01', '2026-10-01', 'cc000000-0000-4000-8000-000000000003');
+  ('cc000000-0000-4000-8000-000000000007', 'cc000000-0000-4000-8000-000000000002', 'manual_journal', 'posted', 'US14-JE-1',
+   '2026-10-01', '2026-10-01', 'cc000000-0000-4000-8000-000000000003', 'cc000000-0000-4000-8000-000000000003', now());
 
 insert into finance.journal_entries
-  (id, organization_id, source_document_id, period_id, accounting_date, posted_by_member_id)
+  (id, organization_id, source_document_id, period_id, accounting_date, state, posted_at, posted_by_member_id)
 values
-  ('cc000000-0000-4000-8000-000000000008', 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000007', 'cc000000-0000-4000-8000-000000000006', '2026-10-01', 'cc000000-0000-4000-8000-000000000003');
+  ('cc000000-0000-4000-8000-000000000008', 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000007',
+   'cc000000-0000-4000-8000-000000000006', '2026-10-01', 'posted', now(), 'cc000000-0000-4000-8000-000000000003');
 
 set local role authenticated;
 set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
@@ -62,8 +70,14 @@ select 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-00000000
 from finance.accounts a
 where a.organization_id = 'cc000000-0000-4000-8000-000000000002' and a.code = 'US14-USED';
 
-select is((select count(*)::integer from finance.journal_lines where organization_id='cc000000-0000-4000-8000-000000000002'), 1,
-  'A valid account is used by a ledger line before history protection is checked');
+insert into finance.journal_lines
+  (organization_id, journal_entry_id, line_no, account_id, debit, credit)
+values
+  ('cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000008', 2,
+   'cc000000-0000-4000-8000-000000000009', 0.00, 10.00);
+
+select is((select count(*)::integer from finance.journal_lines where organization_id='cc000000-0000-4000-8000-000000000002'), 2,
+  'T-48 history fixture is a balanced posted journal with two lines');
 
 set local role authenticated;
 set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
