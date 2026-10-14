@@ -295,7 +295,7 @@ BEGIN
     v_plan_control:=CASE WHEN v_type='receipt' THEN 'ar' ELSE 'ap' END;
     v_plan_side:=CASE WHEN v_type='receipt' THEN 'debit' ELSE 'credit' END;
     FOR v_plan IN SELECT value FROM jsonb_array_elements(p_payload->'allocation_plan') LOOP
-      IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR jsonb_object_length(v_plan)<>2 OR
+      IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR (SELECT count(*) FROM jsonb_object_keys(v_plan))<>2 OR
          NOT (v_plan ? 'target_open_item_id' AND v_plan ? 'amount') THEN
         RAISE EXCEPTION 'invalid allocation plan row' USING ERRCODE='22023';
       END IF;
@@ -436,7 +436,7 @@ BEGIN
     WHERE d.organization_id=p_organization_id AND d.id=p_document_id RETURNING * INTO v_doc;
   DELETE FROM finance.document_allocation_plans AS ap WHERE ap.organization_id=p_organization_id AND ap.document_id=p_document_id;
   FOR v_plan IN SELECT value FROM jsonb_array_elements(p_allocation_plan) LOOP
-    IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR jsonb_object_length(v_plan)<>2 OR
+    IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR (SELECT count(*) FROM jsonb_object_keys(v_plan))<>2 OR
        NOT (v_plan ? 'target_open_item_id' AND v_plan ? 'amount') THEN RAISE EXCEPTION 'invalid allocation-plan row' USING ERRCODE='22023'; END IF;
     PERFORM finance_private.require_decimal_string(v_plan->'amount',2,false);
     v_amount:=(v_plan->>'amount')::finance.amount;
