@@ -22,7 +22,10 @@ test("US-014 account management and mapping commands enforce chart rules", async
   const context = await browser.newContext();
   const page = await context.newPage();
   await openCompany(page, owner, companyName);
-  await page.goto(`/o/${organizationId}/accounting/accounts`);
+  await expect(page).toHaveURL(new RegExp(`/o/${organizationId}$`));
+  await expect(page.getByRole("heading", { name: companyName, exact: true, level: 1 })).toBeVisible();
+  await page.getByRole("link", { name: "Chart of accounts", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/o/${organizationId}/accounting/accounts$`));
   await expect(page.getByRole("heading", { name: "Chart of accounts", exact: true })).toBeVisible();
 
   const accountCode = `US14-${randomUUID().slice(0, 8)}`;
