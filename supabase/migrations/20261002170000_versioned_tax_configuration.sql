@@ -149,8 +149,8 @@ BEGIN
     AND t.effective_from<p_effective_from AND (t.effective_to IS NULL OR t.effective_to>=p_effective_from)
     ORDER BY t.effective_from DESC LIMIT 1 FOR UPDATE;
   IF FOUND THEN
-    UPDATE finance.tax_codes SET effective_to=p_effective_from-1,row_version=row_version+1
-      WHERE organization_id=p_organization_id AND id=v_overlap.id;
+    UPDATE finance.tax_codes AS tax SET effective_to=p_effective_from-1,row_version=tax.row_version+1
+      WHERE tax.organization_id=p_organization_id AND tax.id=v_overlap.id;
     PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'tax.version.close','tax_code',v_overlap.id,p_request_id,
       jsonb_build_object('effective_to',p_effective_from-1,'reason',btrim(p_reason)));
   END IF;
