@@ -54,7 +54,7 @@ CREATE FUNCTION public.lock_accounting_period(
 ) RETURNS TABLE(period_id uuid,row_version integer,locked_at timestamptz)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE v_actor uuid; v_year_id uuid; v_year_status text; v_period finance.accounting_periods%ROWTYPE;
-  v_snapshot jsonb; v_locked_at timestamptz;
+  v_snapshot jsonb; v_locked_at timestamptz; v_event_at timestamptz;
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_reason IS NULL OR length(btrim(p_reason))<10 OR length(btrim(p_reason))>1000
@@ -82,8 +82,12 @@ BEGIN
   UPDATE finance.accounting_periods p SET status='locked',locked_at=v_locked_at,
     locked_by_member_id=v_actor,row_version=p.row_version+1
     WHERE p.organization_id=p_organization_id AND p.id=p_period_id;
-  INSERT INTO finance.period_events(organization_id,period_id,action,actor_member_id,reason,checklist_snapshot)
-    VALUES(p_organization_id,p_period_id,'lock',v_actor,btrim(p_reason),COALESCE(v_snapshot,'{}'::jsonb));
+  -- now() is transaction-stable; keep repeated period events strictly ordered.
+  SELECT GREATEST(clock_timestamp(),COALESCE(max(pe.created_at)+interval '1 microsecond','-infinity'::timestamptz))
+    INTO v_event_at FROM finance.period_events pe
+    WHERE pe.organization_id=p_organization_id AND pe.period_id=p_period_id;
+  INSERT INTO finance.period_events(organization_id,period_id,action,actor_member_id,reason,checklist_snapshot,created_at)
+    VALUES(p_organization_id,p_period_id,'lock',v_actor,btrim(p_reason),COALESCE(v_snapshot,'{}'::jsonb),v_event_at);
   PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'period.lock','accounting_period',p_period_id,p_request_id,
     jsonb_build_object('from_version',v_period.row_version,'to_version',v_period.row_version+1,'snapshot',v_snapshot));
   RETURN QUERY SELECT p_period_id,v_period.row_version+1,v_locked_at;
@@ -95,7 +99,7 @@ CREATE FUNCTION public.reopen_accounting_period(
   p_organization_id uuid,p_period_id uuid,p_expected_version integer,p_request_id text,p_reason text
 ) RETURNS TABLE(period_id uuid,row_version integer)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE v_actor uuid; v_year_id uuid; v_year_status text; v_period finance.accounting_periods%ROWTYPE;
+DECLARE v_actor uuid; v_year_id uuid; v_year_status text; v_period finance.accounting_periods%ROWTYPE; v_event_at timestamptz;
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
   IF p_reason IS NULL OR length(btrim(p_reason))<10 OR length(btrim(p_reason))>1000
@@ -117,8 +121,12 @@ BEGIN
   END IF;
   UPDATE finance.accounting_periods p SET status='open',locked_at=NULL,locked_by_member_id=NULL,
     row_version=p.row_version+1 WHERE p.organization_id=p_organization_id AND p.id=p_period_id;
-  INSERT INTO finance.period_events(organization_id,period_id,action,actor_member_id,reason,checklist_snapshot)
-    VALUES(p_organization_id,p_period_id,'reopen',v_actor,btrim(p_reason),jsonb_build_object('from_version',v_period.row_version));
+  -- now() is transaction-stable; keep repeated period events strictly ordered.
+  SELECT GREATEST(clock_timestamp(),COALESCE(max(pe.created_at)+interval '1 microsecond','-infinity'::timestamptz))
+    INTO v_event_at FROM finance.period_events pe
+    WHERE pe.organization_id=p_organization_id AND pe.period_id=p_period_id;
+  INSERT INTO finance.period_events(organization_id,period_id,action,actor_member_id,reason,checklist_snapshot,created_at)
+    VALUES(p_organization_id,p_period_id,'reopen',v_actor,btrim(p_reason),jsonb_build_object('from_version',v_period.row_version),v_event_at);
   PERFORM finance_private.write_role_audit(p_organization_id,v_actor,'period.reopen','accounting_period',p_period_id,p_request_id,
     jsonb_build_object('from_version',v_period.row_version,'to_version',v_period.row_version+1));
   RETURN QUERY SELECT p_period_id,v_period.row_version+1;

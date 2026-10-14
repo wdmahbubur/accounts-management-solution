@@ -11,7 +11,7 @@ insert into finance.accounting_periods(id,organization_id,label,kind,starts_on,e
 values ('aaaaaaaa-5556-4555-8555-aaaaaaaaaaaa','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'Opening 2025','opening','2025-12-31','2025-12-31');
 
-select plan(34);
+select plan(35);
 
 select ok(not has_function_privilege('authenticated','finance_private.lock_accounting_date(uuid,date,boolean)','EXECUTE'),
   'Financial date lock helper is not exposed to authenticated clients');
@@ -119,6 +119,11 @@ select ok((select status='open' and locked_at is null and locked_by_member_id is
 reset role;
 select is((select count(*)::integer from finance.period_events where period_id='aaaaaaaa-5555-4555-8555-aaaaaaaaaaaa'),2,
   'Reopen appends a second event and retains the original lock event');
+select ok((select reopened.created_at>locked.created_at
+  from finance.period_events locked cross join finance.period_events reopened
+  where locked.period_id='aaaaaaaa-5555-4555-8555-aaaaaaaaaaaa' and locked.action='lock'
+    and reopened.period_id='aaaaaaaa-5555-4555-8555-aaaaaaaaaaaa' and reopened.action='reopen'),
+  'Reopen event timestamp remains after lock within one transaction');
 select throws_ok($$update finance.period_events set reason='rewritten history' where period_id='aaaaaaaa-5555-4555-8555-aaaaaaaaaaaa'$$,
   '23514','period events are append-only','Period event history cannot be updated');
 select throws_ok($$delete from finance.period_events where period_id='aaaaaaaa-5555-4555-8555-aaaaaaaaaaaa'$$,
