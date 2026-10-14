@@ -45,8 +45,7 @@ test("US-014 account management and mapping commands enforce chart rules", async
   );
   await page.getByRole("button", { name: "Create account", exact: true }).click();
   const savedAccount = await accountSave;
-  const savedAccountBody = await savedAccount.json();
-  expect(savedAccount.status(), JSON.stringify(savedAccountBody)).toBe(200);
+  expect(savedAccount.status()).toBe(200);
 
   let accountRow = page.getByRole("row").filter({ hasText: accountCode });
   await expect(accountRow).toContainText(accountName);

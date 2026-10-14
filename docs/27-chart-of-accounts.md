@@ -7,7 +7,7 @@ The application contract currently lives in `GET/POST /api/v1/organizations/{org
 ## Implemented scope
 
 - Company account listing, tree/table views, account create/edit/archive controls and mapping assignment UI.
-- `accounting.read` plus `journal.write`, active membership, recent authentication and writable-company checks for mutations. Database routines repeat capability and organization checks.
+- `accounting.read` plus `journal.write`, active membership and recent authentication for mutations. Chart setup is writable while a company is `onboarding` or `active`; read-only and archived companies remain blocked. Database routines repeat capability and organization checks.
 - Composite organization references remain authoritative. Accounts carry a compare-and-swap row version; every accepted edit increments it and writes audit evidence in the same transaction.
 - Database guards reject hierarchy cycles, children below postable/inactive parents, incompatible controls, classification changes after first ledger use, and incompatible mappings. Ledger line insertion locks its account and requires the same company's active postable account so first use and classification updates serialize.
 - The 11 mapping keys seeded by company onboarding remain the supported contract. Mapping choices are constrained to the account type, side and control classification defined in the source rules. Missing mappings are shown as a blocking configuration problem; there is no suspense fallback.
@@ -15,6 +15,6 @@ The application contract currently lives in `GET/POST /api/v1/organizations/{org
 
 ## Decision gate and verification status
 
-US-001's owner/accountant approval of the chart and report mappings remains open. Existing source mappings are preserved, but this implementation does not represent that approval, tax advice or statutory reporting certification. The accounting posting engine and report drilldown belong to other stories.
+US-001's owner/accountant approval of the chart and report mappings remains open. Existing source mappings are preserved, but this implementation does not represent that approval, tax advice or statutory reporting certification. The General Ledger screen and account activity drilldown belong to US-048 (#67); this PR does not claim those reports are implemented.
 
-Per the user's instruction to finish implementation before running tests, no application, migration, database, browser or static checks have been run for this slice. The focused draft PR must remain unverified until those checks and the required accounting/security reviews are completed. No hosted database or production migration was changed.
+PR #130 records the current lint, typecheck, application, real-database and browser results for this implementation. No hosted database or production migration was changed.
