@@ -86,7 +86,7 @@ select throws_ok($$insert into finance.journal_lines(organization_id,journal_ent
   '23503',null,'A company B account cannot be injected into a company A journal');
 update finance.journal_entries set state='posted',posted_at='2026-09-30T12:00:01Z'
 where organization_id='caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-select lives_ok($$set constraints journal_line_control_item_check immediate$$,
+select lives_ok($set constraints all immediate$,
   'Deferred control-line validation accepts one matching item per posted control line');
 select throws_ok($$update finance.open_items set reference='rewritten source' where id=current_setting('test.us022_invoice_item')::uuid$$,
   '23514','posted open items are immutable','Open-item source facts cannot be updated');
