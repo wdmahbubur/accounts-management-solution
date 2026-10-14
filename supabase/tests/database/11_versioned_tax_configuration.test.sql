@@ -147,21 +147,21 @@ values
  ('aaaaaaaa-6203-4603-8603-aaaaaaaaaaaa','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','aaaaaaaa-6103-4603-8603-aaaaaaaaaaaa',1,'Nonrecoverable inclusive bill',1,1100,'aaaaaaaa-0000-4000-8000-000000001005',(select id from finance.tax_codes where code='TAXNR' and version_no=1),'inclusive',0,0,0),
  ('aaaaaaaa-6204-4604-8604-aaaaaaaaaaaa','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','aaaaaaaa-6104-4604-8604-aaaaaaaaaaaa',1,'Backdated-version bill',1,1120,'aaaaaaaa-0000-4000-8000-000000001005',(select id from finance.tax_codes where code='TAX10' and version_no=3),'inclusive',0,0,0);
 
-select is((select net_amount from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),10000::numeric,'exclusive invoice net is recomputed from the entered amount');
-select is((select tax_amount from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),1000::numeric,'exclusive invoice tax is recomputed using the selected version');
-select is((select gross_amount from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),11000::numeric,'exclusive invoice gross is the exact net plus tax');
+select is((select net_amount::numeric from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),10000::numeric,'exclusive invoice net is recomputed from the entered amount');
+select is((select tax_amount::numeric from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),1000::numeric,'exclusive invoice tax is recomputed using the selected version');
+select is((select gross_amount::numeric from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),11000::numeric,'exclusive invoice gross is the exact net plus tax');
 select is((select tax_recoverability_snapshot from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),'none','sales tax line snapshots nonrecoverable treatment');
 select is((select tax_account_id from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),'aaaaaaaa-0000-4000-8000-000000001007'::uuid,'invoice line snapshots its output-tax account');
-select is((select net_amount from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),10000::numeric,'T-17 inclusive bill net is recomputed to 10000');
-select is((select tax_amount from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),1000::numeric,'T-17 inclusive bill tax is recomputed to 1000');
+select is((select net_amount::numeric from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),10000::numeric,'T-17 inclusive bill net is recomputed to 10000');
+select is((select tax_amount::numeric from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),1000::numeric,'T-17 inclusive bill tax is recomputed to 1000');
 select is((select tax_recoverability_snapshot from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),'full','recoverable purchase tax is snapshotted');
 select is((select tax_account_id from finance.document_lines where id='aaaaaaaa-6202-4602-8602-aaaaaaaaaaaa'),'aaaaaaaa-0000-4000-8000-000000001008'::uuid,'recoverable bill snapshots the input-tax account');
-select is((select total_amount from finance.business_documents where id='aaaaaaaa-6102-4602-8602-aaaaaaaaaaaa'),11000::numeric,'line insert recomputes the draft document gross total');
+select is((select total_amount::numeric from finance.business_documents where id='aaaaaaaa-6102-4602-8602-aaaaaaaaaaaa'),11000::numeric,'line insert recomputes the draft document gross total');
 select is((select tax_recoverability_snapshot from finance.document_lines where id='aaaaaaaa-6203-4603-8603-aaaaaaaaaaaa'),'none','nonrecoverable purchase tax is snapshotted');
 select is((select tax_account_id from finance.document_lines where id='aaaaaaaa-6203-4603-8603-aaaaaaaaaaaa'),null::uuid,'nonrecoverable purchase tax has no input-tax asset account');
-select is((select tax_rate_snapshot from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),10::numeric,'older draft line retains the rate from its selected historical version');
-select is((select tax_rate_snapshot from finance.document_lines where id='aaaaaaaa-6204-4604-8604-aaaaaaaaaaaa'),12::numeric,'a later draft date resolves to the backdated effective version');
-select is((select tax_amount from finance.document_lines where id='aaaaaaaa-6204-4604-8604-aaaaaaaaaaaa'),120::numeric,'backdated inclusive version computes exact tax from gross');
+select is((select tax_rate_snapshot::numeric from finance.document_lines where id='aaaaaaaa-6201-4601-8601-aaaaaaaaaaaa'),10::numeric,'older draft line retains the rate from its selected historical version');
+select is((select tax_rate_snapshot::numeric from finance.document_lines where id='aaaaaaaa-6204-4604-8604-aaaaaaaaaaaa'),12::numeric,'a later draft date resolves to the backdated effective version');
+select is((select tax_amount::numeric from finance.document_lines where id='aaaaaaaa-6204-4604-8604-aaaaaaaaaaaa'),120::numeric,'backdated inclusive version computes exact tax from gross');
 
 select throws_ok(
   $$update finance.tax_codes set label='Mutated historical version' where code='TAX10' and version_no=1$$,
