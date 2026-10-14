@@ -73,7 +73,9 @@ test("US-014 account management and mapping commands enforce chart rules", async
 
   const cashSelect = page.getByLabel("Cash", { exact: true });
   await cashSelect.selectOption(newAccount!.id);
+  const cashMappingReload = page.waitForEvent("load");
   await cashSelect.locator("xpath=ancestor::form").getByRole("button", { name: "Save mapping", exact: true }).click();
+  await cashMappingReload;
   await expect(page.getByLabel("Cash", { exact: true })).toHaveValue(newAccount!.id);
 
   const invalidMapping = await browserApi(page, `/api/v1/organizations/${organizationId}/account-mappings`, {
@@ -86,11 +88,14 @@ test("US-014 account management and mapping commands enforce chart rules", async
 
   const cashAfterReject = page.getByLabel("Cash", { exact: true });
   await cashAfterReject.selectOption(defaultCash!.id);
+  const cashRestoreReload = page.waitForEvent("load");
   await cashAfterReject.locator("xpath=ancestor::form").getByRole("button", { name: "Save mapping", exact: true }).click();
+  await cashRestoreReload;
   await expect(page.getByLabel("Cash", { exact: true })).toHaveValue(defaultCash!.id);
 
   accountRow = page.getByRole("row").filter({ hasText: accountCode });
   await accountRow.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Edit account", exact: true })).toBeVisible();
   await page.getByLabel("Active", { exact: true }).uncheck();
   await page.getByRole("button", { name: "Save account", exact: true }).click();
   accountRow = page.getByRole("row").filter({ hasText: accountCode });
