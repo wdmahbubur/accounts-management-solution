@@ -3,6 +3,8 @@ import { resolveActorContext } from "../../../../../../server/auth/resolve-actor
 import { commandErrorBody, normalizeCommandError, CommandError } from "../../../../../../server/commands/errors.ts";
 import { generateRequestId } from "../../../../../../server/commands/request-context.ts";
 import { readDocumentDirectory } from "../../../../../../server/documents/directory.ts";
+import { createDraftCommand } from "../../../../../../server/documents/service.ts";
+import { createOrganizationRouteHandler } from "../../../../../../server/commands/route-adapter.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request, context: { params: Promise<{ organizationId: string }> }) {
@@ -21,4 +23,8 @@ export async function GET(request: Request, context: { params: Promise<{ organiz
     const safe = normalizeCommandError(error);
     return Response.json(commandErrorBody(safe, requestId), { status: safe.status, headers });
   }
+}
+export async function POST(request: Request, context: { params: Promise<{ organizationId: string }> }) {
+  const runtime = await roleRuntime();
+  return createOrganizationRouteHandler({ definition: createDraftCommand(runtime.client), dependencies: runtime.dependencies })(request, context);
 }
