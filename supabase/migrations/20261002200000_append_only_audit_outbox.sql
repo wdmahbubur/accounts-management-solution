@@ -101,20 +101,31 @@ CREATE TRIGGER audit_events_no_truncate BEFORE TRUNCATE ON finance.audit_events
   FOR EACH STATEMENT EXECUTE FUNCTION finance_private.reject_audit_mutation();
 
 CREATE FUNCTION finance_private.guard_outbox_update()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+DECLARE v_invitation_cancel boolean:=false;
 BEGIN
-  IF TG_OP='DELETE' OR (NEW.organization_id,NEW.id,NEW.event_type,NEW.document_id,NEW.deduplication_key,NEW.payload,NEW.created_at)
-    IS DISTINCT FROM (OLD.organization_id,OLD.id,OLD.event_type,OLD.document_id,OLD.deduplication_key,OLD.payload,OLD.created_at) THEN
+  IF TG_OP='UPDATE' THEN
+    v_invitation_cancel:=OLD.event_type='invitation.send'
+      AND NEW.status='failed' AND NEW.last_error_code='INVITATION_SUPERSEDED'
+      AND NEW.payload=OLD.payload-'delivery'
+      AND (OLD.status IN ('pending','processing') OR
+        (OLD.status='failed' AND OLD.last_error_code='INVITATION_SUPERSEDED' AND NOT (OLD.payload ? 'delivery')));
+  END IF;
+  IF TG_OP='DELETE' OR (NEW.organization_id,NEW.id,NEW.event_type,NEW.document_id,NEW.deduplication_key,NEW.created_at)
+    IS DISTINCT FROM (OLD.organization_id,OLD.id,OLD.event_type,OLD.document_id,OLD.deduplication_key,OLD.created_at) THEN
+    RAISE EXCEPTION 'outbox event identity and payload are immutable' USING ERRCODE='23514';
+  END IF;
+  IF NEW.payload IS DISTINCT FROM OLD.payload AND NOT v_invitation_cancel THEN
     RAISE EXCEPTION 'outbox event identity and payload are immutable' USING ERRCODE='23514';
   END IF;
   IF OLD.status='delivered' OR NEW.attempt_count<OLD.attempt_count OR NEW.attempt_count>OLD.attempt_count+1 OR
-     NOT ((OLD.status='pending' AND NEW.status='processing') OR (OLD.status='processing' AND NEW.status IN ('pending','delivered','failed')) OR
-          (OLD.status='failed' AND NEW.status='pending')) OR
+     (NOT ((OLD.status='pending' AND NEW.status='processing') OR (OLD.status='processing' AND NEW.status IN ('pending','delivered','failed')) OR
+          (OLD.status='failed' AND NEW.status='pending')) AND NOT v_invitation_cancel) OR
      (NEW.status='processing' AND NEW.lease_until IS NULL) THEN
     RAISE EXCEPTION 'invalid outbox delivery transition' USING ERRCODE='23514';
   END IF;
   RETURN NEW;
-END $$;
+END $;
 REVOKE ALL ON FUNCTION finance_private.guard_outbox_update() FROM PUBLIC,anon,authenticated;
 CREATE TRIGGER outbox_events_guard_update BEFORE UPDATE OR DELETE ON finance.outbox_events
   FOR EACH ROW EXECUTE FUNCTION finance_private.guard_outbox_update();
