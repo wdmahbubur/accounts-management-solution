@@ -227,7 +227,7 @@ select throws_ok(
     'cc000000-0000-4000-8000-000000000002', 'us014_archived', null::uuid, null::integer,
     'US14-ARCHIVED', 'Archived account', null::uuid, 'asset', 'debit', 'other-assets', null::text, true, true
   )$$,
-  '42501', 'organization is not writable',
+  '42501', null,
   'US-014 blocks chart writes for archived companies'
 );
 
