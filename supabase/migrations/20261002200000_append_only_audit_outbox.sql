@@ -27,7 +27,7 @@ CREATE FUNCTION finance_private.append_financial_audit_event(
 DECLARE v_change jsonb; v_id uuid;
 BEGIN
   PERFORM finance_private.validate_request_id(p_request_id);
-  IF p_actor_kind NOT IN ('user','system','support') OR (p_actor_kind='user' AND p_actor_member_id IS NULL) OR
+  IF p_actor_kind NOT IN ('user','system','support') OR
      length(btrim(COALESCE(p_action,''))) NOT BETWEEN 1 AND 120 OR length(btrim(COALESCE(p_entity_type,''))) NOT BETWEEN 1 AND 80 OR
      (p_source_version_before IS NOT NULL AND p_source_version_before<1) OR (p_source_version_after IS NOT NULL AND p_source_version_after<1) OR
      (p_reason IS NOT NULL AND length(btrim(p_reason))>1000) THEN
