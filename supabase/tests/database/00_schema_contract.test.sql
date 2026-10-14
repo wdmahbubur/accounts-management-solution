@@ -34,7 +34,7 @@ select is(
    where n.nspname = 'finance'
      and c.contype = 'f'
      and array_length(c.conkey, 1) > 1),
-  99::bigint,
+  100::bigint,
   'all reviewed composite foreign keys exist'
 );
 
