@@ -77,7 +77,9 @@ BEGIN
   PERFORM finance_private.require_recent_auth();
   SELECT o.status INTO v_status FROM finance.organizations o WHERE o.id=p_organization_id FOR UPDATE;
   IF v_status IS NULL THEN RAISE EXCEPTION 'organization not found' USING ERRCODE='P0002'; END IF;
-  IF v_status<>'active' THEN RAISE EXCEPTION 'organization is not writable' USING ERRCODE='42501'; END IF;
+  IF v_status NOT IN ('onboarding','active') THEN
+    RAISE EXCEPTION 'organization is not writable' USING ERRCODE='42501';
+  END IF;
   RETURN v_member_id;
 END $$;
 REVOKE ALL ON FUNCTION finance_private.require_chart_write(uuid) FROM PUBLIC,anon,authenticated;

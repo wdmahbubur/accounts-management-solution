@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(13);
+select plan(15);
 
 insert into auth.users (id, email, last_sign_in_at)
 values ('cc000000-0000-4000-8000-000000000001', 'us014-owner@example.invalid', now());
@@ -10,7 +10,7 @@ values ('cc000000-0000-4000-8000-000000000001', 'us014-owner@example.invalid', n
 insert into finance.organizations
   (id, name, slug, legal_name, books_start_date, fiscal_year_start_month, status)
 values
-  ('cc000000-0000-4000-8000-000000000002', 'US014 Company', 'us014-chart', 'US014 Company', '2026-01-01', 1, 'active');
+  ('cc000000-0000-4000-8000-000000000002', 'US014 Company', 'us014-chart', 'US014 Company', '2026-01-01', 1, 'onboarding');
 
 insert into finance.organization_members (id, organization_id, user_id, display_name_snapshot)
 values
@@ -38,6 +38,22 @@ values ('cc000000-0000-4000-8000-000000000005', 'cc000000-0000-4000-8000-0000000
 insert into finance.accounting_periods (id, organization_id, fiscal_year_id, label, starts_on, ends_on)
 values ('cc000000-0000-4000-8000-000000000006', 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000005', 'FY2026', '2026-01-01', '2026-12-31');
 
+set local role authenticated;
+set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
+
+select lives_ok(
+  $$select * from public.save_account(
+    'cc000000-0000-4000-8000-000000000002', 'us014_create_used', null::uuid, null::integer,
+    'US14-USED', 'Used asset', null::uuid, 'asset', 'debit', 'other-assets', null::text, true, true
+  )$$,
+  'US-014 allows the owner to configure accounts during company onboarding'
+);
+
+reset role;
+
+update finance.organizations set status='active'
+where id='cc000000-0000-4000-8000-000000000002';
+
 insert into finance.business_documents
   (id, organization_id, document_type, state, document_number, issue_date, accounting_date,
    created_by_member_id, posted_by_member_id, posted_at)
@@ -50,19 +66,6 @@ insert into finance.journal_entries
 values
   ('cc000000-0000-4000-8000-000000000008', 'cc000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000007',
    'cc000000-0000-4000-8000-000000000006', '2026-10-01', 'posted', now(), 'cc000000-0000-4000-8000-000000000003');
-
-set local role authenticated;
-set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
-
-select lives_ok(
-  $$select * from public.save_account(
-    'cc000000-0000-4000-8000-000000000002', 'us014_create_used', null::uuid, null::integer,
-    'US14-USED', 'Used asset', null::uuid, 'asset', 'debit', 'other-assets', null::text, true, true
-  )$$,
-  'US-014 creates an account through the authenticated command'
-);
-
-reset role;
 
 insert into finance.journal_lines
   (organization_id, journal_entry_id, line_no, account_id, debit, credit)
@@ -194,6 +197,38 @@ select throws_ok(
   )$$,
   '23514', 'incompatible account mapping',
   'US-014 rejects a mapping to an incompatible account type'
+);
+
+reset role;
+update finance.organizations set status='read_only'
+where id='cc000000-0000-4000-8000-000000000002';
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
+
+select throws_ok(
+  $$select * from public.save_account(
+    'cc000000-0000-4000-8000-000000000002', 'us014_read_only', null::uuid, null::integer,
+    'US14-READONLY', 'Read-only account', null::uuid, 'asset', 'debit', 'other-assets', null::text, true, true
+  )$$,
+  '42501', 'organization is not writable',
+  'US-014 blocks chart writes for read-only companies'
+);
+
+reset role;
+update finance.organizations set status='archived'
+where id='cc000000-0000-4000-8000-000000000002';
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'cc000000-0000-4000-8000-000000000001';
+
+select throws_ok(
+  $$select * from public.save_account(
+    'cc000000-0000-4000-8000-000000000002', 'us014_archived', null::uuid, null::integer,
+    'US14-ARCHIVED', 'Archived account', null::uuid, 'asset', 'debit', 'other-assets', null::text, true, true
+  )$$,
+  '42501', 'organization is not writable',
+  'US-014 blocks chart writes for archived companies'
 );
 
 reset role;
