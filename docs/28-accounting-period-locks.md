@@ -12,6 +12,6 @@ The UI provides period status, dates, visible lock history subject to audit perm
 
 ## Integration and verification status
 
-The posting, allocation, unapply, import and reversal commands are later stories and do not exist yet on `master`. Their routines must call the shared lock helper before acquiring their source-specific locks for US-016's cross-path race guarantee to be complete. This PR supplies the shared protocol and period state commands; it does not claim those future entry paths are implemented.
+The posting, allocation, unapply, import and reversal commands are later stories and do not exist yet on `master`. Their routines must call the shared lock helper before acquiring their source-specific locks for US-016's cross-path race guarantee to be complete. This PR supplies the shared protocol and period state commands; it does not claim those future entry paths are implemented. T-34 and S-10 remain pending until those command paths and their independent-connection tests exist.
 
-Per the user's instruction to complete implementation before running tests, no application, migration, database, race, browser or static checks have been run. No hosted database or production migration was changed.
+`supabase/tests/database/11_accounting_period_locks.test.sql` adds period-specific database acceptance checks for date resolution, the restricted opening-date path, capability and recent-auth gates, version conflicts, audit/snapshot data, lock/reopen state changes, and append-only history. In this worktree, `npm run check`, `npm run test:reference`, and `npm run test:spec` pass. The new pgTAP test must still pass in the database CI job; Docker is unavailable in the local environment. No hosted database or production migration was changed.
