@@ -204,7 +204,7 @@ BEGIN
     IF v_document.state IN ('posted','void') THEN RAISE EXCEPTION 'posted or void sources cannot be edited' USING ERRCODE='40001'; END IF;
     IF p_expected_version IS NULL OR v_document.version<>p_expected_version THEN RAISE EXCEPTION 'document version is stale' USING ERRCODE='40001'; END IF;
     IF v_document.document_type<>v_type THEN RAISE EXCEPTION 'document type cannot change' USING ERRCODE='23514'; END IF;
-    UPDATE finance.approval_requests SET state='superseded' WHERE organization_id=p_organization_id AND document_id=v_id AND state IN ('pending','approved');
+    UPDATE finance.approval_requests AS ar SET state='superseded' WHERE ar.organization_id=p_organization_id AND ar.document_id=v_id AND ar.state IN ('pending','approved');
     UPDATE finance.business_documents d SET fiscal_year_id=v_year_id,party_id=v_party,issue_date=v_issue,accounting_date=v_accounting,due_date=v_due,
       external_reference=NULLIF(p_payload->>'external_reference',''),description=COALESCE(p_payload->>'description',''),currency=v_currency,
       rounding_adjustment=v_rounding,rounding_reason=v_rounding_reason,rounding_account_id=v_rounding_account,state='draft',version=d.version+1,
@@ -212,15 +212,15 @@ BEGIN
       party_snapshot=CASE WHEN v_party IS NULL THEN '{}'::jsonb ELSE (SELECT jsonb_build_object('display_name',c.display_name,'legal_name',c.legal_name,
         'email',c.email,'phone',c.phone,'billing_address',c.billing_address,'tax_identifiers',c.tax_identifiers) FROM finance.contacts c WHERE c.organization_id=p_organization_id AND c.id=v_party) END
       WHERE d.organization_id=p_organization_id AND d.id=v_id;
-    DELETE FROM finance.trade_documents WHERE organization_id=p_organization_id AND document_id=v_id;
-    DELETE FROM finance.money_movements WHERE organization_id=p_organization_id AND document_id=v_id;
-    DELETE FROM finance.transfers WHERE organization_id=p_organization_id AND document_id=v_id;
-    DELETE FROM finance.manual_journal_rows WHERE organization_id=p_organization_id AND document_id=v_id;
-    DELETE FROM finance.document_allocation_plans WHERE organization_id=p_organization_id AND document_id=v_id;
+    DELETE FROM finance.trade_documents AS td WHERE td.organization_id=p_organization_id AND td.document_id=v_id;
+    DELETE FROM finance.money_movements AS mm WHERE mm.organization_id=p_organization_id AND mm.document_id=v_id;
+    DELETE FROM finance.transfers AS tr WHERE tr.organization_id=p_organization_id AND tr.document_id=v_id;
+    DELETE FROM finance.manual_journal_rows AS mj WHERE mj.organization_id=p_organization_id AND mj.document_id=v_id;
+    DELETE FROM finance.document_allocation_plans AS ap WHERE ap.organization_id=p_organization_id AND ap.document_id=v_id;
     v_document.version:=v_document.version+1;
   END IF;
   IF v_type IN ('invoice','customer_credit','bill','vendor_credit','paid_expense') THEN
-    UPDATE finance.document_lines SET line_no=line_no+1000 WHERE organization_id=p_organization_id AND document_id=v_id;
+    UPDATE finance.document_lines AS dl SET line_no=dl.line_no+1000 WHERE dl.organization_id=p_organization_id AND dl.document_id=v_id;
   ELSIF jsonb_array_length(p_payload->'lines')>0 THEN
     RAISE EXCEPTION 'this document type does not accept trade lines' USING ERRCODE='23514';
   END IF;
@@ -239,13 +239,13 @@ BEGIN
     PERFORM finance_private.require_decimal_string(COALESCE(v_line->'discount_amount','"0.00"'::jsonb),2,false);
     v_line_id:=NULLIF(v_line->>'id','')::uuid;
     IF v_line_id IS NOT NULL THEN
-      UPDATE finance.document_lines SET line_no=v_ord,item_id=NULLIF(v_line->>'item_id','')::uuid,
+      UPDATE finance.document_lines AS dl SET line_no=v_ord,item_id=NULLIF(v_line->>'item_id','')::uuid,
         original_line_id=NULLIF(v_line->>'original_line_id','')::uuid,description=btrim(COALESCE(v_line->>'description','')),
         quantity=(v_line->>'quantity')::finance.quantity,unit_price=(v_line->>'unit_price')::finance.unit_price,
         discount_amount=COALESCE(NULLIF(v_line->>'discount_amount','')::finance.amount,0),account_id=(v_line->>'account_id')::uuid,
         cost_center_id=NULLIF(v_line->>'cost_center_id','')::uuid,tax_code_id=NULLIF(v_line->>'tax_code_id','')::uuid,
         tax_mode=COALESCE(v_line->>'tax_mode','exclusive'),cash_flow_class=NULLIF(v_line->>'cash_flow_class','')::finance.cash_flow_class
-        WHERE organization_id=p_organization_id AND document_id=v_id AND id=v_line_id;
+        WHERE dl.organization_id=p_organization_id AND dl.document_id=v_id AND dl.id=v_line_id;
       IF NOT FOUND THEN RAISE EXCEPTION 'line does not belong to this draft' USING ERRCODE='23514'; END IF;
     ELSE
       INSERT INTO finance.document_lines(organization_id,document_id,line_no,item_id,original_line_id,description,quantity,unit_price,discount_amount,
@@ -431,10 +431,10 @@ BEGIN
   SELECT m.amount INTO v_payment FROM finance.money_movements m WHERE m.organization_id=p_organization_id
     AND m.document_id=p_document_id AND m.direction=CASE WHEN v_type='receipt' THEN 'in' ELSE 'out' END;
   IF NOT FOUND THEN RAISE EXCEPTION 'cash movement is required before settlement planning' USING ERRCODE='23514'; END IF;
-  UPDATE finance.approval_requests SET state='superseded' WHERE organization_id=p_organization_id AND document_id=p_document_id AND state IN ('pending','approved');
+  UPDATE finance.approval_requests AS ar SET state='superseded' WHERE ar.organization_id=p_organization_id AND ar.document_id=p_document_id AND ar.state IN ('pending','approved');
   UPDATE finance.business_documents d SET state='draft',version=d.version+1,material_digest=p_request_hash,updated_at=clock_timestamp()
     WHERE d.organization_id=p_organization_id AND d.id=p_document_id RETURNING * INTO v_doc;
-  DELETE FROM finance.document_allocation_plans WHERE organization_id=p_organization_id AND document_id=p_document_id;
+  DELETE FROM finance.document_allocation_plans AS ap WHERE ap.organization_id=p_organization_id AND ap.document_id=p_document_id;
   FOR v_plan IN SELECT value FROM jsonb_array_elements(p_allocation_plan) LOOP
     IF jsonb_typeof(v_plan) IS DISTINCT FROM 'object' OR jsonb_object_length(v_plan)<>2 OR
        NOT (v_plan ? 'target_open_item_id' AND v_plan ? 'amount') THEN RAISE EXCEPTION 'invalid allocation-plan row' USING ERRCODE='22023'; END IF;
