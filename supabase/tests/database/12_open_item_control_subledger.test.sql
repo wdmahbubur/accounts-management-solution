@@ -29,7 +29,7 @@ values ('c3333333-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaa
 insert into finance.fiscal_years(id,organization_id,label,starts_on,ends_on)
 values ('c4444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','FY2026','2026-01-01','2026-12-31');
 insert into finance.accounting_periods(id,organization_id,fiscal_year_id,label,starts_on,ends_on)
-values ('c5555555-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-09','2026-09-01','2026-09-30');
+values ('c5555555-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','c4444444-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-09','2026-09-01','2026-09-30');
 insert into finance.accounts(id,organization_id,code,name,account_type,normal_side,report_group,control_kind)
 values
  ('c6666666-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','1100','Trade receivables','asset','debit','receivables','ar'),

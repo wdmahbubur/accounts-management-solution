@@ -19,6 +19,10 @@ insert into finance.contacts(id,organization_id,display_name,is_customer,is_vend
  ('aaaaaaaa-9903-4903-8903-aaaaaaaaaaaa','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Private supplier',false,true);
 insert into finance.cash_accounts(organization_id,name,account_id,kind,masked_account_number)
  values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Private bank','aaaaaaaa-0000-4000-8000-000000001001','bank','****1234');
+-- This suite seeds posted fixture rows to test read authorization, not posting.
+-- The migration guard validates the real posting path; bypass it only for these
+-- intentionally synthetic rows, which are rolled back with the test transaction.
+alter table finance.open_items disable trigger open_items_source_guard;
 insert into finance.open_items(organization_id,journal_line_id,account_id,party_id,
  control_kind,side,original_amount,reference,issue_date)
 select l.organization_id,l.id,l.account_id,
@@ -28,6 +32,7 @@ from finance.journal_lines l join finance.accounts a on a.id=l.account_id
 join finance.journal_entries j on j.id=l.journal_entry_id
 join finance.business_documents d on d.id=j.source_document_id
 where l.organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and a.control_kind in ('ar','ap') and d.document_type in ('invoice','bill');
+alter table finance.open_items enable trigger open_items_source_guard;
 select plan(27);
 
 select is((select count(*) from finance.open_items where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')::bigint, 2::bigint, 'S-03 fixture contains both AR and AP records');
