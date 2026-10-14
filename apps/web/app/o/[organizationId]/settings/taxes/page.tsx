@@ -1,11 +1,11 @@
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
-import { CommandError } from "../../../../server/commands/errors.ts";
-import { roleRuntime } from "../../../../server/roles/runtime.ts";
-import { readTaxCatalog } from "../../../../server/taxes/service.ts";
-import type { TaxCatalog } from "../../../../server/taxes/contracts.ts";
+import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts";
+import { CommandError } from "../../../../../server/commands/errors.ts";
+import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+import { readTaxCatalog } from "../../../../../server/taxes/service.ts";
+import type { TaxCatalog } from "../../../../../server/taxes/contracts.ts";
 import { TaxSettings } from "./tax-settings.tsx";
 
 export const dynamic = "force-dynamic";

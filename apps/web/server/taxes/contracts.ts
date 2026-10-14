@@ -28,7 +28,11 @@ function text(value: unknown, field: string, max: number): string {
 }
 function date(value: unknown, field: string, nullable = false): string | null {
   if (nullable && value === null) return null;
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw CommandError.validation({ [field]: "Use a valid calendar date." });
+  }
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
     throw CommandError.validation({ [field]: "Use a valid calendar date." });
   }
   return value;

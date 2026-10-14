@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { calculateLine } from "@ams/accounting";
-import type { TaxCatalog, TaxCode, TaxKind } from "../../../../server/taxes/contracts.ts";
+import type { TaxCatalog, TaxCode, TaxKind } from "../../../../../server/taxes/contracts.ts";
 import styles from "./tax-settings.module.css";
 
 const kindLabels: Record<TaxKind, string> = { standard: "Standard rate", zero_rated: "Zero rated", exempt: "Exempt", out_of_scope: "Out of scope" };
@@ -62,7 +62,7 @@ export function TaxSettings({ organizationId, nonce, catalog, canManage }: Props
         <label>Current latest version (for an existing code)<select name="existing_code_version" value={existingVersion} onChange={(event) => { setExistingVersion(event.target.value); const code = [...latest.values()].find((item) => `${item.code}:${item.rowVersion}` === event.target.value); if (code) setVersionCode(code.code); }}>
           <option value="new">New code (no earlier version)</option>{[...latest.values()].map((code) => <option key={code.code} value={`${code.code}:${code.rowVersion}`}>{code.code} · latest v{code.versionNo}</option>)}
         </select></label>
-        <p className={styles.hint}>Choose a current version to continue that code's history. The server checks the version again before saving.</p>
+        <p className={styles.hint}>Choose a current version to continue that code&apos;s history. The server checks the version again before saving.</p>
         <button type="submit" disabled={busy}>{busy ? "Saving…" : "Create version"}</button>
       </form>
     </section>}
