@@ -113,6 +113,19 @@ export class CommandError extends Error {
   ): CommandError {
     return new CommandError({ code, fields });
   }
+
+  static transient(): CommandError {
+    return new CommandError({ code: "INTERNAL_ERROR", status: 503, message: "A temporary database conflict prevented completion. Retry with the same idempotency key." });
+  }
+}
+
+export class RetryableTransactionError extends Error {
+  constructor() { super("Retryable database transaction failure."); this.name="RetryableTransactionError"; }
+}
+
+export function retryableTransactionError(error:{code?:string;message?:string}):RetryableTransactionError|null {
+  if(error.code==="40P01" || (error.code==="40001" && /could not serialize access|serialization failure/i.test(error.message??""))) return new RetryableTransactionError();
+  return null;
 }
 
 export function normalizeCommandError(error: unknown): CommandError {

@@ -1,5 +1,5 @@
 import { parseMoneyString, parseUuid, type MoneyString, type Uuid } from "@ams/contracts";
-import { CommandError } from "../commands/errors.ts";
+import { CommandError, retryableTransactionError, type RetryableTransactionError } from "../commands/errors.ts";
 
 export const sourceTypes = ["invoice","customer_credit","bill","vendor_credit","paid_expense","receipt","vendor_payment","customer_refund","vendor_refund","customer_advance","vendor_advance","transfer","manual_journal","controlled_adjustment","opening_balance"] as const;
 export type SourceType = typeof sourceTypes[number];
@@ -69,7 +69,8 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   if((roundingUnits===0n&&(roundingReason!==null||roundingAccountId!==null))||(roundingUnits!==0n&&(roundingUnits < -5n||roundingUnits>5n||!roundingReason||!roundingAccountId)))throw CommandError.validation({rounding_adjustment:"A nonzero rounding adjustment up to 0.05 BDT needs a reason and rounding account."});
   return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:"BDT",roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows,allocationPlan};
 }
-export function documentDatabaseError(error:{code?:string}):CommandError{
+export function documentDatabaseError(error:{code?:string;message?:string}):CommandError|RetryableTransactionError{
+  const retryable=retryableTransactionError(error);if(retryable)return retryable;
   if(error.code==="28000")return CommandError.unauthenticated();if(error.code==="42501")return CommandError.forbidden();if(error.code==="P0002")return CommandError.notFound();
   if(error.code==="40001")return CommandError.conflict("STALE_VERSION");if(error.code==="23505")return CommandError.conflict("IDEMPOTENCY_CONFLICT");
   if(error.code==="22023"||error.code==="23514"||error.code==="22P02"||error.code==="23503"||error.code==="23502"||error.code==="22001")return CommandError.validation({document:"The draft conflicts with a company, date, account, or source rule."});
