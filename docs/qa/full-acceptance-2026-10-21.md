@@ -34,6 +34,8 @@ The initial production dependency audit reported two high and two moderate packa
 
 After `npm ci`, the production audit reports **0 vulnerabilities**. The full audit reports **5 high development-only package findings** for the [unpatched braces stack-exhaustion advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), propagated through micromatch/fast-glob/Next's ESLint plugin. The registry has no patched braces release; lint consumes repository-controlled patterns here. This remains a recorded dependency-review risk, not a claim that every full-tree audit alert is cleared. No force downgrade to an incompatible Next lint configuration or unreviewed third-party fork was used.
 
+The first GitHub job stopped before dependency installation because Node 24.22.0 now bundles npm 11.19.1, while this repository requires 11.19.0. CI now installs the exact pinned npm version before verifying it. Local validation used npm 11.19.0. This infrastructure fix does not relax the toolchain check.
+
 ## Execution environment and boundaries
 
 - Actual Neon PostgreSQL 18.6, explicit isolated recovered host and separate fresh databases. No fallback to the original source or production database.
