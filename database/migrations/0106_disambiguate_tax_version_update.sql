@@ -9,6 +9,12 @@ DECLARE
       WHERE tc.organization_id=p_organization_id AND tc.id=v_overlap.id';
 BEGIN
   v_definition := pg_catalog.pg_get_functiondef('public.create_tax_code_version(uuid,text,text,text,text,finance.rate,text,uuid,uuid,text,date,date,integer)'::regprocedure);
+  -- Historical Windows installations retain CRLF inside function bodies;
+  -- current clean installs use LF. Preserve either body's existing format.
+  IF position(v_old IN v_definition)=0 THEN
+    v_old:=replace(v_old,E'\n',E'\r\n');
+    v_new:=replace(v_new,E'\n',E'\r\n');
+  END IF;
   IF position(v_old IN v_definition)=0 OR
      length(v_definition)-length(replace(v_definition,v_old,''))<>length(v_old) THEN
     RAISE EXCEPTION 'expected one ambiguous tax version update';
