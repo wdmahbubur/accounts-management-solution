@@ -1,0 +1,9 @@
+{"observedAt":"2026-10-20T12:27:12.802Z","artificialExpiry":false,"state":null}
+{"observedAt":"2026-10-20T12:27:29.041Z","artificialExpiry":false,"state":{"attempts":1,"blocked":null,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:00.430Z","artificialExpiry":false,"state":{"attempts":2,"blocked":null,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:12.757Z","artificialExpiry":false,"state":{"attempts":3,"blocked":null,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:25.848Z","artificialExpiry":false,"state":{"attempts":4,"blocked":null,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:35.621Z","artificialExpiry":false,"state":{"attempts":5,"blocked":true,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:47.988Z","artificialExpiry":false,"state":{"attempts":5,"blocked":true,"window_started_at":"2026-10-20T12:27:23.210Z"}}
+{"observedAt":"2026-10-20T12:28:59.772Z","artificialExpiry":true,"state":{"attempts":5,"blocked":false,"window_started_at":"2026-10-20T11:57:59.311Z"}}
+{"observedAt":"2026-10-20T12:29:16.763Z","artificialExpiry":false,"state":null}
