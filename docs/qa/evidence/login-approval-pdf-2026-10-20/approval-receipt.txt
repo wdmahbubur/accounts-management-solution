@@ -1,0 +1,138 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: E2E QA 2026-10-20"':
+    - /url: /companies
+    - strong: E2E QA 2026-10-20
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records" [expanded]:
+          - generic: Review and records
+      - link "Approval inbox":
+        - /url: /o/71333926-a767-46d7-8710-40bb119842d5/approvals
+      - link "Evidence library":
+        - /url: /o/71333926-a767-46d7-8710-40bb119842d5/documents
+      - link "Imports":
+        - /url: /o/71333926-a767-46d7-8710-40bb119842d5/imports
+      - link "Export jobs":
+        - /url: /o/71333926-a767-46d7-8710-40bb119842d5/exports
+      - link "Audit trail":
+        - /url: /o/71333926-a767-46d7-8710-40bb119842d5/audit
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "E2E QA 2026-10-20":
+      - /url: /o/71333926-a767-46d7-8710-40bb119842d5
+    - generic: /
+    - generic: Approval inbox
+  - generic "e2e-20261020-1550@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Finance review
+  - heading "Approval inbox" [level=1]
+  - paragraph: Review the exact submitted source version, evidence, policy snapshot and calculation preview before deciding.
+  - navigation "Approval request status":
+    - button "Pending"
+    - button "Approved" [pressed]
+    - button "Rejected"
+    - button "All"
+  - region "Approval requests":
+    - region "Approval requests":
+      - table:
+        - rowgroup:
+          - row "Type / reference Maker Amount (BDT) Submitted Policy progress Status Action":
+            - columnheader "Type / reference"
+            - columnheader "Maker"
+            - columnheader "Amount (BDT)"
+            - columnheader "Submitted"
+            - columnheader "Policy progress"
+            - columnheader "Status"
+            - columnheader "Action"
+        - rowgroup:
+          - row "receipt RCPT-FY 2026-000001 e2e-20261020-1550 6000.00 10/20/2026, 4:32:31 PM 1 / 1 approved Changed version Review":
+            - cell "receipt RCPT-FY 2026-000001":
+              - text: receipt
+              - generic: RCPT-FY 2026-000001
+            - cell "e2e-20261020-1550"
+            - cell "6000.00"
+            - cell "10/20/2026, 4:32:31 PM"
+            - cell "1 / 1 approved"
+            - cell "Changed version"
+            - cell "Review":
+              - button "Review" [active]
+          - row "invoice INV-FY 2026-000001 e2e-20261020-1550 10000.00 10/20/2026, 4:20:52 PM 1 / 1 approved Changed version Review":
+            - cell "invoice INV-FY 2026-000001":
+              - text: invoice
+              - generic: INV-FY 2026-000001
+            - cell "e2e-20261020-1550"
+            - cell "10000.00"
+            - cell "10/20/2026, 4:20:52 PM"
+            - cell "1 / 1 approved"
+            - cell "Changed version"
+            - cell "Review":
+              - button "Review"
+  - region "Selected approval review":
+    - paragraph: receipt
+    - heading "RCPT-FY 2026-000001" [level=2]
+    - paragraph: "Maker: e2e-20261020-1550 · submitted 10/20/2026, 4:32:31 PM · BDT 6000.00"
+    - link "Open source":
+      - /url: /o/71333926-a767-46d7-8710-40bb119842d5/accounting/documents/b12fc5f5-9b66-46c1-9427-765471f65359
+    - alert: This approval is stale because the source version or digest changed. It cannot be decided.
+    - article:
+      - heading "Submitted policy" [level=3]
+      - term: Policy
+      - definition: E2E Receipt approval
+      - term: Policy version
+      - definition: "1"
+      - term: Threshold
+      - definition: "0.00"
+      - term: Required approvals
+      - definition: "1"
+      - term: Eligible role
+      - definition: Owner
+      - term: Maker exception
+      - definition: Explicit sole-owner exception
+    - article:
+      - generic "Source lines and terms"
+    - heading "Attachments" [level=3]
+    - paragraph: No reviewable attachments.
+    - button "Calculate posting preview" [disabled]
+    - heading "Previous decisions" [level=3]
+    - list:
+      - listitem: approve by e2e-20261020-1550 on 10/20/2026, 4:34:17 PM — Synthetic E2E receipt approval; confirms the saved 6000.00 allocation fixture only.
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert
