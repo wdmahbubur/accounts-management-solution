@@ -13,3 +13,5 @@ See [scope, exact commands, source-case traceability and limits](../../full-acce
 - `final-*` quality/audit output and `lockfile-reinstall.log`: reproducible pinned install, build, lint/type/application checks and both audit scopes. Five high dev-only propagated lint findings remain; production audit has zero findings.
 
 Application/test code: `517aacf317ae255e1fa970859b4b5be2b3b16d95`; final dependency/migration compatibility: `f90d5fd627e5b54c7997ca29c3f61d67ae7b705c`. Documentation-only commits can follow these code revisions. Private database/SMTP/storage credentials, exact profiles, manifests and object bytes remain under ignored local `output/` and are excluded here. Evidence files were checked against those private configuration values before copying.
+
+Console line endings, trailing spaces and excess final blank lines are normalized in published logs. Substantive output is unchanged; original raw captures remain in ignored local `output/`.
