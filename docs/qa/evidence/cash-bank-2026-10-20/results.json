@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "6c67b5c461d7202c9612963aca3c608c9bbf8e61",
+  "pullRequest": 182,
+  "migration": "0101_dashboard_cash_bank_split.sql",
+  "isolatedMigrationFiles": 100,
+  "productionMigrated": false,
+  "checks": { "lint": "passed", "typecheck": "passed", "applicationTests": { "passed": 330, "failed": 0 }, "databaseTests": { "passed": 5, "failed": 0 }, "localWebpackBuild": "passed", "localTurbopackBuild": "stopped after stalling", "defaultBuildCi": "passed" },
+  "edge": {
+    "scope": "Local optimized production build, isolated database, existing synthetic E2E company",
+    "asOf": "2026-10-20",
+    "cash": "0.00",
+    "bank": "6000.00",
+    "priorAsOf": "2026-10-19",
+    "priorCash": "0.00",
+    "priorBank": "0.00",
+    "restoredBank": "6000.00",
+    "drilldownBankClosing": "6000.00",
+    "drilldownReconciliationDifference": "0.00",
+    "consoleErrors": 0,
+    "desktopVisuallyInspected": true,
+    "mobileBrowserVerified": false
+  },
+  "limits": ["Production rollout and hosted retest pending authorization", "No full golden-ledger/security acceptance certification", "No fresh-install, performance, accessibility or accountant sign-off claim"]
+}

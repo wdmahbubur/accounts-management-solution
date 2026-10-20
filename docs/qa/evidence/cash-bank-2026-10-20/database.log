@@ -1,0 +1,18 @@
+
+> accounts-management-solution@0.0.0 test:database:dashboard-liquidity
+> node --test tests/database/dashboard-liquidity.test.mjs
+
+▶ dated dashboard cash/bank split reconciles under ordinary report roles
+  ✔ empty balances are canonical zero and use the same snapshot cutoff (1591.8079ms)
+  ✔ opening balances, archived banks and other cash equivalents reconcile; drafts and future activity stay excluded (3121.268ms)
+  ✔ bank overdrafts and large cash cents retain exact decimal values (10872.0752ms)
+  ✔ reports-only readers receive the split; sales-only, anonymous and other-company callers cannot receive it (9316.2821ms)
+✔ dated dashboard cash/bank split reconciles under ordinary report roles (93020.5788ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93659.9959
