@@ -2,521 +2,937 @@
   {
     "id": "T-01",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-02",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-03",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-04",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-05",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-06",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual draft/post/replay/collection commands and exact ledger results.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-07",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "One receipt settles three invoices; every residual is asserted.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-08",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/cash-posting-preview.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Restricted posting and shared previews verify excess trade credit, true advances and atomic transfer/fees.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-09",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/cash-posting-preview.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Restricted posting and shared previews verify excess trade credit, true advances and atomic transfer/fees.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-10",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "blocked",
+    "evidence": [
+      "docs/user-stories/US-042.md",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Advance application is not implemented in the runtime save/post/API path. T-10 cannot pass.",
+    "last_result": "blocked",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-11",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/cash-posting-preview.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Advance cash entries pass; advance application and linked refund lifecycle remain unavailable.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-12",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/credit-note-sources.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Partial original-linked customer/supplier credits retain original basis and tax.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-13",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/refund-safety.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Unsafe credit-free refund was reproduced. Migration 0105 now rejects all unlinked refunds; eligible linked refund workflow is incomplete.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-14",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Bill and payment recognize one expense and preserve AP residual.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-15",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-16",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-17",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-18",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-19",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-20",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-21",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-22",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual asset/tax/rounding/input/immutability checks with rejected commands leaving no committed journal.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-23",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/reversal-tenant-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Exact opposite dated reversal, immutable original, replay and second-reversal denial.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-24",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/reversal-tenant-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Exact opposite dated reversal, immutable original, replay and second-reversal denial.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-25",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/banking-reconciliation-workflow.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Finalized reconciliation blocks source reversal until privileged reopen.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-26",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Historical receipt and later unapply dates preserve earlier residuals and control bridges.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-27",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Dual-role contact retains separate AR and AP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-28",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/cash-posting-preview.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Restricted posting and shared previews verify excess trade credit, true advances and atomic transfer/fees.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-29",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/banking-reconciliation-workflow.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Import/matching/finalize/reopen use statement evidence without duplicate ledger activity.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-30",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/bank-capacity-race.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Exact-file replay and duplicate provider ID cannot duplicate observations; equal legitimate rows are retained and flagged.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-31",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/bank-capacity-race.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Exact-file replay and duplicate provider ID cannot duplicate observations; equal legitimate rows are retained and flagged.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-32",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/banking-reconciliation-workflow.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Import/matching/finalize/reopen use statement evidence without duplicate ledger activity.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-33",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/banking-reconciliation-workflow.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Import/matching/finalize/reopen use statement evidence without duplicate ledger activity.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-34",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Locked posting/allocation/unapply/reversal deny; reopen enforces reason/capability/recent auth and retains snapshots.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-35",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Locked posting/allocation/unapply/reversal deny; reopen enforces reason/capability/recent auth and retains snapshots.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-36",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/approval-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Genuine checker decisions invalidate after amount/date/bank/target edits; maker self-approval and invalid sole-operator policy deny.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-37",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/approval-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Genuine checker decisions invalidate after amount/date/bank/target edits; maker self-approval and invalid sole-operator policy deny.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-38",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/cutover-classification.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-39",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/cutover-classification.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-40",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Close/reopen/reclose retain historical P&L and one active profit transfer. No independent accountant or year-close UI approval review is claimed.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-41",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/period-year-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Close/reopen/reclose retain historical P&L and one active profit transfer. No independent accountant or year-close UI approval review is claimed.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-42",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/cutover-classification.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Unclassified cash is provisional and blocks period lock; dedicated cash-flow finalization workflow remains unverified.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-43",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/worker-recovery.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Injected PDF renderer failure and actual missing-object delivery failure preserve books; restored file retries delivery only through loopback SMTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-44",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/export-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual private CSV/XLSX equal immutable screen cutoff despite later posting; PDF bytes/digest pass, but PDF content/layout and browser export flows remain unverified.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-45",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "blocked",
+    "evidence": [
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Billing provider, approved plans and runtime webhook/entitlement integration are absent. No billing-provider test was run.",
+    "last_result": "blocked",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-46",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "blocked",
+    "evidence": [
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Billing provider, approved plans and runtime webhook/entitlement integration are absent. No billing-provider test was run.",
+    "last_result": "blocked",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-47",
     "kind": "functional",
-    "status": "pending",
+    "status": "partial",
     "evidence": [
-      "packages/test-fixtures/src/index.ts"
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "note": "Golden source journals, AR/AP, cashbook, statements, TB/P&L/BS/cash flow pass in PostgreSQL. Required Edge browser golden flow is blocked by disconnected Edge.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-48",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Used-account classification changes and inactive-account posting deny; history is unchanged.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-49",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/issued-snapshot.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Public contact/tax version changes preserve the original posted source and actual immutable PDF bytes/ID.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-50",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/accounting-guards.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "USD input rejects explicitly; no silent conversion to BDT.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-51",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/credit-note-sources.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Historic allocation/reversal boundaries, original parent/party, cumulative quantity/basis and real credit race pass.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-52",
     "kind": "functional",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/credit-note-sources.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Historic allocation/reversal boundaries, original parent/party, cumulative quantity/basis and real credit race pass.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-01",
     "kind": "security_concurrency",
-    "status": "pending",
+    "status": "covered",
     "evidence": [
-      "tests/application/commands.test.ts"
+      "tests/database/reversal-tenant-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "note": "Ordinary role and real dual-company membership cannot mix foreign source/account identities.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-02",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "status": "covered",
+    "evidence": [
+      "tests/database/reversal-tenant-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Ordinary role and real dual-company membership cannot mix foreign source/account identities.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-03",
     "kind": "security_concurrency",
-    "status": "pending",
+    "status": "covered",
     "evidence": [
-      "packages/permissions/src/index.ts",
-      "tests/application/permissions.test.ts"
+      "tests/database/golden-books.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "note": "Billing/outsider denial covers P&L, AP aging, private cashbook and vendor statement; Auditor reads permitted data.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-04",
     "kind": "security_concurrency",
-    "status": "pending",
+    "status": "covered",
     "evidence": [
-      "tests/application/auth-security.test.ts"
+      "tests/database/http-security.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "note": "Real Auth.js password sessions call direct APIs; forged Owner payload does not grant authority. Shared route origin checks are exercised.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-05",
     "kind": "security_concurrency",
     "status": "covered",
     "evidence": [
-      "tests/application/commands.test.ts"
+      "tests/database/http-security.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Covered by direct shared-command boundary tests."
+    "note": "Real Auth.js password sessions call direct APIs; forged Owner payload does not grant authority. Shared route origin checks are exercised.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-06",
     "kind": "security_concurrency",
     "status": "covered",
     "evidence": [
-      "tests/application/commands.test.ts"
+      "tests/database/reversal-tenant-controls.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Covered by direct shared-command boundary tests."
+    "note": "Anonymous posting and restricted-login private helpers deny; application tests also reject forged actor/org fields.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-07",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "status": "covered",
+    "evidence": [
+      "tests/database/http-security.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Still-unexpired authenticated session loses company source/report access immediately after public deactivation.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-08",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/concurrency-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Distinct PostgreSQL backend sessions prove capacity/posting/lock/physical-cash/last-owner races; role escalation also denies through direct HTTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-09",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/concurrency-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Distinct PostgreSQL backend sessions prove capacity/posting/lock/physical-cash/last-owner races; role escalation also denies through direct HTTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-10",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/concurrency-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Distinct PostgreSQL backend sessions prove capacity/posting/lock/physical-cash/last-owner races; role escalation also denies through direct HTTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-11",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/concurrency-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Distinct PostgreSQL backend sessions prove capacity/posting/lock/physical-cash/last-owner races; role escalation also denies through direct HTTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-12",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/bank-capacity-race.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Two independent sessions in different reconciliation sessions cannot overconsume one statement row.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-13",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "status": "covered",
+    "evidence": [
+      "tests/database/concurrency-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Distinct PostgreSQL backend sessions prove capacity/posting/lock/physical-cash/last-owner races; role escalation also denies through direct HTTP.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-14",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/export-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual application private-artifact reads deny guessed/foreign/Billing IDs and revoked requester. Proxy downloads recheck live permission; no reusable signed provider URL is issued.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-15",
     "kind": "security_concurrency",
-    "status": "pending",
+    "status": "partial",
     "evidence": [
-      "tests/application/company-context.test.ts",
-      "apps/web/server/tenant-scope.ts"
+      "tests/database/http-security.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
     ],
-    "note": "Previous provider-specific verification harness was retired during the Neon/Auth.js migration; this acceptance case has not been reverified against the current application."
+    "note": "Authenticated report responses are private/no-store and tenant scoped; Edge company-switch cache behavior remains unrun.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-16",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/export-acceptance.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual CSV formula escaping, literal XLSX data, private paths and quarantine denial pass. No configured ClamAV engine/signature/EICAR provider run.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-17",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/transaction-recovery.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Real deadlock and injected post-then-serialization abort verify bounded whole-transaction retries; exhaustion 503 leaves no journal/outbox.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-18",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/transaction-recovery.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual posting child is killed after COMMIT before receipt; retry returns the original journal with pending outbox.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-19",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "covered",
+    "evidence": [
+      "tests/database/worker-recovery.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Actual worker killed mid-loopback-SMTP; real 120-second lease expires, reclaim delivers with stable Message-ID and stale token denies. No exactly-once external email claim.",
+    "last_result": "passed",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-20",
     "kind": "security_concurrency",
-    "status": "pending",
-    "evidence": [],
-    "note": "No real-application evidence yet."
+    "status": "partial",
+    "evidence": [
+      "tests/database/http-security.test.mjs",
+      "docs/qa/full-acceptance-2026-10-21.md"
+    ],
+    "note": "Nonmember authenticated requests deny. Approved exceptional support access with expiry/audit is not implemented or verified.",
+    "last_result": "partial",
+    "verified_at": "2026-10-21",
+    "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   }
 ]

@@ -1,0 +1,28 @@
+{"check":"isolated fixture and actual restricted-login capability variants","status":"passed","organization_id":"6260f8bc-0ce1-41bf-8a55-01a1ec63fe4f"}
+{"check":"unallocated receipt, exact scale, NULL due date and READ ONLY no-effects preview","status":"passed"}
+{"check":"separate allocation-plan save/update versions correctly; both save paths reject missing/extra/scalar/non-string rows without effects","status":"passed"}
+{"check":"receipt preview equals committed journal, approvals need no write capability, excess stays AR credit, replay is stable","status":"passed"}
+{"check":"supplier payment preview equals committed AP-debit / bank-credit journal","status":"passed"}
+{"check":"transfer preview equals committed principal/fee journal (0.00 fee)","status":"passed"}
+{"check":"transfer preview equals committed principal/fee journal (25.00 fee)","status":"passed"}
+{"check":"customer/supplier advances preserve authoritative accounting at one-paisa precision","status":"passed"}
+{"check":"unlinked refund previews/posting fail closed without financial, numbering, audit or outbox effects","status":"passed"}
+{"check":"cross-company/private-planner/read-only capability, stale-version and posted-source denial","status":"passed"}
+{"check":"archived cash account, equal transfer endpoints and missing fee account fail safely","status":"passed"}
+{"check":"physical cash floor still rejects posting and rolls back every accounting/number/audit/outbox effect","status":"passed"}
+{"check":"changed settlement capacity conflicts in draft/approval previews and atomic posting","status":"passed"}
+{"check":"backdated preview checks future allocation boundaries, not only residual on the accounting date","status":"passed"}
+{"check":"saved receipt target remains available to the edit-page recovery loader","status":"passed"}
+{"check":"pending approval previews work without write capability; posting requires approval and material edits invalidate prior review","status":"passed"}
+{"result":"passed","checks":16,"organization_id":"6260f8bc-0ce1-41bf-8a55-01a1ec63fe4f","owner_user_id":"e93a24a1-0d92-43a7-b846-e177086befdf","owner_member_id":"8f2372dc-2fab-4228-a1ed-e8d955e9470f","source_invoice_id":"6fd9f4b8-d49a-4502-81ac-10f8f9282b39","saved_receipt_id":"9fe48400-7eaf-4b2f-876f-92bb895a19a8","unallocated_receipt_id":"f9a547a0-9ba6-4a72-9286-a2acad3f2c48","posted_receipt_id":"a6ca5d0d-b56e-49ef-92e8-224b689bb59b","note":"Synthetic fixture retained in explicitly selected isolated test database; no production or provider calls."}
+✔ tests\database\cash-posting-preview.mjs (198634.2384ms)
+{"fixture":"refund-safety","organizationId":"176b8065-0701-4569-b18a-6adcb9e7fb2d"}
+✔ T-13 refund cannot post without explicitly selected eligible credit settlement (52923.0521ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 198641.1352

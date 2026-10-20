@@ -1,0 +1,7 @@
+{"check":"unique committed fixtures created through actual runtime save/approval/post commands; ordinary login verified","status":"passed"}
+{"check":"ledger reader receives every exact invoice journal line, account label, memo, cost center and open-item reference/date","status":"passed"}
+{"check":"document-only and sales-only readers retain complete source evidence but receive no posted journal","status":"passed"}
+{"check":"manual, transfer and movement source details stay complete and readable without bank numbers or unrelated balances","status":"passed"}
+{"check":"contact changes and account archival preserve issued snapshot, exact amounts, version, digest and historical labels","status":"passed"}
+{"check":"cross-company IDs, missing membership and absent sources disclose no metadata and leave no effects","status":"passed"}
+{"result":"passed","checks":6,"organization_id":"e7ead462-0fd8-4fb0-a40e-5bda3745c0ce","invoice_id":"0253fed1-7314-454a-9087-8ac808ccbf12","manual_journal_id":"3924c47c-4fcd-467b-b907-c77c9b744858","transfer_id":"08b372ca-222c-4153-8d1f-100163f4a139","receipt_id":"31475426-cc6a-4ce6-ae80-9dbd5f338d67","note":"Only new synthetic fixtures were changed; committed posting evidence is retained. No reset, production or provider calls."}

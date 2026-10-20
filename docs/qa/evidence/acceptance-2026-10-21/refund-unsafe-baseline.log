@@ -1,0 +1,25 @@
+✖ T-13 refund cannot post without explicitly selected eligible credit settlement (41680.2543ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42067.8729
+
+✖ failing tests:
+
+test at tests\database\refund-safety.test.mjs:5:1
+✖ T-13 refund cannot post without explicitly selected eligible credit settlement (41680.2543ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/refund-safety.test.mjs:17:7)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

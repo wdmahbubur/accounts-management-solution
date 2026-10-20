@@ -1,0 +1,185 @@
+
+> accounts-management-solution@0.0.0 build
+> node scripts/run-next.mjs build apps/web --webpack
+
+▲ Next.js 16.4.2 (webpack)
+✓ Running next.config.ts took 121ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 20.1s
+  Running TypeScript ...
+  Finished TypeScript in 7.9s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/9) ...
+  Generating static pages using 11 workers (2/9) 
+  Generating static pages using 11 workers (4/9) 
+  Generating static pages using 11 workers (6/9) 
+✓ Generating static pages using 11 workers (9/9) in 1950ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/internal/attachments/scan
+├ ƒ /api/internal/exports
+├ ƒ /api/internal/notifications/reminders
+├ ƒ /api/internal/outbox
+├ ƒ /api/v1/invitations/respond
+├ ƒ /api/v1/organizations/[organizationId]/account-mappings
+├ ƒ /api/v1/organizations/[organizationId]/accounts
+├ ƒ /api/v1/organizations/[organizationId]/allocations
+├ ƒ /api/v1/organizations/[organizationId]/allocations/[allocationId]/reverse
+├ ƒ /api/v1/organizations/[organizationId]/approval-policies
+├ ƒ /api/v1/organizations/[organizationId]/approval-requests
+├ ƒ /api/v1/organizations/[organizationId]/approval-requests/[approvalRequestId]
+├ ƒ /api/v1/organizations/[organizationId]/approval-requests/[approvalRequestId]/decision
+├ ƒ /api/v1/organizations/[organizationId]/approval-requests/[approvalRequestId]/preview
+├ ƒ /api/v1/organizations/[organizationId]/attachments/[artifactId]/download
+├ ƒ /api/v1/organizations/[organizationId]/attachments/upload-intents
+├ ƒ /api/v1/organizations/[organizationId]/attachments/uploads/[intentId]/complete
+├ ƒ /api/v1/organizations/[organizationId]/bank-imports
+├ ƒ /api/v1/organizations/[organizationId]/cash-accounts
+├ ƒ /api/v1/organizations/[organizationId]/cash-accounts/[cashAccountId]
+├ ƒ /api/v1/organizations/[organizationId]/catalog/cost-centers
+├ ƒ /api/v1/organizations/[organizationId]/catalog/cost-centers/[centerId]
+├ ƒ /api/v1/organizations/[organizationId]/catalog/items
+├ ƒ /api/v1/organizations/[organizationId]/catalog/items/[itemId]
+├ ƒ /api/v1/organizations/[organizationId]/contacts
+├ ƒ /api/v1/organizations/[organizationId]/contacts/[contactId]
+├ ƒ /api/v1/organizations/[organizationId]/credit-application-options
+├ ƒ /api/v1/organizations/[organizationId]/documents
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/allocation-plan
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/opening-cutover
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/post
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/preview-posting
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/reverse
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/send
+├ ƒ /api/v1/organizations/[organizationId]/documents/[documentId]/submit
+├ ƒ /api/v1/organizations/[organizationId]/documents/credit-options
+├ ƒ /api/v1/organizations/[organizationId]/documents/options
+├ ƒ /api/v1/organizations/[organizationId]/exports
+├ ƒ /api/v1/organizations/[organizationId]/exports/[artifactId]/cancel
+├ ƒ /api/v1/organizations/[organizationId]/exports/[artifactId]/download
+├ ƒ /api/v1/organizations/[organizationId]/fiscal-years/[fiscalYearId]/close
+├ ƒ /api/v1/organizations/[organizationId]/fiscal-years/[fiscalYearId]/close-preview
+├ ƒ /api/v1/organizations/[organizationId]/fiscal-years/[fiscalYearId]/reopen
+├ ƒ /api/v1/organizations/[organizationId]/import-jobs
+├ ƒ /api/v1/organizations/[organizationId]/import-jobs/[jobId]
+├ ƒ /api/v1/organizations/[organizationId]/import-jobs/[jobId]/commit
+├ ƒ /api/v1/organizations/[organizationId]/import-jobs/[jobId]/validate
+├ ƒ /api/v1/organizations/[organizationId]/invitations
+├ ƒ /api/v1/organizations/[organizationId]/invitations/[invitationId]/resend
+├ ƒ /api/v1/organizations/[organizationId]/invitations/[invitationId]/revoke
+├ ƒ /api/v1/organizations/[organizationId]/invoices/[documentId]/pdf
+├ ƒ /api/v1/organizations/[organizationId]/invoices/export
+├ ƒ /api/v1/organizations/[organizationId]/members
+├ ƒ /api/v1/organizations/[organizationId]/members/[memberId]/deactivate
+├ ƒ /api/v1/organizations/[organizationId]/members/[memberId]/roles
+├ ƒ /api/v1/organizations/[organizationId]/notifications/[kind]/[notificationId]/read
+├ ƒ /api/v1/organizations/[organizationId]/notifications/preferences
+├ ƒ /api/v1/organizations/[organizationId]/open-items
+├ ƒ /api/v1/organizations/[organizationId]/opening-cutover/drafts
+├ ƒ /api/v1/organizations/[organizationId]/opening-cutover/options
+├ ƒ /api/v1/organizations/[organizationId]/ownership/transfer
+├ ƒ /api/v1/organizations/[organizationId]/periods
+├ ƒ /api/v1/organizations/[organizationId]/periods/[periodId]/checklist
+├ ƒ /api/v1/organizations/[organizationId]/periods/[periodId]/events
+├ ƒ /api/v1/organizations/[organizationId]/periods/[periodId]/lock
+├ ƒ /api/v1/organizations/[organizationId]/periods/[periodId]/reopen
+├ ƒ /api/v1/organizations/[organizationId]/receipt-allocation-options
+├ ƒ /api/v1/organizations/[organizationId]/reconciliations
+├ ƒ /api/v1/organizations/[organizationId]/reconciliations/[reconciliationId]/finalize
+├ ƒ /api/v1/organizations/[organizationId]/reconciliations/[reconciliationId]/matches
+├ ƒ /api/v1/organizations/[organizationId]/reconciliations/[reconciliationId]/reopen
+├ ƒ /api/v1/organizations/[organizationId]/reports/[reportType]
+├ ƒ /api/v1/organizations/[organizationId]/reports/general-ledger
+├ ƒ /api/v1/organizations/[organizationId]/reports/trial-balance
+├ ƒ /api/v1/organizations/[organizationId]/roles
+├ ƒ /api/v1/organizations/[organizationId]/roles/[roleId]
+├ ƒ /api/v1/organizations/[organizationId]/setup
+├ ƒ /api/v1/organizations/[organizationId]/setup/complete
+├ ƒ /api/v1/organizations/[organizationId]/supplier-payment-allocation-options
+├ ƒ /api/v1/organizations/[organizationId]/tax-codes
+├ ƒ /api/v1/organizations/[organizationId]/tax-codes/archive
+├ ƒ /api/v1/organizations/[organizationId]/write-offs
+├ ƒ /auth/recover
+├ ƒ /auth/reset
+├ ƒ /auth/sign-in
+├ ƒ /auth/sign-up
+├ ƒ /auth/verify
+├ ƒ /companies
+├ ƒ /internal/ui-fixtures
+├ ƒ /invite/[token]
+├ ƒ /o/[organizationId]
+├ ƒ /o/[organizationId]/accounting/accounts
+├ ƒ /o/[organizationId]/accounting/documents
+├ ƒ /o/[organizationId]/accounting/documents/[documentId]
+├ ƒ /o/[organizationId]/accounting/documents/new
+├ ƒ /o/[organizationId]/accounting/general-ledger
+├ ƒ /o/[organizationId]/accounting/journals
+├ ƒ /o/[organizationId]/accounting/journals/[documentId]
+├ ƒ /o/[organizationId]/accounting/journals/new
+├ ƒ /o/[organizationId]/accounting/periods
+├ ƒ /o/[organizationId]/accounting/write-offs/new
+├ ƒ /o/[organizationId]/accounting/year-close
+├ ƒ /o/[organizationId]/approvals
+├ ƒ /o/[organizationId]/audit
+├ ƒ /o/[organizationId]/banking/accounts
+├ ƒ /o/[organizationId]/banking/accounts/[cashAccountId]
+├ ƒ /o/[organizationId]/banking/import
+├ ƒ /o/[organizationId]/banking/reconciliations
+├ ƒ /o/[organizationId]/banking/reconciliations/[reconciliationId]
+├ ƒ /o/[organizationId]/banking/transfers
+├ ƒ /o/[organizationId]/banking/transfers/[documentId]
+├ ƒ /o/[organizationId]/banking/transfers/new
+├ ƒ /o/[organizationId]/catalog/cost-centers
+├ ƒ /o/[organizationId]/catalog/items
+├ ƒ /o/[organizationId]/dashboard
+├ ƒ /o/[organizationId]/documents
+├ ƒ /o/[organizationId]/exports
+├ ƒ /o/[organizationId]/imports
+├ ƒ /o/[organizationId]/notifications
+├ ƒ /o/[organizationId]/notifications/preferences
+├ ƒ /o/[organizationId]/purchases/bills
+├ ƒ /o/[organizationId]/purchases/bills/[documentId]
+├ ƒ /o/[organizationId]/purchases/bills/new
+├ ƒ /o/[organizationId]/purchases/vendors
+├ ƒ /o/[organizationId]/purchases/vendors/[contactId]
+├ ƒ /o/[organizationId]/purchases/vendors/[contactId]/edit
+├ ƒ /o/[organizationId]/purchases/vendors/new
+├ ƒ /o/[organizationId]/reports
+├ ƒ /o/[organizationId]/reports/balance-sheet
+├ ƒ /o/[organizationId]/reports/cash-flow
+├ ƒ /o/[organizationId]/reports/payables
+├ ƒ /o/[organizationId]/reports/profit-loss
+├ ƒ /o/[organizationId]/reports/receivables
+├ ƒ /o/[organizationId]/reports/statements
+├ ƒ /o/[organizationId]/reports/trial-balance
+├ ƒ /o/[organizationId]/sales/customers
+├ ƒ /o/[organizationId]/sales/customers/[contactId]
+├ ƒ /o/[organizationId]/sales/customers/[contactId]/edit
+├ ƒ /o/[organizationId]/sales/customers/new
+├ ƒ /o/[organizationId]/sales/invoices
+├ ƒ /o/[organizationId]/sales/invoices/[documentId]
+├ ƒ /o/[organizationId]/sales/invoices/[documentId]/edit
+├ ƒ /o/[organizationId]/sales/invoices/new
+├ ƒ /o/[organizationId]/sales/receipts
+├ ƒ /o/[organizationId]/sales/receipts/[documentId]
+├ ƒ /o/[organizationId]/sales/receipts/new
+├ ƒ /o/[organizationId]/settings/approvals
+├ ƒ /o/[organizationId]/settings/opening-balances
+├ ƒ /o/[organizationId]/settings/roles
+├ ƒ /o/[organizationId]/settings/setup
+├ ƒ /o/[organizationId]/settings/taxes
+├ ƒ /o/[organizationId]/settings/users
+├ ƒ /onboarding/company
+├ ƒ /settings/profile
+└ ƒ /settings/security
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
