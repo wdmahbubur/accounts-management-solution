@@ -13,8 +13,8 @@ const postCapability:Record<string,string>={invoice:"sales.post",customer_credit
 postCapability.write_off="dues.adjust";
 export function canPostDocument(actor:ActorContext,documentType:string){const required=postCapability[documentType];return !!required&&actor.capabilities.includes(required);}
 type RpcClient=Pick<RequestClient,"rpc">;
-function error(value:{code?:string;message?:string}){
-  const retry=retryableTransactionError(value);if(retry)return retry;
+function error(value:{code?:string;message?:string}):never {
+  const retry=retryableTransactionError(value);if(retry)throw retry;
   if(value.code==="42501")throw CommandError.forbidden();if(value.code==="28000")throw CommandError.unauthenticated();if(value.code==="P0002")throw CommandError.notFound();
   if(value.code==="P0001")throw CommandError.conflict("APPROVAL_REQUIRED");if(value.code==="55P03")throw CommandError.conflict("PERIOD_LOCKED");
   if(value.code==="40001")throw CommandError.conflict("APPROVAL_STALE");if(value.code==="23P01")throw CommandError.conflict("ALLOCATION_EXCEEDED");

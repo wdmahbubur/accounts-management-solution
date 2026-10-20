@@ -200,7 +200,12 @@ async function process(job: ExportJob): Promise<"completed" | "retried" | "stale
       else throw Object.assign(new Error("Unsupported report export format"), { safeCode: "EXPORT_INVALID_REPORT_DATA" });
     } else {
       const result = await withWorkerDatabase((client) => client.query<ExportRow>(
-        "SELECT * FROM finance_private.read_trial_balance_export($1::uuid,$2::uuid)", [job.job_id, job.lease_token]
+        `SELECT e.company_name,e.currency,e.as_of::text,
+          to_jsonb(e.ledger_cutoff_at)#>>'{}' AS ledger_cutoff_at,
+          to_jsonb(e.generated_at)#>>'{}' AS generated_at,
+          e.account_code,e.account_name,e.account_type,e.opening_balance,
+          e.movement_debit,e.movement_credit,e.closing_debit,e.closing_credit
+         FROM finance_private.read_trial_balance_export($1::uuid,$2::uuid) e`, [job.job_id, job.lease_token]
       ));
       bytes = renderCsv(result.rows);
     }

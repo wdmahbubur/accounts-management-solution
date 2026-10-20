@@ -1,6 +1,7 @@
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import { bangladeshDate } from "../../../../../../lib/date.ts";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { sourceTypes, type SourceType } from "../../../../../../server/documents/contracts.ts";
@@ -97,6 +98,7 @@ export default async function NewDraftPage({ params, searchParams }: {
   }
   if (forbidden) return <main><h1>Access denied</h1><p>You do not have permission to create this source type.</p></main>;
   if (failure) throw failure;
+  if (documentType === "customer_refund" || documentType === "vendor_refund") return <main><h1>Refunds unavailable</h1><p>Refunds require linked credit settlement.</p><Link href={`/o/${organizationId}/accounting/documents`}>Back to documents</Link></main>;
   if (!options) throw new Error("Document draft options were unavailable.");
   const creationIdentity = JSON.stringify([organizationId, documentType, query.party_id ?? null, query.copy ?? null, query.original_document_id ?? null]);
   return <main><DraftEditor key={creationIdentity} organizationId={organizationId} nonce={runtime.current.nonce} documentType={documentType} options={options} initial={initial} duplicate={duplicate} createNew={!!initial}

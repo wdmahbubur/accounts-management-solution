@@ -15,8 +15,8 @@ const commonDraftGroups: readonly DraftGroup[] = [
   { title: "Accounting", entries: [["transfer", "Transfer"], ["manual_journal", "Manual journal"]] }
 ];
 const otherDraftGroups: readonly DraftGroup[] = [
-  { title: "Customer credits and advances", entries: [["customer_credit", "Customer credit"], ["customer_refund", "Customer refund"], ["customer_advance", "Customer advance"]] },
-  { title: "Supplier credits and advances", entries: [["vendor_credit", "Supplier credit"], ["vendor_refund", "Supplier refund"], ["vendor_advance", "Supplier advance"]] },
+  { title: "Customer credits and advances", entries: [["customer_credit", "Customer credit"], ["customer_advance", "Customer advance"]] },
+  { title: "Supplier credits and advances", entries: [["vendor_credit", "Supplier credit"], ["vendor_advance", "Supplier advance"]] },
   { title: "Adjustments and opening balances", entries: [["controlled_adjustment", "Controlled adjustment"], ["opening_balance", "Opening balance"]], includeWriteOff: true }
 ];
 
@@ -80,8 +80,9 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
         <h2>Create a draft</h2>
         <div className={styles.draftGroups}>{draftGroups(commonDraftGroups)}</div>
         <details className={styles.draftMore}>
-          <summary>Credits, refunds, advances and adjustments</summary>
+          <summary>Credits, advances and adjustments</summary>
           <div className={styles.draftGroups}>{draftGroups(otherDraftGroups)}</div>
+          <p className={styles.hint}>Refunds unavailable: linked settlement is pending.</p>
         </details>
       </section>
       <section className={`panel ${styles.panel}`}>

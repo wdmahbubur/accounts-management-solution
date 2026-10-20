@@ -32,6 +32,10 @@
     "test:database:outbox-claim": "node --conditions=react-server --test tests/database/outbox-claim.test.mjs",
     "test:database:recovery": "node --conditions=react-server --test tests/database/recovery-files.test.mjs",
     "test:database:invitations": "node --conditions=react-server --test tests/database/invitation-security.test.mjs",
+    "test:database:accounting": "node --conditions=react-server --test --test-concurrency=2 tests/database/golden-books.test.mjs tests/database/accounting-guards.test.mjs tests/database/approval-controls.test.mjs tests/database/period-year-controls.test.mjs tests/database/cutover-classification.test.mjs tests/database/concurrency-acceptance.test.mjs tests/database/bank-capacity-race.test.mjs tests/database/reversal-tenant-controls.test.mjs tests/database/refund-safety.test.mjs tests/database/transaction-recovery.test.mjs",
+    "test:database:exports": "node --conditions=react-server --test tests/database/export-acceptance.test.mjs tests/database/issued-snapshot.test.mjs",
+    "test:database:worker-recovery": "node --conditions=react-server --test tests/database/worker-recovery.test.mjs",
+    "test:database:http-security": "node --conditions=react-server --test tests/database/http-security.test.mjs",
     "recovery:database": "node scripts/recovery-database.mjs",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
     "test:spec": "cd docs && python verification/check_spec.py"
