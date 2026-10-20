@@ -45,32 +45,22 @@ export async function canAttemptPasswordLogin(email: string): Promise<boolean> {
 }
 
 export async function recordFailedPasswordLogin(email: string): Promise<void> {
-  await withDatabaseTransaction(async (client) => {
-    const key = emailKey(email);
-    await client.query(
-      `INSERT INTO identity.auth_rate_limits (email_hash, attempts)
-       VALUES ($1, 1) ON CONFLICT (email_hash) DO NOTHING`,
-      [key]
-    );
-    const result = await client.query<{ attempts: number; window_started_at: Date }>(
-      `SELECT attempts, window_started_at FROM identity.auth_rate_limits
-       WHERE email_hash = $1 FOR UPDATE`,
-      [key]
-    );
-    const current = result.rows[0];
-    if (!current) throw new Error("Login limiter row was not created.");
-    const expired = Date.now() - new Date(current.window_started_at).getTime() >= 15 * 60 * 1000;
-    const attempts = expired ? 1 : Math.min(current.attempts + 1, 1000);
-    await client.query(
-      `UPDATE identity.auth_rate_limits
-       SET window_started_at = CASE WHEN $2 THEN now() ELSE window_started_at END,
-           attempts = $3,
-           blocked_until = CASE WHEN $3 >= 5 THEN now() + interval '15 minutes' ELSE NULL END,
-           updated_at = now()
-       WHERE email_hash = $1`,
-      [key, expired, attempts]
-    );
-  });
+  // One atomic upsert counts the first failure once and serializes concurrent
+  // failures across app instances. Use database time for the whole window.
+  await withDatabase((client) => client.query(
+    `INSERT INTO identity.auth_rate_limits AS limiter (email_hash, attempts)
+     VALUES ($1, 1)
+     ON CONFLICT (email_hash) DO UPDATE
+     SET window_started_at = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes'
+           THEN now() ELSE limiter.window_started_at END,
+         attempts = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes'
+           THEN 1 ELSE LEAST(limiter.attempts + 1, 1000) END,
+         blocked_until = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes' THEN NULL
+           WHEN limiter.attempts >= 4 THEN now() + interval '15 minutes' ELSE NULL END,
+         updated_at = now()
+     WHERE limiter.blocked_until IS NULL OR limiter.blocked_until <= now()`,
+    [emailKey(email)]
+  ));
 }
 
 export async function clearPasswordLoginFailures(email: string): Promise<void> {
