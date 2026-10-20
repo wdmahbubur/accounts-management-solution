@@ -109,6 +109,11 @@ the output explains that email delivery remains unverified. With
 `NODE_ENV=development`, local email previews use private ignored files.
 Preview builds run outside development and require SMTP for email delivery.
 The generic “check your email” response does not prove mail was sent.
+Signup and resend now reject missing deployment-wide email configuration before
+identity access, while retaining the entered non-secret fields. Production invoice
+email requests also require the existing restricted worker configuration before
+queueing. Keep verification required when SMTP is enabled; a preverified demo
+does not need an unverified-login bypass.
 Workers and attachment services are not validated by this command. See the
 main README and each endpoint's configuration before testing those journeys.
 

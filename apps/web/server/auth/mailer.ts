@@ -18,7 +18,8 @@ export async function sendIdentityLink(email: string, purpose: "verify_email" | 
   const from = process.env.SMTP_FROM;
   if (smtpUrl && from) {
     const transport = nodemailer.createTransport(smtpUrl);
-    await transport.sendMail({ from, to: email, subject, text });
+    try { await transport.sendMail({ from, to: email, subject, text }); }
+    finally { transport.close(); }
     return;
   }
 

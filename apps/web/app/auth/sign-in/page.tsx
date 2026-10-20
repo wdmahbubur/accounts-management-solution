@@ -24,6 +24,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Searc
       <section className="panel" aria-label="Account sign in">
         {error === "demo_failed" ? (
           <p className="alert" role="alert">Demo sign-in failed. Please try again.</p>
+        ) : error === "verification_failed" ? (
+          <p className="alert" role="alert">This verification link has expired or was already used. <Link href="/auth/sign-up">Request a new verification email</Link>.</p>
         ) : error ? (
           <p className="alert" role="alert">
             Email or password is incorrect, or the account is not verified.

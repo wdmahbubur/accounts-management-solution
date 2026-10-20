@@ -1,0 +1,17 @@
+
+> accounts-management-solution@0.0.0 test:database:identity-verification
+> node --conditions=react-server --test tests/database/identity-verification.test.mjs
+
+▶ verification tokens enforce cooldown, single use, expiry and independent issuance races
+  ✔ cooldown preserves the first link; consumption and replay are atomic (5882.3433ms)
+  ✔ expired tokens fail and different purposes have independent limits (3115.9658ms)
+  ✔ four independent app processes issue one live verification link (21068.9213ms)
+✔ verification tokens enforce cooldown, single use, expiry and independent issuance races (34226.5909ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43583.9914

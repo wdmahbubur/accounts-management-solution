@@ -1,0 +1,24 @@
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Back to home":
+    - /url: /
+  - paragraph: Your account
+  - heading "Create account" [level=1]
+  - paragraph: Create your personal login, then verify your email.
+  - alert: Use at least 10 characters with uppercase, lowercase and a number.
+  - form "Create personal account":
+    - generic: Display name
+    - textbox "Display name": E2E Retained Name
+    - generic: Email
+    - textbox "Email": <redacted>
+    - generic: Password
+    - textbox "Password"
+    - generic: At least 10 characters, including uppercase, lowercase and a number.
+    - button "Create account"
+  - generic "Need another verification email?"
+  - link "Back to sign in":
+    - /url: /auth/sign-in
+- alert
