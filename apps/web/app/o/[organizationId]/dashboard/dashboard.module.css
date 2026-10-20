@@ -14,6 +14,7 @@
 .sectionHeading h2 { margin: 0; }
 .sectionHeading p { margin: 0; color: var(--muted, #647184); font-size: .76rem; line-height: 1.5; }
 .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--border, #e2e6ec); border-radius: 8px; background: var(--border, #e2e6ec); }
+.performanceMetrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .metric { display: grid; align-content: start; gap: 9px; min-width: 0; padding: 20px; background: var(--surface, #fff); }
 .metric > a { display: grid; gap: 9px; height: 100%; color: inherit; text-decoration: none; }
 .metric > a:hover strong { color: var(--accent, #3c5f8a); }
@@ -58,6 +59,7 @@
 .snapshot dl > div { display: grid; gap: 4px; }
 .snapshot dd { margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
+  .performanceMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filters { padding: 16px; }
   .filters label { flex-basis: calc(50% - 6px); }
   .filters button { flex: 1 1 170px; }

@@ -5,6 +5,7 @@ import { bangladeshDate } from "../../../../lib/date.ts";
 import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../server/roles/runtime.ts";
+import { reportMoney } from "../reports/report-money.ts";
 import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,10 @@ type Dashboard = {
     empty: boolean;
     exceptions: { code: string; message: string }[];
     performance?: { revenue: string; expenses: string; net_profit: string; provisional: boolean };
-    liquidity?: { closing_cash_equivalents: string; provisional: boolean; unclassified_count: number };
+    liquidity?: {
+      closing_cash_equivalents: string; provisional: boolean; unclassified_count: number;
+      balances_by_kind?: Record<"cash" | "bank" | "mobile_wallet" | "payment_clearing", { balance: string; account_count: number }>;
+    };
     balance_sheet?: { assets: string; difference: string };
     trend?: { month: string; revenue: string; profit: string }[];
     cutover_detail_start?: string;
@@ -32,7 +36,7 @@ type Dashboard = {
 
 const validDate = (value: string | undefined): value is string => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value)
   && Number.isFinite(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
-const money = (value: string | undefined) => value && /^-?(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(value) ? value : "0.00";
+const money = (value: string | undefined) => reportMoney(value ?? "0.00");
 const label = (value: string) => {
   const words = value.replace(/[\p{P}\p{S}]+/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
   return words.charAt(0).toUpperCase() + words.slice(1);
@@ -100,6 +104,8 @@ export default async function OrganizationDashboardPage({
   const snapshot = result.data as Dashboard;
   if (!snapshot.data || !snapshot.company || !snapshot.filters || !Array.isArray(snapshot.data.exceptions)) throw new Error("Invalid dashboard data.");
   const data = snapshot.data;
+  const liquidity = data.liquidity;
+  const balancesByKind = liquidity?.balances_by_kind;
   const months = data.trend ?? [];
   const peak = Math.max(1, ...months.map(item => Math.max(Number(item.revenue) || 0, Math.abs(Number(item.profit) || 0))));
   const period = `${snapshot.filters.from} to ${snapshot.filters.to}`;
@@ -124,11 +130,17 @@ export default async function OrganizationDashboardPage({
     {data.exceptions.length > 0 && <section className={`panel ${styles.notices}`} aria-label="Provisional report notices"><h2>Needs attention</h2><ul>{data.exceptions.map(item => <li key={item.code}>{item.message}</li>)}</ul></section>}
 
     {data.performance && <>
-      <section className={styles.metricSection} aria-labelledby="performance-heading"><div className={styles.sectionHeading}><h2 id="performance-heading">Performance</h2><p>{period} · balances as of {snapshot.filters.as_of}</p></div><div className={styles.metrics}>
+      <section className={styles.metricSection} aria-labelledby="performance-heading"><div className={styles.sectionHeading}><h2 id="performance-heading">Performance</h2><p>{period} · balances as of {snapshot.filters.as_of}</p></div><div className={`${styles.metrics} ${styles.performanceMetrics}`}>
         <Metric title="Earned revenue" value={data.performance.revenue} detail={data.performance.provisional ? "Provisional" : period} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         <Metric title="Expenses" value={data.performance.expenses} detail="Accrual basis" href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
         <Metric title="Net profit" value={data.performance.net_profit} detail={data.performance.provisional ? "Provisional" : "Posted + approved opening totals"} href={`/o/${organizationId}/reports/profit-loss?${new URLSearchParams({ from, to })}`} />
-        {data.liquidity && <Metric title="Cash and bank" value={data.liquidity.closing_cash_equivalents} detail={`Cash equivalents · as of ${snapshot.filters.as_of}${data.liquidity.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/cash-flow?${new URLSearchParams({ from: from <= asOf ? from : asOf, to: asOf })}`} />}
+        {liquidity && (balancesByKind
+          ? ([['cash', 'Cash'], ['bank', 'Bank'], ['mobile_wallet', 'Mobile wallet'], ['payment_clearing', 'Payment clearing']] as const)
+            .filter(([kind]) => kind === "cash" || kind === "bank" || balancesByKind[kind].account_count > 0)
+            .map(([kind, title]) => <Metric key={kind} title={title} value={balancesByKind[kind].balance}
+              detail={`Cash equivalents · as of ${snapshot.filters.as_of}${liquidity.provisional ? " · provisional" : ""}`}
+              href={`/o/${organizationId}/reports/cash-flow?${new URLSearchParams({ from: from <= asOf ? from : asOf, to: asOf })}#cash-equivalent-accounts`} />)
+          : <Metric title="Cash and bank" value={liquidity.closing_cash_equivalents} detail={`Cash equivalents · as of ${snapshot.filters.as_of}${liquidity.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/cash-flow?${new URLSearchParams({ from: from <= asOf ? from : asOf, to: asOf })}`} />)}
         {data.balance_sheet && <Metric title="Total assets" value={data.balance_sheet.assets} detail={`Balance Sheet as of ${snapshot.filters.as_of}`} href={`/o/${organizationId}/reports/balance-sheet?as_of=${snapshot.filters.as_of}`} />}
       </div></section>
       <section className={`panel ${styles.trend}`}><div className={styles.sectionHeading}><h2>Monthly revenue and net profit</h2><p>Ledger detail from {data.cutover_detail_start ?? period.split(" to ")[0]}</p></div>
