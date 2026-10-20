@@ -7,6 +7,8 @@ import { auth, signIn, signOut } from "../../../../auth.ts";
 import { createRequestClient } from "../../server/request-client.ts";
 import { sendIdentityLink } from "../../server/auth/mailer.ts";
 import { getDemoAccountCredentials, isDemoAccountEmail } from "../../server/auth/demo-login.ts";
+import { registerAccount, requestVerification, type RegistrationState } from "../../server/auth/registration.ts";
+import { isEmailTransportAvailable } from "../../server/email/readiness.ts";
 import {
   changeIdentityPassword,
   createIdentityUser,
@@ -66,36 +68,22 @@ export async function demoSignInAction(formData: FormData) {
   }
 }
 
-export async function signUpAction(formData: FormData) {
-  const email = field(formData, "email");
-  const password = field(formData, "password");
-  const displayName = field(formData, "display_name").slice(0, 120);
-  if (!validEmail(email)) redirect(route("/auth/sign-up", { error: "invalid_input" }));
-  if (!strongPassword(password)) redirect(route("/auth/sign-up", { error: "password_policy" }));
-
-  try {
-    const userId = await createIdentityUser(email, password, displayName);
-    if (userId) {
-      const token = await issueIdentityToken(userId, "verify_email");
-      await sendIdentityLink(normalizeEmail(email), "verify_email", token);
-    }
-  } catch {
-    // Keep the response enumeration-safe and never expose mail or database errors.
-  }
-  redirect(route("/auth/sign-up", { status: "check_email" }));
+export async function signUpAction(_previous: RegistrationState, formData: FormData): Promise<RegistrationState> {
+  return registerAccount(formData, {
+    emailAvailable: isEmailTransportAvailable(),
+    createUser: createIdentityUser,
+    sendVerification: async (userId, email) =>
+      sendIdentityLink(email, "verify_email", await issueIdentityToken(userId, "verify_email"))
+  });
 }
 
-export async function resendVerificationAction(formData: FormData) {
-  const email = field(formData, "email");
-  if (validEmail(email)) {
-    try {
-      const userId = await findUnverifiedIdentityId(email);
-      if (userId) await sendIdentityLink(normalizeEmail(email), "verify_email", await issueIdentityToken(userId, "verify_email"));
-    } catch {
-      // Enumeration-safe public response.
-    }
-  }
-  redirect(route("/auth/sign-up", { status: "verification_requested" }));
+export async function resendVerificationAction(_previous: RegistrationState, formData: FormData): Promise<RegistrationState> {
+  return requestVerification(formData, {
+    emailAvailable: isEmailTransportAvailable(),
+    findUnverifiedUser: findUnverifiedIdentityId,
+    sendVerification: async (userId, email) =>
+      sendIdentityLink(email, "verify_email", await issueIdentityToken(userId, "verify_email"))
+  });
 }
 
 export async function recoverAction(formData: FormData) {

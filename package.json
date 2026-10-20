@@ -27,6 +27,8 @@
     "test:database:cash-accounts": "node --test tests/database/cash-account-balance.test.mjs",
     "test:database:login-limiter": "node --conditions=react-server --test tests/database/login-rate-limit.test.mjs",
     "test:database:invoice-pdf": "node --conditions=react-server --test tests/database/invoice-pdf-download.test.mjs",
+    "test:database:identity-verification": "node --conditions=react-server --test tests/database/identity-verification.test.mjs",
+    "test:database:outbox-claim": "node --conditions=react-server --test tests/database/outbox-claim.test.mjs",
     "test:reference": "cd docs && python -m unittest discover -s tests -v",
     "test:spec": "cd docs && python verification/check_spec.py"
   },

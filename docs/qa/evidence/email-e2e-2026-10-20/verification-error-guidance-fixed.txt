@@ -1,0 +1,28 @@
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Back to home":
+    - /url: /
+  - paragraph: Your account
+  - heading "Sign in" [level=1]
+  - paragraph: Use your verified email to open your workspace.
+  - region "Account sign in":
+    - alert:
+      - text: This verification link has expired or was already used.
+      - link "Request a new verification email":
+        - /url: /auth/sign-up
+      - text: .
+    - generic: Email
+    - textbox "Email"
+    - generic: Password
+    - textbox "Password"
+    - button "Sign in"
+    - button "Sign in with demo account"
+    - generic "Demo sign-in details"
+    - link "Create account":
+      - /url: /auth/sign-up
+    - link "Forgot password?":
+      - /url: /auth/recover
+- alert

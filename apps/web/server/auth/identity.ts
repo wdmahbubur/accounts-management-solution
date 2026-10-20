@@ -88,6 +88,16 @@ export async function issueIdentityToken(userId: string, purpose: IdentityTokenP
   const token = randomBytes(32).toString("base64url");
   const lifetime = purpose === "verify_email" ? "24 hours" : "1 hour";
   await withDatabaseTransaction(async (client) => {
+    // Serialize token issuance across app instances without conflicting with the
+    // verification consumer's token/user row locks. A rejected resend keeps the
+    // previous link usable and returns the same public response as other accounts.
+    await client.query("SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended($1, 0))",
+      [`ams.identity-token:${userId}:${purpose}`]);
+    const recent = await client.query(
+      `SELECT 1 FROM identity.verification_tokens WHERE user_id = $1::uuid AND purpose = $2
+       AND created_at > now() - interval '60 seconds' LIMIT 1`, [userId, purpose]
+    );
+    if (recent.rows.length) throw new Error("Account email requested too recently.");
     await client.query(
       `UPDATE identity.verification_tokens SET consumed_at = now()
        WHERE user_id = $1::uuid AND purpose = $2 AND consumed_at IS NULL`,
