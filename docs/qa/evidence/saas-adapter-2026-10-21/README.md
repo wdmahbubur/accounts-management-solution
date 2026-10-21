@@ -2,6 +2,8 @@
 
 Parent: PR #186 / `28aef3c`. Tests use isolated Neon PostgreSQL 18, restricted application/worker roles, synthetic accounts and the local development server. Paid billing stays disabled. No credentials or private object bytes are included.
 
+Implementation: `e891f72bf98a87558bf7fdbc25df9c60357fff2c`. The recorded contents pass 345 application tests, 3 database tests and 10 real authenticated HTTP tests without skips, plus lint, TypeScript and the optimized build. This follow-up records the implementation identity only; terminal receipt trailing whitespace was normalized without changing outcomes.
+
 - `saas-database.log`: real member usage, no paid/financial state, ordinary-role and foreign-company denial.
 - `saas-http-final.log`: actual Auth.js sessions, concurrent Owner/Billing/nonmember reads, disabled checkout/webhook behavior and live revocation.
 - `saas-unit-final.log`, `saas-lint-final.log`, `saas-typecheck-final.log`, `saas-build-final.log`: application/static/build receipts.
