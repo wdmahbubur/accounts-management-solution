@@ -5,6 +5,7 @@ import { withActorTransaction } from "./database.ts";
 import { normalizeRpcResult, prepareRpcArguments, type RpcArgumentMetadata } from "./rpc-values.ts";
 
 const procedures = new Set([
+  "read_subscription_summary",
   "read_cash_flow_review",
   "finalize_cash_flow_report",
   "save_linked_settlement_draft",
