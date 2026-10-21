@@ -29,6 +29,8 @@ The final static/build receipts and Edge observations are recorded in the [evide
 
 ## Release decisions
 
+The first automatic Vercel preview at `044639b` failed before installation: its image supplied npm 11.19.1 while this repository requires exactly 11.19.0. The app's new `vercel.json` selects the existing pinned npm 11.19.0 before `npm ci`, using Vercel's documented [per-deployment install command](https://vercel.com/docs/project-configuration/vercel-json). Engine enforcement and the dependency lockfile remain intact. The replacement preview outcome is recorded separately; local build success does not establish a successful preview.
+
 The source-case matrix is **69 covered, 1 partial (consented support access), 2 explicitly deferred (paid billing)**. Deferred is an owner scope decision, never a passing result. Edge verified the dashboard, P&L, balance sheet, cash flow/finalization, GL, cashbook, AR/AP aging, both statements, trial balance, all-source journal register and invoice drilldown. After switching to empty Golden beta, browser history and an old Golden alpha dashboard URL require reopening the correct company and disclose no alpha totals in beta.
 
 The user explicitly deferred paid billing and requested a provider adapter. Approved paid plans and limits will be supplied later. No prices, plan limits, trial, grace period or free-pilot promise were invented. Paid-provider lifecycle cases T-45/T-46 remain unverified/deferred; deferral is not a successful billing test.
