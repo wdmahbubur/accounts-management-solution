@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { ContractValidationError, parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -43,7 +44,7 @@ export default async function TransfersPage({ params, searchParams }: {
     <section className="panel"><h2>Transfer history</h2>
       {!filterError && (page.items.length === 0 ? <p className={styles.muted}>{after ? "No more transfers match these filters." : "No transfers match these filters."}</p> : <>
         <p className={styles.muted}>{page.items.length} transfers on this page{page.nextCursor ? " · More results available" : ""}</p>
-        <div className="table-scroll" role="region" aria-label="Transfer history" tabIndex={0}><table><thead><tr><th scope="col">Transfer</th><th scope="col">From</th><th scope="col">To</th><th scope="col" className={styles.number}>Principal · BDT</th><th scope="col" className={styles.number}>Fee · BDT</th><th scope="col">State</th></tr></thead>
+        <div className="table-scroll" role="region" aria-label="Transfer history" tabIndex={0}><table><thead><tr><th scope="col">Transfer</th><th scope="col">From</th><th scope="col">To</th><th scope="col" className={styles.number}>Principal · <CompanyCurrency /></th><th scope="col" className={styles.number}>Fee · <CompanyCurrency /></th><th scope="col">State</th></tr></thead>
           <tbody>{page.items.map(row => <tr key={row.id}><td><Link href={`${base}/${row.id}`}>{row.documentNumber ?? "Draft"}</Link><time className={styles.entryMeta} dateTime={row.accountingDate}>{detailDate(row.accountingDate)}</time>{row.externalReference && <span className={styles.entryMeta}>Ref: {row.externalReference}</span>}</td><td>{row.fromAccount}</td><td>{row.toAccount}</td><td className={styles.number}>{row.amount}</td><td className={styles.number}>{row.feeAmount}</td><td><span className={styles.badge}>{row.state.replaceAll("_", " ")}</span></td></tr>)}</tbody>
         </table></div>
       </>)}

@@ -927,13 +927,13 @@
   {
     "id": "S-20",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "deferred",
     "evidence": [
       "tests/database/http-security.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/company-country-currency-2026-10-21.md"
     ],
-    "note": "Nonmember authenticated requests deny. Approved exceptional support access with expiry/audit is not implemented or verified.",
-    "last_result": "partial",
+    "note": "The owner explicitly deferred privileged support access on 21 October 2026. Nonmember requests remain denied; no support bypass, operator enrollment or consent grant is enabled. The original exceptional-access acceptance case is not a pass.",
+    "last_result": "deferred",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   }

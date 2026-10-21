@@ -56,6 +56,12 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       const response = await billing(api(f.org, "roles"), { method: "POST", headers: { "content-type": "application/json", origin: base, "idempotency-key": randomUUID() }, body: JSON.stringify({ name: "Forged Owner", user_metadata: { role: "Owner" }, actor_id: f.ids.owner, capabilities: ["*"] }) });
       assert.ok([400, 403, 422].includes(response.status), JSON.stringify(await response.json())); assert.ok([403, 404].includes((await billing(report)).status));
     });
+    await t.test('company currency cannot be overridden through an authenticated document API',async()=>{
+      const before=(await f.admin.query('SELECT count(*)::integer AS n FROM finance.business_documents WHERE organization_id=$1',[f.org])).rows[0].n;
+      const response=await owner(api(f.org,'documents'),{method:'POST',headers:{'content-type':'application/json',origin:base,'idempotency-key':randomUUID()},body:JSON.stringify(f.body('invoice','1.00',{currency:'USD'}))});
+      assert.equal(response.status,422,JSON.stringify(await response.clone().json()));
+      assert.equal((await f.admin.query('SELECT count(*)::integer AS n FROM finance.business_documents WHERE organization_id=$1',[f.org])).rows[0].n,before);
+    });
     await t.test("cookie-authenticated financial commands reject an untrusted Origin", async () => {
       const before = (await f.admin.query("SELECT count(*)::integer AS n FROM finance.business_documents WHERE organization_id=$1", [f.org])).rows[0].n;
       const response = await owner(api(f.org, "documents"), { method: "POST", headers: { "content-type": "text/plain", origin: "https://untrusted.example.invalid", "sec-fetch-site": "cross-site", "idempotency-key": randomUUID() }, body: JSON.stringify(f.body("invoice", "1.00")) });

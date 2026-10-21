@@ -115,7 +115,7 @@ export function settlementStateLabel(allocation: DetailRecord, asOfDate: unknown
 
 export function settlementHistoryCaption(asOfDate: unknown): string {
   const date = detailDate(asOfDate);
-  return `Linked settlement history · BDT${date === "—" ? "" : ` · status as of ${date}`}`;
+  return `Linked settlement history · company currency${date === "—" ? "" : ` · status as of ${date}`}`;
 }
 
 export function detailTimestamp(value: unknown): string {

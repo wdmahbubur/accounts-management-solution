@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -56,7 +57,7 @@ export default async function InvoiceRegisterPage({ params, searchParams }: {
     </header>
     <nav className={styles.tabs} aria-label="Invoice status">{tabs.map(([value, label]) => <Link key={value} aria-current={tab === value ? "page" : undefined} href={makeHref(value)}>{label}</Link>)}</nav>
     <InvoiceFilters organizationId={organizationId} userId={userId} tab={tab} search={search}/>
-    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value]) => value === tab)?.[1]} invoices</h2><p>Amounts in BDT</p></div>
+    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value]) => value === tab)?.[1]} invoices</h2><p>Amounts in <CompanyCurrency /></p></div>
       {page.items.length === 0 ? <p className={styles.empty}>No invoices match these filters.</p> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Invoice register"><table>
         <thead><tr><th scope="col">Invoice</th><th scope="col">Customer</th><th scope="col">Dates</th><th scope="col" className={styles.amount}>Total</th><th scope="col" className={styles.amount}>Outstanding</th><th scope="col">Settlement</th><th scope="col">Delivery</th><th scope="col">Actions</th></tr></thead>
         <tbody>{page.items.map(invoice => <tr key={invoice.id}>

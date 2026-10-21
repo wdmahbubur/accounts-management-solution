@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -54,7 +55,7 @@ export default async function ReceiptRegisterPage({ params, searchParams }: {
     </header>
     <nav className={styles.tabs} aria-label="Receipt status">{tabs.map(value => <Link key={value} aria-current={tab === value ? "page" : undefined} href={href(value)}>{tabLabels[value]}</Link>)}</nav>
     <form key={JSON.stringify([tab, search])} className="panel toolbar" action={`/o/${organizationId}/sales/receipts`} method="get"><input type="hidden" name="tab" value={tab}/><label>Search receipts<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, customer or reference"/></label><button type="submit">Search</button>{search && <Link className="secondary" href={`/o/${organizationId}/sales/receipts?tab=${tab}`}>Clear</Link>}</form>
-    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabLabels[tab]} receipts</h2><p>Amounts in BDT</p></div>
+    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabLabels[tab]} receipts</h2><p>Amounts in <CompanyCurrency /></p></div>
       {page.items.length === 0 ? <p className={styles.empty}>No receipts match these filters.</p> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Receipt register"><table>
         <thead><tr><th scope="col">Receipt</th><th scope="col">Customer</th><th scope="col">Date</th><th scope="col" className={styles.amount}>Received</th><th scope="col" className={styles.amount}>Applied</th><th scope="col" className={styles.amount}>Unused trade credit</th><th scope="col">Status</th></tr></thead>
         <tbody>{page.items.map(receipt => <tr key={receipt.id}><th scope="row"><Link href={`/o/${organizationId}/sales/receipts/${receipt.id}`}>{receipt.documentNumber ?? "Draft"}</Link></th><td>{receipt.customerName}</td><td>{receipt.issueDate}</td>

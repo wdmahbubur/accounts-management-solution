@@ -58,7 +58,9 @@ async function renderReport(filename, data, capabilities, query, control) {
   }
   const calls = [];
   const dependencies = name => {
-    if (name === "react/jsx-runtime") return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
+    if (name === "react/jsx-runtime") { const jsx=(type,props)=>type==='company-currency'?'BDT':({type,props});return{jsx,jsxs:jsx}; }
+    if (name.endsWith('/company-currency.tsx')) return {CompanyCurrency:'company-currency'};
+    if (name.endsWith('/today.ts')) return {companyDate:async()=> '2026-10-12'};
     if (name === "@ams/accounting") return accounting;
     if (name === "@ams/contracts") return contracts;
     if (name === "next/link") return "a";

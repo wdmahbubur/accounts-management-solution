@@ -7,9 +7,11 @@ import { signOutAction } from "../../app/auth/actions.ts";
 import { useOnline, ViewState, FinanceInteractionBoundary } from "../finance/components.tsx";
 import { activeNavigationHref, workspaceBreadcrumbs, workspaceNavigation } from "./navigation.ts";
 import styles from "./shell.module.css";
+import {CompanyCurrencyProvider} from '../finance/company-currency.tsx';
+import type {BaseCurrency} from '@ams/contracts';
 
-export function AppFrame({ organizationId, companyName, companyStatus, capabilities, email, children }: {
-  organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;
+export function AppFrame({ organizationId, companyName, companyStatus, capabilities, email, children,baseCurrency,today }: {
+  organizationId: string; companyName: string; companyStatus: string; capabilities: readonly string[]; email: string; children: ReactNode;baseCurrency:BaseCurrency;today:string;
 }) {
   const path = usePathname();
   const online = useOnline();
@@ -24,7 +26,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
   const menuOpen = menu.path === path && menu.open;
   const closeMenu = () => setMenu({ path, open: false });
 
-  return <div className={styles.shell}>
+  return <CompanyCurrencyProvider currency={baseCurrency} today={today}><div className={styles.shell}>
     <a className={styles.skip} href="#workspace-content">Skip to workspace content</a>
     <aside className={styles.sidebar} aria-label="Workspace sidebar" onKeyDown={event => {
       if (event.key === "Escape" && menuOpen) {
@@ -81,7 +83,7 @@ export function AppFrame({ organizationId, companyName, companyStatus, capabilit
         {companyStatus === "read_only" && <ViewState kind="read_only" />}
         <FinanceInteractionBoundary readOnly={companyStatus === "read_only"}>{children}</FinanceInteractionBoundary>
       </div>
-      <footer className={styles.footer}>BDT books · No financial changes are queued offline.</footer>
+      <footer className={styles.footer}>{baseCurrency} books · No financial changes are queued offline.</footer>
     </div>
-  </div>;
+  </div></CompanyCurrencyProvider>;
 }

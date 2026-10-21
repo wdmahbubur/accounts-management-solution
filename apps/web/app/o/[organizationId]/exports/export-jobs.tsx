@@ -1,4 +1,5 @@
 "use client";
+import {useCompanyCurrency} from '../../../../components/finance/company-currency.tsx';
 import styles from "../workspace.module.css";
 
 import Link from "next/link";
@@ -36,6 +37,7 @@ const errorText: Record<string, string> = {
 };
 
 export function ExportJobs({ organizationId, canRequest }: { organizationId: string; canRequest: boolean }) {
+ const currency=useCompanyCurrency();
   const router = useRouter();
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   const [busy, setBusy] = useState(false);
@@ -95,7 +97,7 @@ export function ExportJobs({ organizationId, canRequest }: { organizationId: str
         <div className={`table-scroll ${styles.table}`} tabIndex={0} role="region" aria-label="Export jobs"><table><thead><tr><th scope="col">Report and cutoff</th><th scope="col">Status</th><th scope="col">Requested</th><th scope="col">File expires</th><th scope="col">Details</th><th scope="col">Actions</th></tr></thead><tbody>
           {jobs.map(job => <tr key={job.id}><td>{reportLabels[job.export_type] ?? "Report export"} · {period(job)}<br /><small>Ledger cutoff: {dateTime(job.ledger_cutoff_at)}</small></td>
             <td><span className={styles.badge}>{job.status}</span></td><td>{dateTime(job.created_at)}</td><td>{dateTime(job.expires_at)}</td>
-            <td>{job.error_code ? errorText[job.error_code] ?? "The export failed. Request a new export." : job.status === "running" ? "Rendering a fixed report snapshot…" : `${job.format.toUpperCase()} · BDT`}</td>
+            <td>{job.error_code ? errorText[job.error_code] ?? "The export failed. Request a new export." : job.status === "running" ? "Rendering a fixed report snapshot…" : `${job.format.toUpperCase()} · ${currency}`}</td>
             <td>{job.status === "completed" ? <a className="secondary" href={`/api/v1/organizations/${organizationId}/exports/${job.id}/download`}>Download {job.format.toUpperCase()}</a> :
               job.status === "queued" && canRequest ? <button type="button" className="secondary" disabled={busy} onClick={() => void cancel(job.id)}>Cancel queued job</button> : "—"}</td>
           </tr>)}

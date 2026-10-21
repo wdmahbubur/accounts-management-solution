@@ -1,5 +1,7 @@
 # Release verification follow-up - 21 October 2026
 
+Current follow-up: [company locale and release evidence](company-country-currency-2026-10-21.md) records the owner's later country/currency request, deferred support scope, latest checks and integrated recovery/forward-upgrade rehearsal. The remainder of this report preserves the PR #186 baseline.
+
 This follows PR #185 at `759b298590366ca3c24e3325a166a25477875d15`. It uses the same isolated Neon `ams_clean_launch_20261021` database and private test bucket. Production remains outside this evidence. Synthetic users, companies and documents are used throughout.
 
 ## Changes
