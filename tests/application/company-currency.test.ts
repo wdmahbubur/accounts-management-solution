@@ -19,6 +19,7 @@ test('onboarding preserves the selected country and accounting currency',()=>{
  const form=new FormData();for(const[k,v]of Object.entries(values))form.set(k,v);
  const result=parseCompanyOnboardingForm(form);assert.equal(result.countryCode,'US');assert.equal(result.baseCurrency,'USD');
  form.set('country_code','ZZ');assert.throws(()=>parseCompanyOnboardingForm(form));
+ form.set('country_code','UK');assert.throws(()=>parseCompanyOnboardingForm(form));
 });
 test('two-decimal document calculations preserve the code and exact fractional amount',()=>{
  for(const currency of ['BDT','USD','EUR','GBP']){
@@ -39,5 +40,6 @@ test('company locale uses the authorized server calendar without a country or br
  const locale={organization_id:id,country_code:'US',base_currency:'USD',timezone:'America/New_York',today:'2026-12-31'};
  const client={rpc:async()=>({data:locale,error:null})};
  assert.deepEqual(await readCompanyLocale(client,id),{countryCode:'US',baseCurrency:'USD',timezone:'America/New_York',today:'2026-12-31'});
+ const legacy=await readCompanyLocale({rpc:async()=>({data:{...locale,country_code:'UK'},error:null})},id);assert.equal(legacy.countryCode,'UK','Legacy typed country codes must not make existing books unreadable.');
  for(const change of[{today:undefined},{timezone:null},{organization_id:'foreign'},{base_currency:'JPY'}])await assert.rejects(readCompanyLocale({rpc:async()=>({data:{...locale,...change},error:null})},id));
 });

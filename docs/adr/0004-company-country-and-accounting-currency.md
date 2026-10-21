@@ -6,6 +6,8 @@ The owner explicitly requested: “Add currency list and during company setup us
 
 Each company selects one country/region and one supported accounting currency when its books are created. Existing companies retain BDT. The choice is immutable: changing either requires separate books, rather than relabeling historical amounts. Documents must match their own company's currency at save, preview, posting and through linked settlements. Currency selection does not convert values, consolidate companies or enable foreign-currency transactions within one company.
 
+Earlier onboarding accepted arbitrary two-letter country codes. The read contract retains those stored codes so existing books do not become inaccessible, while new company creation requires the pinned selection catalog. No legacy country is silently renamed or reclassified.
+
 The current exact numeric(20,2) accounting engine supports only ISO 4217 currencies with two minor-unit decimal places. The pinned catalog contains 132 non-fund currency codes and 249 country/region codes. Zero-, three- and four-decimal currencies are not selectable; they require a separate precision/rounding design and accounting review. No floating-point money or silent precision truncation is introduced. Existing line/tax rounding and explicit adjustment limits remain numerically unchanged, expressed in the selected currency.
 
 Country selection does not choose statutory tax rates, approve filing formats or certify regulatory coverage. Tax policy must be configured and reviewed for the company. Paid billing and privileged support access are explicitly deferred by the owner; they remain unavailable.
