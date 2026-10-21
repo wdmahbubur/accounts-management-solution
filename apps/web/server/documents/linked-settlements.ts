@@ -9,6 +9,7 @@ import { isCreditApplicationDate } from '../../lib/credit-application.ts';
 
 export interface SettlementChoice {
   id:string; document_id:string; document_type:string; document_number:string|null; party_id:string;
+  reference?:string;
   party_name?:string; control_kind:string; original_amount?:string; remaining_amount:string;
   applied_amount?:string; refunded_amount?:string; reversed?:boolean;
   history?:{document_id:string;document_type:string;document_number:string|null;amount:string;effective_date:string;reversed_on:string|null}[];
@@ -62,10 +63,12 @@ export async function readSettlementOptions(client:Pick<RequestClient,'rpc'>,act
 export function applyAdvanceCommand(client:Pick<RequestClient,'rpc'>,advanceId:string):OrganizationCommandDefinition<Record<string,unknown>,{documentId:string;documentVersion:number}> {
   const shared=saveLinkedSettlementCommand(client);
   return {operation:`advances.apply:${advanceId}`,capability:capability('dues.allocate'),idempotency:'required',
-    validate(raw){const p=record(raw);if(Object.keys(p).some(k=>!['target_open_item_id','amount','accounting_date','description'].includes(k)))throw CommandError.validation({document:'Unexpected field.'});return p;},
+    validate(raw){const p=record(raw);if(Object.keys(p).some(k=>!['source_open_item_id','target_open_item_id','amount','accounting_date','description'].includes(k)))throw CommandError.validation({document:'Unexpected field.'});if(p.source_open_item_id)parseUuid(p.source_open_item_id);return p;},
     async execute(ctx,input){
       const options=await readSettlementOptions(client,ctx.actor,String(input.accounting_date));
-      const item=options.sources.find(s=>s.document_id===advanceId&&['customer_advance','vendor_advance'].includes(s.document_type)&&!s.reversed);
+      const choices=options.sources.filter(s=>s.document_id===advanceId&&['customer_advance','vendor_advance'].includes(s.control_kind)&&!s.reversed&&(!input.source_open_item_id||s.id===input.source_open_item_id));
+      if(choices.length>1)throw CommandError.validation({source_open_item_id:'Select the individual opening advance.'});
+      const item=choices[0];
       if(!item)throw CommandError.notFound();
       const data=validateSettlementDraft({document_id:null,expected_version:null,payload:{...input,document_type:'advance_application',source_open_item_id:item.id}});
       return shared.execute(ctx,data);
