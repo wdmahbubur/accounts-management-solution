@@ -2,6 +2,8 @@
 
 Parent: PR #187 / `5c1ebbd`. Synthetic isolated Neon PostgreSQL 18 and private S3 storage; actual restricted roles. Production remains unchanged.
 
+Implementation: `04fa8d80c66ed39e479c500b65bbf5575d5d5123`. Documentation/receipt formatting commits do not change the tested implementation.
+
 Receipts are copied here only after the corresponding command completes successfully. Private env profiles, database manifests, encryption keys and object bytes remain under ignored `output/launch/2026-10-21/`.
 
 Exact commands (load the private isolated profile explicitly):
@@ -23,4 +25,6 @@ Completed receipts: 351 application tests, five currency/database groups, one fr
 
 Recovery uses the existing `scripts/recovery-database.mjs capture|verify` tool, a provider-created historical branch and independent encrypted object backups. Public receipts record counts/outcomes; credentials and file contents are not published. Recovery through 0120 precedes the currency changes; do not describe those later records as restored. `recovery-upgrade.log` verifies the recovered books can upgrade through 0123 without changing their historical facts.
 
-Edge screenshots and DOM observations show actual local development-server behavior, not a production deployment or worldwide tax/currency certification. `usd-active.png` shows activation with USD; `usd-dashboard.txt` retains the observed currency labels. The catalog names/order fix addresses an observed hydration mismatch.
+Edge screenshots and DOM observations show actual local development-server behavior, not a production deployment or worldwide tax/currency certification. `usd-active.png` shows activation with USD; `usd-dashboard.txt` retains the observed currency labels. `setup-review.txt` verifies country, currency, timezone and start-date persistence after restoring the saved draft. The catalog names/order fix addresses an observed hydration mismatch. Some background-tab screenshots timed out; no missing screenshot or mobile/screen-reader/axe certification is claimed.
+
+UI self-audit: existing wizard/shell reused; native labeled country/currency selectors, visible precision/immutability explanation, review step, disabled invalid continuation and saved-draft status remain available. Company switching remounts the currency context; stale company URLs show selection rather than financial totals. The actual desktop activation view is retained. Responsive styles were reused; new device-width screenshots were not captured in this phase.
