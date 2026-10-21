@@ -119,26 +119,28 @@
   {
     "id": "T-10",
     "kind": "functional",
-    "status": "blocked",
+    "status": "covered",
     "evidence": [
-      "docs/user-stories/US-042.md",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Advance application is not implemented in the runtime save/post/API path. T-10 cannot pass.",
-    "last_result": "blocked",
+    "note": "Customer advance application reclassifies liability to AR, creates both settlement pairs atomically, moves no cash, supports replay and dated reversal; Edge create/preview/submit/post passed.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-11",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
-      "tests/database/cash-posting-preview.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Advance cash entries pass; advance application and linked refund lifecycle remain unavailable.",
-    "last_result": "partial",
+    "note": "Supplier application uses AP/advance asset with paired settlements; unused refund debits bank and settles the selected advance asset; exact applied/refunded/residual amounts and permissions are tested.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -158,13 +160,15 @@
   {
     "id": "T-13",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
       "tests/database/refund-safety.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Unsafe credit-free refund was reproduced. Migration 0105 now rejects all unlinked refunds; eligible linked refund workflow is incomplete.",
-    "last_result": "partial",
+    "note": "Explicit linked trade/advance refunds enforce historical source capacity, finance authority and cash capacity; unlinked, excessive, foreign-company, incompatible-control and empty physical-cash refunds cannot post.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
