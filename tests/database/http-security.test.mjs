@@ -57,6 +57,28 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       const trusted = await owner(api(f.org, "documents"), { method: "POST", headers: { "content-type": "application/json", origin: base, "idempotency-key": randomUUID() }, body: JSON.stringify(f.body("invoice", "1.00")) });
       assert.equal(trusted.status, 200); assert.match(trusted.headers.get("cache-control"), /private.*no-store/);
     });
+    await t.test("T-44 real authenticated HTTP queues the displayed PDF snapshot and replays the same job", async () => {
+      const filters={from:'2025-01-01',to:'2025-01-31'};
+      const snapshot=(await f.rpc('SELECT public.capture_report_export_snapshot($1,\'profit_and_loss\',$2::jsonb) AS value',[f.org,JSON.stringify(filters)])).rows[0].value;
+      const options={method:'POST',headers:{'content-type':'application/json',origin:base,'idempotency-key':randomUUID()},body:JSON.stringify({export_type:'profit_and_loss',format:'pdf',snapshot_id:snapshot.snapshot_id,...filters})};
+      const response=await owner(api(f.org,'exports'),options);
+      assert.equal(response.status,202,JSON.stringify(await response.clone().json()));
+      const first=(await response.json()).data;assert.equal(first.format,'pdf');assert.equal(first.status,'queued');assert.equal(first.ledger_cutoff_at,snapshot.ledger_cutoff_at);
+      const replay=await owner(api(f.org,'exports'),options);assert.equal(replay.status,200);assert.equal((await replay.json()).data.id,first.id);
+      for(const send of[billing,foreign])assert.ok([403,404].includes((await send(api(f.org,'exports'),options)).status));
+    });
+    await t.test("T-42 real HTTP finalizes cash flow and exports the selected immutable review",async()=>{
+      const review=(await f.rpc("SELECT public.read_cash_flow_review($1,'2025-01-01','2025-01-31',NULL) AS value",[f.org])).rows[0].value;
+      const options={method:'POST',headers:{'content-type':'application/json',origin:base,'idempotency-key':randomUUID()},body:JSON.stringify({from:'2025-01-01',to:'2025-01-31',expected_digest:review.material_digest})};
+      const response=await owner(api(f.org,'reports/cash-flow/finalize'),options);
+      assert.equal(response.status,200,JSON.stringify(await response.clone().json()));const id=(await response.json()).data.finalization_id;
+      const download=await owner(api(f.org,`reports/cash_flow?from=2025-01-01&to=2025-01-31&finalization=${id}&format=json`));
+      assert.equal(download.status,200);assert.match(download.headers.get('content-disposition'),/attachment/);assert.match(download.headers.get('cache-control'),/private.*no-store/);
+      const saved=await download.json();assert.equal(saved.meta.finalization_id,id);
+      const stored=(await f.rpc("SELECT public.read_cash_flow_review($1,'2025-01-01','2025-01-31',$2) AS value",[f.org,id])).rows[0].value;
+      assert.deepEqual(saved.data,stored.snapshot.data);assert.deepEqual({...saved.data,cutoff_at:review.snapshot.data.cutoff_at},review.snapshot.data);
+      for(const send of[billing,foreign])assert.ok([403,404].includes((await send(api(f.org,'reports/cash-flow/finalize'),options)).status));
+    });
     await t.test("S-07 a still-valid authentication session loses company access immediately after deactivation", async () => {
       const member = (await f.admin.query("SELECT id FROM finance.organization_members WHERE organization_id=$1 AND user_id=$2", [f.org, f.ids.owner])).rows[0].id;
       await f.rpc("SELECT public.deactivate_member($1,$2,$3)", [f.org, member, `revoke-http-${randomUUID()}`], f.ids.checker);

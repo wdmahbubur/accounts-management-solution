@@ -71,6 +71,7 @@ async function renderReport(filename, data, capabilities, query, control) {
       current: { organizationId }, dependencies: {}, client: { rpc: async (name, args) => {
         calls.push({ name, args });
         if (name === "list_profit_loss_options") return { error: null, data: { company: { books_start_date: "2026-01-01" }, fiscal_years: [], cost_centers: [] } };
+        if (name === "read_cash_flow_review") return { error: null, data: { snapshot: { ...common, provisional: data.provisional ?? false, data }, material_digest: "a".repeat(64) } };
         return { error: null, data: { ...common, provisional: data.provisional ?? false, data } };
       } }
     }) };
@@ -78,6 +79,7 @@ async function renderReport(filename, data, capabilities, query, control) {
     if (name.endsWith("/date-filters.ts")) return { parseBalanceSheetDates };
     if (name.endsWith("/print-button.tsx")) return { PrintStatement: () => null };
     if (name.endsWith("/report-export-button.tsx")) return { ReportExportButton: () => null };
+    if (name === "./finalize-form.tsx") return { FinalizeCashFlow: () => null };
     throw new Error(`Unexpected report import: ${name}`);
   };
   const loaded = { exports: {} };
@@ -186,7 +188,7 @@ test("empty Cash flow remains provisional until configured and retains its exact
   const result = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);
   assert.match(text(result.tree), /BDT 0\.00/);
   assert.match(text(result.tree), /Provisional · configure at least one cash-equivalent account/);
-  assert.deepEqual(result.calls, [{ name: "read_cash_flow_snapshot", args: { p_organization_id: organizationId, p_from: query.from, p_to: query.to } }]);
+  assert.deepEqual(result.calls, [{ name: "read_cash_flow_review", args: { p_organization_id: organizationId, p_from: query.from, p_to: query.to, p_finalization_id: null } }]);
   data.cash_equivalent_account_count = 1; data.provisional = false;
   data.cash_accounts = [{ cash_account_id: documentId, account_id: partyId, account_code: "1000", account_name: "Bank", opening: "0", closing: "0" }];
   const configured = await renderReport("cash-flow/page.tsx", data, ["reports.read"], query);

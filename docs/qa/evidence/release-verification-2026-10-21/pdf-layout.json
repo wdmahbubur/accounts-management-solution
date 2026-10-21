@@ -1,0 +1,40 @@
+[
+  {
+    "file": "verified-private-report.pdf",
+    "pages": 1,
+    "out_of_bounds": [
+      {
+        "page": 1,
+        "count": 0
+      }
+    ],
+    "profit_100_present": true
+  },
+  {
+    "file": "pagination-stress.pdf",
+    "pages": 5,
+    "out_of_bounds": [
+      {
+        "page": 1,
+        "count": 0
+      },
+      {
+        "page": 2,
+        "count": 0
+      },
+      {
+        "page": 3,
+        "count": 0
+      },
+      {
+        "page": 4,
+        "count": 0
+      },
+      {
+        "page": 5,
+        "count": 0
+      }
+    ],
+    "profit_100_present": true
+  }
+]
