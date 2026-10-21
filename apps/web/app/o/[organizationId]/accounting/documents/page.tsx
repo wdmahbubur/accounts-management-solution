@@ -82,7 +82,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
         <details className={styles.draftMore}>
           <summary>Credits, advances and adjustments</summary>
           <div className={styles.draftGroups}>{draftGroups(otherDraftGroups)}</div>
-          <p className={styles.hint}>Refunds unavailable: linked settlement is pending.</p>
+          <Link href={`/o/${organizationId}/advances`}>Manage advances and linked refunds</Link>
         </details>
       </section>
       <section className={`panel ${styles.panel}`}>

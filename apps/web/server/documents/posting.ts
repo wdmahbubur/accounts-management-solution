@@ -11,6 +11,7 @@ const postCapability:Record<string,string>={invoice:"sales.post",customer_credit
   bill:"purchases.post",vendor_credit:"purchases.post",paid_expense:"purchases.post",vendor_payment:"purchases.post",vendor_refund:"purchases.post",vendor_advance:"purchases.post",
   transfer:"banking.write",manual_journal:"journal.post",controlled_adjustment:"journal.post",opening_balance:"journal.post"};
 postCapability.write_off="dues.adjust";
+postCapability.advance_application="journal.post";
 export function canPostDocument(actor:ActorContext,documentType:string){const required=postCapability[documentType];return !!required&&actor.capabilities.includes(required);}
 type RpcClient=Pick<RequestClient,"rpc">;
 function error(value:{code?:string;message?:string}):never {

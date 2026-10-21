@@ -50,6 +50,7 @@ const definitions: { id: string; label: string; items: NavigationDefinition[] }[
     { path: "/accounting/year-close", label: "Fiscal year close", anyCapability: ["accounting.read"] }
   ] },
   { id: "workspace", label: "Review and records", items: [
+    { path: "/advances", label: "Advances and refunds", anyCapability: ["dues.read"] },
     { path: "/approvals", label: "Approval inbox", anyCapability: ["approvals.read"] },
     { path: "/documents", label: "Evidence library", anyCapability: ["attachments.read"] },
     { path: "/imports", label: "Imports", anyCapability: ["imports.read"] },

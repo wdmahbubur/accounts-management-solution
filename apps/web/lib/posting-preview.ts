@@ -1,7 +1,7 @@
 import { parseMoneyString, parseUuid, type MoneyString } from "@ams/contracts";
 import type { DocumentPreview } from "@ams/accounting";
 
-export const cashPreviewTypes = ["receipt", "vendor_payment", "customer_refund", "vendor_refund", "customer_advance", "vendor_advance", "transfer"] as const;
+export const cashPreviewTypes = ["receipt", "vendor_payment", "customer_refund", "vendor_refund", "customer_advance", "vendor_advance", "transfer", "advance_application"] as const;
 export type CashPreviewType = typeof cashPreviewTypes[number];
 export interface PostingPreviewLine {
   lineNo: number; accountId: string; accountCode: string | null; accountName: string | null;

@@ -25,7 +25,7 @@ const sourceNames: Record<string, string> = {
   invoice: "Invoice", customer_credit: "Customer credit", bill: "Supplier bill", vendor_credit: "Supplier credit",
   paid_expense: "Paid expense", receipt: "Customer receipt", vendor_payment: "Supplier payment",
   customer_refund: "Customer refund", vendor_refund: "Supplier refund", customer_advance: "Customer advance",
-  vendor_advance: "Supplier advance", transfer: "Account transfer", manual_journal: "Manual journal",
+  vendor_advance: "Supplier advance", advance_application: "Advance application", transfer: "Account transfer", manual_journal: "Manual journal",
   controlled_adjustment: "Controlled adjustment", opening_balance: "Opening balance", write_off: "Write-off",
   reversal: "Reversal", year_close: "Year close"
 };

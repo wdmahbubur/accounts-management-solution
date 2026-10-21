@@ -48,7 +48,7 @@ export function DocumentFacts({ document }: { document: DetailRecord }) {
   const party = issuedPartyDetails(document), trade = detailRecord(document.trade);
   const hasParty = typeof document.party_id === "string" || Object.keys(detailRecord(document.party_snapshot)).length > 0;
   const supplier = ["bill", "vendor_credit", "vendor_payment", "vendor_refund", "vendor_advance", "paid_expense"].includes(String(document.document_type));
-  const partyTitle = `${document.state === "posted" ? "Issued" : "Saved"} ${supplier ? "supplier" : "customer"}`;
+  const partyTitle = `${document.state === "posted" ? "Issued" : "Saved"} ${document.document_type==='advance_application'?'contact':supplier ? "supplier" : "customer"}`;
   return <section id="document-details" className={styles.section} aria-labelledby="document-details-title">
     <h2 id="document-details-title">Document details</h2>
     <div className={hasParty ? styles.detailsGrid : undefined}>
