@@ -2,6 +2,8 @@
 
 Base: PR #185, `759b298590366ca3c24e3325a166a25477875d15`. Target: isolated PostgreSQL 18, restricted runtime/worker logins and private `ams-recovery-drill` object bucket. Private configuration, credentials, downloaded engine binaries/signatures and object byte backups are excluded from Git.
 
+Implementation: `2c84057484008669bd7dc7468baa54c9eec80509`. Checks below ran against its application/SQL/test contents. This evidence follow-up only records the SHA and trims terminal trailing whitespace in three static/build receipts; no outcomes are changed.
+
 - [Cash-flow database tests](cash-flow-finalization-accepted.log): 4 passed, no skips.
 - [Real ClamAV worker tests](scanner-real.log): 5 passed, no skips, engine 1.5.4/database 28160.
 - [Private CSV/PDF/XLSX integration](exports-readable-pdf-accepted.log): 6 passed, no skips.
