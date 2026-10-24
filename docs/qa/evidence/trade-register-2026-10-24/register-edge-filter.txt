@@ -1,0 +1,122 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales" [expanded]:
+          - generic: Sales
+      - link "Invoices":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices
+      - link "Customer receipts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/receipts
+      - link "Customers":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/customers
+      - link "Service catalogue":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/catalog/items
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - generic: Invoices
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Sales
+  - heading "Invoices" [level=1]
+  - paragraph: Track customer invoices, outstanding balances and delivery.
+  - link "Create invoice":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new
+  - link "Export CSV":
+    - /url: /api/v1/organizations/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/invoices/export?tab=all&search=000002
+  - navigation "Invoice status":
+    - link "All":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices?tab=all&search=000002
+    - link "Drafts":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices?tab=drafts&search=000002
+    - link "Awaiting approval":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices?tab=awaiting_approval&search=000002
+    - link "Posted":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices?tab=posted&search=000002
+  - region "Invoice filters":
+    - text: Search invoices
+    - searchbox "Search invoices": "000002"
+    - button "Search"
+    - link "Clear":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices?tab=all
+    - generic "Saved filters"
+    - option "Choose saved filter" [selected]
+  - heading "All invoices" [level=2]
+  - paragraph: Amounts in USD
+  - region "Invoice register":
+    - table:
+      - rowgroup:
+        - row "Invoice Customer Dates Total Outstanding Settlement Delivery Actions":
+          - columnheader "Invoice"
+          - columnheader "Customer"
+          - columnheader "Dates"
+          - columnheader "Total"
+          - columnheader "Outstanding"
+          - columnheader "Settlement"
+          - columnheader "Delivery"
+          - columnheader "Actions"
+      - rowgroup:
+        - row "INV-FY 2025-000002 Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name 2025-01-15 Due 2025-01-15 100.00 0.00 reversed not sent Open Duplicate":
+          - rowheader "INV-FY 2025-000002":
+            - link "INV-FY 2025-000002":
+              - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/d3ddd1af-dc03-44bd-9bcf-745266937540
+          - cell "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name"
+          - cell "2025-01-15 Due 2025-01-15":
+            - text: 2025-01-15
+            - generic: Due 2025-01-15
+          - cell "100.00"
+          - cell "0.00"
+          - cell "reversed":
+            - generic: reversed
+          - cell "not sent"
+          - cell "Open Duplicate":
+            - link "Open":
+              - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/d3ddd1af-dc03-44bd-9bcf-745266937540
+            - link "Duplicate":
+              - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=d3ddd1af-dc03-44bd-9bcf-745266937540
+  - paragraph: Posting, settlement and delivery are separate statuses. Drafts do not affect the ledger.
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert

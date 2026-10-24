@@ -25,6 +25,7 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test:application": "node --conditions=react-server --test tests/application/*.test.mjs tests/application/*.test.ts",
     "test:database:cash-accounts": "node --test tests/database/cash-account-balance.test.mjs",
+    "test:database:trade-register": "node --conditions=react-server --test tests/database/trade-register-status.test.mjs",
     "test:database:dashboard-liquidity": "node --test tests/database/dashboard-liquidity.test.mjs",
     "test:database:login-limiter": "node --conditions=react-server --test tests/database/login-rate-limit.test.mjs",
     "test:database:invoice-pdf": "node --conditions=react-server --test tests/database/invoice-pdf-download.test.mjs",

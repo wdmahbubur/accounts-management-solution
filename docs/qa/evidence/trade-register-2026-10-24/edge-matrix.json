@@ -1,0 +1,554 @@
+{
+  "browser": "Actual user Edge, extension-controlled",
+  "mode": "Desktop CSS viewport override, mobile false, current 75% zoom",
+  "measurements": [
+    {
+      "width": 320,
+      "left": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 962.9583530426024,
+            "right": 996.4166889190674,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 1010.4166660308838,
+            "right": 1067.8333339691162,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 237.33334350585935,
+        "page": {
+          "client": 300,
+          "scroll": 300
+        },
+        "region": {
+          "client": 235,
+          "left": 0,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 320
+        }
+      },
+      "right": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 109.62500953674316,
+            "right": 143.083345413208,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 157.08333778381348,
+            "right": 214.5000057220459,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 237.33334350585935,
+        "page": {
+          "client": 300,
+          "scroll": 300
+        },
+        "region": {
+          "client": 235,
+          "left": 853.3333129882812,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 320
+        }
+      }
+    },
+    {
+      "width": 390,
+      "left": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 948.2916660308838,
+            "right": 981.7500019073486,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 995.7500400543212,
+            "right": 1053.1667079925537,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 308,
+        "page": {
+          "client": 370,
+          "scroll": 370
+        },
+        "region": {
+          "client": 305,
+          "left": 14.666666984558104,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 390
+        }
+      },
+      "right": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 200.2916660308838,
+            "right": 233.75000190734863,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 247.75000953674316,
+            "right": 305.1666774749756,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 308,
+        "page": {
+          "client": 370,
+          "scroll": 370
+        },
+        "region": {
+          "client": 305,
+          "left": 762.6666870117188,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 390
+        }
+      }
+    },
+    {
+      "width": 768,
+      "left": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 948.5000381469728,
+            "right": 981.9583740234376,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 995.9584121704102,
+            "right": 1053.3750801086426,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 360,
+        "page": {
+          "client": 748,
+          "scroll": 748
+        },
+        "region": {
+          "client": 671,
+          "left": 16,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 768
+        }
+      },
+      "right": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 567.1666641235352,
+            "right": 600.625,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 614.6250381469727,
+            "right": 672.0417060852051,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 360,
+        "page": {
+          "client": 748,
+          "scroll": 748
+        },
+        "region": {
+          "client": 671,
+          "left": 397.3333435058594,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 768
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "left": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 964.500030517578,
+            "right": 997.958366394043,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 1011.9584045410156,
+            "right": 1069.375072479248,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 360,
+        "page": {
+          "client": 1420,
+          "scroll": 1420
+        },
+        "region": {
+          "client": 1087,
+          "left": 0,
+          "scroll": 1088
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 1440
+        }
+      },
+      "right": {
+        "actions": [
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 980.7916564941406,
+            "right": 1014.2499923706056,
+            "text": "Open"
+          },
+          {
+            "href": "/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices/new?copy=e85437c1-7e08-4590-b1fc-53196f898aaf",
+            "left": 1028.250030517578,
+            "right": 1085.6666984558103,
+            "text": "Duplicate"
+          }
+        ],
+        "filterWidth": 360,
+        "page": {
+          "client": 1440,
+          "scroll": 1440
+        },
+        "region": {
+          "client": 1107,
+          "left": 0,
+          "scroll": 1107
+        },
+        "rows": [
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15\nOverdue",
+            "id": "INV-FY 2025-000001",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Unpaid",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-15\nDue 2025-01-15",
+            "id": "INV-FY 2025-000002",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Reversed",
+            "statusWhiteSpace": "nowrap"
+          },
+          {
+            "customer": "Synthetic International Consulting Services Europe Middle East Asia Pacific Customer With A Long Display Name",
+            "dateWhiteSpace": "nowrap",
+            "dates": "2025-01-20\nDue —",
+            "id": "Draft",
+            "idHeight": 20.625,
+            "idLineHeight": "20.64px",
+            "idWhiteSpace": "nowrap",
+            "status": "Not Posted",
+            "statusWhiteSpace": "nowrap"
+          }
+        ],
+        "viewport": {
+          "dpr": 0.75,
+          "height": 760,
+          "scale": 1,
+          "width": 1440
+        }
+      }
+    }
+  ]
+}
