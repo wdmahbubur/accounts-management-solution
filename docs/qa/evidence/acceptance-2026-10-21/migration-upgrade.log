@@ -1,0 +1,6 @@
+{"target":"/neondb","mode":"isolated upgrade"}
+Applied 0106_disambiguate_tax_version_update.sql
+Migration check complete (105 files).
+{"target":"/ams_clean_launch_20261021","mode":"isolated upgrade"}
+Applied 0106_disambiguate_tax_version_update.sql
+Migration check complete (105 files).

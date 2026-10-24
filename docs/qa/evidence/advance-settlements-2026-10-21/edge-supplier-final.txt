@@ -1,0 +1,35 @@
+FINANCE
+
+Advances and refunds
+Customer advances
+Supplier advances
+As of
+Refresh balances
+Record advance
+Financial documents
+Supplier advances · BDT
+Advance	Party	Original	Applied	Refunded	Remaining	History
+VADV-FY 2025-000001	Synthetic vendor	10000.00	6000.00	4000.00	0.00
+Activity
+Apply or refund
+Settlement details
+Action
+Apply advance
+Customer refund
+Supplier refund
+Advance type
+Customer
+Supplier
+Eligible balance
+Choose a balance
+
+No eligible balances for this date.
+
+Invoice or bill
+Choose a target
+Amount · BDT
+Description
+Save draft
+Cancel
+
+Draft only · review and approve before posting

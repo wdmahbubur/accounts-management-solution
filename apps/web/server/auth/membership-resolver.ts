@@ -15,7 +15,12 @@ export function createMembershipResolver(client: Pick<RequestClient, "rpc">): Me
       const { data, error } = await client.rpc("resolve_active_membership", {
         p_organization_id: organizationId
       });
-      if (error || !Array.isArray(data) || data.length !== 1) return null;
+      if (error) {
+        if (["28000", "42501", "P0002"].includes(error.code ?? "")) return null;
+        throw new Error("Company authorization could not be checked.");
+      }
+      if (!Array.isArray(data)) throw new Error("Invalid company authorization response.");
+      if (data.length !== 1) return null;
       const row = data[0] as MembershipRow;
       const capabilities = Array.isArray(row.capabilities)
         ? row.capabilities.filter((value): value is string => typeof value === "string")

@@ -1,0 +1,17 @@
+✔ T10 customer application reclassifies with two settlements; unused refund and reversal preserve dated balances (94909.6268ms)
+✔ linked plans bind genuine checker decisions; historical future consumption and locked periods reject writes (96104.9811ms)
+✔ T11 supplier application uses AP/advance asset and refund settles unused asset without another expense (69415.9616ms)
+✔ T13 linked trade credit refunds use AR/AP and reject excess, wrong party, wrong control, tenant and ordinary-role bypasses (125125.173ms)
+✔ T36 material edits supersede settlement approvals; S08 application/refund different-key race cannot overspend advance (77684.2401ms)
+{"fixture":"opening-advance-settlement","organizationId":"9f391500-22cd-4c71-86ac-64b993152382","sourceItems":4,"targetItems":2,"linkedCommands":6}
+✔ cutover advances and individual opening trade credits settle without duplicating cash, revenue or expense (111129.4681ms)
+{"fixture":"refund-safety","organizationId":"5d88012f-1e5b-428d-b679-e2f4a1786d4e"}
+✔ T-13 refund cannot post without explicitly selected eligible credit settlement (50116.9316ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 463882.2071

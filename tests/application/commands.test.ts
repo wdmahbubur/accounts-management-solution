@@ -28,6 +28,7 @@ import type {
 const ORG_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const USER_A = "11111111-1111-4111-8111-111111111111";
 const MEMBER_A = "22222222-2222-4222-8222-222222222222";
+process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
 
 type Input = { expected_version: number; amount: string };
 type Output = { accepted: true; member_id: string };
@@ -94,8 +95,29 @@ const validPayload = {
 
 const idempotencyHeaders = {
   "content-type": "application/json",
+  "origin": "http://localhost:3000",
   "idempotency-key": "0123456789abcdef0123456789abcdef"
 };
+
+test("cookie-authenticated command routes reject missing, forged and cross-site origins before execution", async () => {
+  const calls = { count: 0 };
+  const handler = createOrganizationRouteHandler({ definition: command(calls), dependencies: dependencies() });
+  const rejectedHeaders: Array<Record<string, string>> = [
+    { origin: "" },
+    { origin: "https://untrusted.example" },
+    { origin: "null" },
+    { origin: "http://localhost:3000", "sec-fetch-site": "cross-site" },
+    { origin: "https://untrusted.example", "x-forwarded-host": "untrusted.example" }
+  ];
+  for (const extra of rejectedHeaders) {
+    const response = await handler(new Request(`http://localhost/api/v1/organizations/${ORG_A}/documents/x/post`, {
+      method: "POST", headers: { ...idempotencyHeaders, ...extra }, body: JSON.stringify(validPayload)
+    }), { params: Promise.resolve({ organizationId: ORG_A }) });
+    assert.equal(response.status, 403);
+    assert.match(response.headers.get("cache-control") ?? "", /private.*no-store/);
+  }
+  assert.equal(calls.count, 0);
+});
 
 test("money and expected-version contracts reject non-canonical authority inputs", () => {
   assert.equal(parseMoneyString("10000.00"), "10000.00");

@@ -1,0 +1,32 @@
+FINANCE REVIEW
+
+Approval inbox
+
+Review the exact submitted source version, evidence, policy snapshot and calculation preview before deciding.
+
+Pending
+Approved
+Rejected
+All
+Type / reference	Maker	Amount (BDT)	Submitted	Policy progress	Status	Action
+vendor refund
+VRF-FY 2025-000001
+	Synthetic checker	4000.00	10/21/2026, 11:50:21 AM	Not required	No further action	Review
+advance application
+ADV-FY 2025-000002
+	Synthetic owner	6000.00	10/21/2026, 11:36:48 AM	1 / 1 approved	No further action	Review
+customer refund
+CRF-FY 2025-000001
+	Synthetic owner	4000.00	10/21/2026, 11:30:44 AM	Not required	No further action	Review
+bill
+BILL-FY 2025-000001
+	Synthetic owner	10000.00	10/21/2026, 11:21:27 AM	Not required	No further action	Review
+invoice
+INV-FY 2025-000001
+	Synthetic owner	10000.00	10/21/2026, 11:21:22 AM	Not required	No further action	Review
+vendor advance
+VADV-FY 2025-000001
+	Synthetic owner	10000.00	10/21/2026, 11:21:16 AM	Not required	No further action	Review
+customer advance
+CADV-FY 2025-000001
+	Synthetic owner	10000.00	10/21/2026, 11:21:11 AM	Not required	No further action	Review

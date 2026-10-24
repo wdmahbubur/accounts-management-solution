@@ -1,0 +1,20 @@
+▶ golden books reconcile invoice, collection, purchases, paid expense and statements
+  ✔ T-01 drafts have no ledger effect; capital contributes cash without revenue (13315.5461ms)
+  ✔ T-02..T-05 an invoice posts once under same-key and different-key retries (10226.9156ms)
+  ✔ T-06 a partial collection leaves AR 4000 and does not recognize revenue twice (7074.1994ms)
+  ✔ T-14 a vendor payment reduces AP without a second expense (10959.9947ms)
+  ✔ paid rent recognizes one expense and cash movement (6452.2798ms)
+  ✔ T-26 historical AR/AP aging follows settlement dates and reconciles control accounts (7812.0255ms)
+  ✔ T-47 GL, trial balance, profit/loss, balance sheet and cash flow tie to golden books (20581.4266ms)
+  ✔ statement unapply evidence retains both distinct source documents without another journal (5000.5135ms)
+{"fixture":"golden-books","organizationId":"e389691e-0664-4911-863d-e0ccf8ba1d7b","invoice":"f0a93873-2a40-44f4-8e53-7760b2f7e9a9"}
+  ✔ S-03 reports deny Billing and foreign identities while Auditor succeeds (21423.8928ms)
+✔ golden books reconcile invoice, collection, purchases, paid expense and statements (131912.5557ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132311.7047

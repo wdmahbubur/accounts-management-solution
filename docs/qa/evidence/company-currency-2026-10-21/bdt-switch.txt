@@ -1,0 +1,220 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview" [expanded]:
+          - generic: Overview
+      - link "Dashboard":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+      - link "Reports":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+      - link "Notifications":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/notifications
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - generic: Dashboard
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Golden alpha
+  - heading "Financial overview" [level=1]
+  - paragraph: BDT accrual books · Asia/Dhaka
+  - link "Company setup":
+    - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/setup
+  - form "Dashboard dates":
+    - text: Performance from
+    - textbox "Performance from": 2026-01-01
+    - text: Through
+    - textbox "Through": 2026-10-21
+    - text: Balances as of
+    - textbox "Balances as of": 2026-10-21
+    - button "Apply dates"
+  - region "Performance":
+    - heading "Performance" [level=2]
+    - paragraph: 2026-01-01 to 2026-10-21 · balances as of 2026-10-21
+    - article:
+      - link "Earned revenue BDT 0.00 2026-01-01 to 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/profit-loss?from=2026-01-01&to=2026-10-21
+        - generic: Earned revenue
+        - strong: BDT 0.00
+        - generic: 2026-01-01 to 2026-10-21
+    - article:
+      - link "Expenses BDT 0.00 Accrual basis":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/profit-loss?from=2026-01-01&to=2026-10-21
+        - generic: Expenses
+        - strong: BDT 0.00
+        - generic: Accrual basis
+    - article:
+      - link "Net profit BDT 0.00 Posted + approved opening totals":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/profit-loss?from=2026-01-01&to=2026-10-21
+        - generic: Net profit
+        - strong: BDT 0.00
+        - generic: Posted + approved opening totals
+    - article:
+      - link "Cash BDT 0.00 Cash equivalents · as of 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/cash-flow?from=2026-01-01&to=2026-10-21#cash-equivalent-accounts
+        - generic: Cash
+        - strong: BDT 0.00
+        - generic: Cash equivalents · as of 2026-10-21
+    - article:
+      - link "Bank BDT 102000.00 Cash equivalents · as of 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/cash-flow?from=2026-01-01&to=2026-10-21#cash-equivalent-accounts
+        - generic: Bank
+        - strong: BDT 102000.00
+        - generic: Cash equivalents · as of 2026-10-21
+    - article:
+      - link "Total assets BDT 106000.00 Balance Sheet as of 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/balance-sheet?as_of=2026-10-21
+        - generic: Total assets
+        - strong: BDT 106000.00
+        - generic: Balance Sheet as of 2026-10-21
+  - heading "Monthly revenue and net profit" [level=2]
+  - paragraph: Ledger detail from 2026-01-01
+  - img "Monthly revenue and net profit chart; table below contains exact amounts":
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-01
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-02
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-03
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-04
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-05
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-06
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-07
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-08
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-09
+    - generic "Revenue 0.00"
+    - generic "Net profit 0.00"
+    - generic: 2026-10
+  - paragraph:
+    - generic: Revenue
+    - generic: Net profit
+  - generic "View exact monthly amounts"
+  - paragraph: Approved pre-cutover year-to-date opening summaries are included in headline totals, but are not distributed across these months.
+  - region "Customer and supplier balances":
+    - heading "Customer and supplier balances" [level=2]
+    - paragraph: As of 2026-10-21
+    - article:
+      - link "Receivables BDT 4000.00 Open customer balances · as of 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/receivables?as_of=2026-10-21
+        - generic: Receivables
+        - strong: BDT 4000.00
+        - generic: Open customer balances · as of 2026-10-21
+    - article:
+      - 'link "Overdue receivables BDT 4000.00 Unapplied customer credits: 0.00"':
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/receivables?as_of=2026-10-21
+        - generic: Overdue receivables
+        - strong: BDT 4000.00
+        - generic: "Unapplied customer credits: 0.00"
+    - article:
+      - link "Payables BDT 1000.00 Open supplier balances · as of 2026-10-21":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/payables?as_of=2026-10-21
+        - generic: Payables
+        - strong: BDT 1000.00
+        - generic: Open supplier balances · as of 2026-10-21
+    - article:
+      - 'link "Overdue payables BDT 0.00 Due within 30 days: 0.00"':
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/payables?as_of=2026-10-21
+        - generic: Overdue payables
+        - strong: BDT 0.00
+        - generic: "Due within 30 days: 0.00"
+  - heading "Recent company activity" [level=2]
+  - list:
+    - strong: Report export requested
+    - generic: Export job
+    - time: 21 Oct 2026, 18:49
+    - strong: Cash flow finalize
+    - generic: Cash flow finalization
+    - time: 21 Oct 2026, 18:39
+    - strong: Document post
+    - generic: Business document
+    - time: 21 Oct 2026, 18:24
+    - strong: Document approval submit
+    - generic: Business document
+    - time: 21 Oct 2026, 18:23
+    - strong: Document draft create
+    - generic: Business document
+    - time: 21 Oct 2026, 18:22
+    - strong: Allocation created
+    - generic: Settlement allocation
+    - time: 21 Oct 2026, 18:19
+    - strong: Document post
+    - generic: Business document
+    - time: 21 Oct 2026, 18:19
+    - strong: Document approval submit
+    - generic: Business document
+    - time: 21 Oct 2026, 18:19
+  - heading "Quick links" [level=2]
+  - navigation "Company modules":
+    - link "Sales and invoices":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/sales/invoices
+    - link "Purchases and bills":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/purchases/bills
+    - link "Reports":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+    - link "Fiscal periods":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/periods
+    - link "Cash and bank":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/banking/accounts
+    - link "Users and roles":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/users
+  - generic "Snapshot details · Posted snapshot"
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert

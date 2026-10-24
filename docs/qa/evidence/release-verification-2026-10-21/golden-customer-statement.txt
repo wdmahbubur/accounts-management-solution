@@ -1,0 +1,160 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview" [expanded]:
+          - generic: Overview
+      - link "Dashboard":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+      - link "Reports":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+      - link "Notifications":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/notifications
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - link "Reports":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+    - generic: /
+    - generic: Customer and supplier statements
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Reports · Party statements
+  - heading "Customer and supplier statements" [level=1]
+  - text: Side
+  - combobox "Side":
+    - option "Customer / AR" [selected]
+    - option "Supplier / AP"
+  - text: Search party
+  - searchbox "Search party"
+  - text: From
+  - textbox "From": 2025-01-01
+  - text: To
+  - textbox "To": 2025-01-31
+  - button "Open statement"
+  - paragraph: Customer statement · 2025-01-01 to 2025-01-31
+  - heading "Synthetic customer" [level=2]
+  - paragraph: No email on file · Accounts receivable
+  - generic "Statement snapshot details"
+  - button "Print / Save as PDF"
+  - paragraph:
+    - link "Download JSON statement":
+      - /url: /api/v1/organizations/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/customer-statement?party_id=e676bf56-f182-4d16-8171-7c89b55ad8f0&from=2025-01-01&to=2025-01-31&format=json
+  - paragraph:
+    - text: File format
+    - combobox "File format":
+      - option "CSV" [selected]
+      - option "PDF"
+      - option "XLSX"
+    - button "Queue export"
+  - heading "Trade receivable balance" [level=2]
+  - term: Opening
+  - definition: BDT 0.00
+  - term: Source movements
+  - definition: BDT 4000.00
+  - term: Closing
+  - definition: BDT 4000.00
+  - status: Opening plus movements equals closing.
+  - paragraph: "Control ledger balance: BDT 4000.00 · Difference: BDT 0.00 · Control reconciled"
+  - heading "Customer advance · separate control" [level=2]
+  - term: Opening
+  - definition: BDT 0.00
+  - term: Source movements
+  - definition: BDT 0.00
+  - term: Closing
+  - definition: BDT 0.00
+  - paragraph: "Control ledger balance: BDT 0.00 · Difference: BDT 0.00"
+  - heading "Movements and allocation history" [level=2]
+  - table:
+    - rowgroup:
+      - row "Date Account stream Type Document / settlement Reference Related document Details Balance effect (BDT) Running balance (BDT)":
+        - columnheader "Date"
+        - columnheader "Account stream"
+        - columnheader "Type"
+        - columnheader "Document / settlement"
+        - columnheader "Reference"
+        - columnheader "Related document"
+        - columnheader "Details"
+        - columnheader "Balance effect (BDT)"
+        - columnheader "Running balance (BDT)"
+    - rowgroup:
+      - row "2025-01-15 AR trade Allocation RCPT-FY 2025-000001 RCPT-FY 2025-000001 INV-FY 2025-000001 Applied BDT 6000.00 0.00 0.00":
+        - cell "2025-01-15"
+        - cell "AR trade"
+        - cell "Allocation"
+        - cell "RCPT-FY 2025-000001":
+          - link "RCPT-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents/a9a92bbf-7f7d-4b53-b7d2-e79944e424db
+        - cell "RCPT-FY 2025-000001"
+        - cell "INV-FY 2025-000001":
+          - link "INV-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents/4d12d3da-4a2e-4874-80df-6f10140e7d05
+        - cell "Applied BDT 6000.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "2025-01-15 AR trade Invoice INV-FY 2025-000001 INV-FY 2025-000001 — — 10000.00 10000.00":
+        - cell "2025-01-15"
+        - cell "AR trade"
+        - cell "Invoice"
+        - cell "INV-FY 2025-000001":
+          - link "INV-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents/4d12d3da-4a2e-4874-80df-6f10140e7d05
+        - cell "INV-FY 2025-000001"
+        - cell "—"
+        - cell "—"
+        - cell "10000.00"
+        - cell "10000.00"
+      - row "2025-01-15 AR trade Customer receipt RCPT-FY 2025-000001 RCPT-FY 2025-000001 — — -6000.00 4000.00":
+        - cell "2025-01-15"
+        - cell "AR trade"
+        - cell "Customer receipt"
+        - cell "RCPT-FY 2025-000001":
+          - link "RCPT-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents/a9a92bbf-7f7d-4b53-b7d2-e79944e424db
+        - cell "RCPT-FY 2025-000001"
+        - cell "—"
+        - cell "—"
+        - cell "-6000.00"
+        - cell "4000.00"
+- contentinfo: BDT books · No financial changes are queued offline.

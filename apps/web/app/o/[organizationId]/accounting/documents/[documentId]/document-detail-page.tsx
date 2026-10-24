@@ -1,3 +1,4 @@
+import {companyDate} from '../../../../../../server/companies/today.ts';
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -13,6 +14,7 @@ import { readCreditNoteOptions, type CreditNoteOptions } from "../../../../../..
 import { readCreditApplicationOptions } from "../../../../../../server/documents/credit-application.ts";
 import type { CreditApplicationOptions } from "../../../../../../lib/credit-application.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
+import { SettlementReview } from '../../../advances/settlement-form.tsx';
 import { DraftEditor, type DraftOptions } from "../draft-editor.tsx";
 import { listActiveMemberships } from "../../../../../../server/companies/memberships.ts";
 import { OpeningSubmitAction } from "../opening-submit-action.tsx";
@@ -22,7 +24,7 @@ import { AllocationUnapplyAction } from "../allocation-unapply-action.tsx";
 import { CreditApplicationAction } from "../credit-application-action.tsx";
 import { WriteOffSubmitAction } from "../write-off-submit-action.tsx";
 import { InvoiceSendAction } from "./invoice-send-action.tsx";
-import { bangladeshDate } from "../../../../../../lib/date.ts";
+
 import {
   CashMovementDetails, Disclosure, DocumentFacts, DocumentHeader, DocumentHistory, DocumentItems,
   DocumentTechnicalDetails, JournalTable, PlannedSettlements
@@ -86,11 +88,11 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
         catch (error) { if (!(error instanceof CommandError && ["NOT_FOUND", "FORBIDDEN"].includes(error.code))) throw error; }
       }
       if (document.state === "posted" && actor.capabilities.includes("dues.read")) {
-        try { creditApplication = await readCreditApplicationOptions(runtime.client, actor, documentId, bangladeshDate()); }
+        try { creditApplication = await readCreditApplicationOptions(runtime.client, actor, documentId, (await companyDate())); }
         catch { creditApplicationError = "Credit settlement balances could not be loaded. Refresh available credit to retry."; }
       }
     }
-    if (type !== "opening_balance" && String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type) && canEditFinancialDocument(actor, type) && actor.capabilities.includes("documents.read")) {
+    if (!document.linked_settlement && type !== "opening_balance" && String(document.state) === "draft" && (sourceTypes as readonly string[]).includes(type) && canEditFinancialDocument(actor, type) && actor.capabilities.includes("documents.read")) {
       const raw = await readDraftOptions(runtime.client, actor, type, String(document.accounting_date));
       options = {
         accounts: Array.isArray(raw.accounts) ? raw.accounts as DraftOptions["accounts"] : [],
@@ -168,6 +170,8 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
 
     {document.reversed_by_document_id ? <p className={styles.notice}>This document has a linked reversal{has("documents.read") ? <>: <Link href={`/o/${organizationId}/accounting/documents/${String(document.reversed_by_document_id)}`}>{detailText(document.reversed_by_document_number, "Open reversal")}</Link></> : "."}</p> : null}
     {document.reversal_of_document_id ? <p className={styles.notice}>Reversal of <Link href={`/o/${organizationId}/accounting/documents/${String(document.reversal_of_document_id)}`}>{detailText(document.reversal_of_document_number, "the original document")}</Link>. Both events remain in the ledger.</p> : null}
+    {document.linked_settlement ? <section className="panel"><h2>Linked settlement</h2><p><Link href={`/o/${organizationId}/accounting/documents/${String(detailRecord(document.linked_settlement).source_document_id)}`}>Source advance or credit</Link>{detailRecord(document.linked_settlement).target_document_id ? <> · <Link href={`/o/${organizationId}/accounting/documents/${String(detailRecord(document.linked_settlement).target_document_id)}`}>Target invoice or bill</Link></> : null}</p>{['draft','approved','pending_approval'].includes(String(document.state)) && has('dues.allocate') ? <Link href={`/o/${organizationId}/advances?document_id=${documentId}&date=${String(document.accounting_date)}`}>Edit settlement</Link> : null}</section> : null}
+    {document.linked_settlement && document.state==='draft' && has('dues.allocate') ? <SettlementReview key={Number(document.version)} organizationId={organizationId} documentId={documentId} version={Number(document.version)} canSubmit={has('documents.read')} /> : null}
     {canPost ? <div className={styles.commandArea}><PostingAction organizationId={organizationId} documentId={documentId} version={Number(document.version)} /></div> : null}
 
     {creditOriginal ? <p className={styles.notice}>Credit against the original {creditOriginal.document_type === "bill" ? "bill" : "invoice"}: <Link href={`/o/${organizationId}/accounting/documents/${String(creditOriginal.id)}`}>{detailText(creditOriginal.document_number, "Open original document")}</Link>. The original document and its issued details are preserved.</p> : null}
@@ -176,7 +180,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
     <DocumentItems document={document} />
     <CashMovementDetails document={document} />
     {(type === "customer_credit" || type === "vendor_credit") && document.state === "posted" && has("dues.read") ? <CreditApplicationAction key={documentId} organizationId={organizationId} documentId={documentId}
-      initial={creditApplication} initialError={creditApplicationError} defaultDate={bangladeshDate()} canApply={has("dues.allocate") && !document.reversed_by_document_id} /> : null}
+      initial={creditApplication} initialError={creditApplicationError} defaultDate={(await companyDate())} canApply={has("dues.allocate") && !document.reversed_by_document_id} /> : null}
 
     {invoiceLifecycle ? <SettlementSection organizationId={organizationId} lifecycle={invoiceLifecycle} title="Payments and credits" canUnapply={false} /> : null}
     {receiptLifecycle && document.state === "posted" ? <SettlementSection organizationId={organizationId} lifecycle={receiptLifecycle} title="Receipt settlement" canUnapply={has("dues.allocate")} /> : null}
@@ -209,7 +213,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
       {journal.id ? <JournalTable rows={detailRows(journal.lines)} caption={`Posted journal · ${detailDate(journal.accounting_date)}`} /> : <p className={styles.hint}>No posted journal is linked. Drafts and approvals do not affect the ledger.</p>}
     </Disclosure> : null}
     <DocumentHistory organizationId={organizationId} lifecycle={lifecycle} capabilities={capabilities} />
-    {canReverse ? <Disclosure title="Correct or reverse this document"><ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} defaultDate={bangladeshDate()} /></Disclosure> : null}
+    {canReverse ? <Disclosure title="Correct or reverse this document"><ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} defaultDate={(await companyDate())} /></Disclosure> : null}
     <DocumentTechnicalDetails document={document} showJournal={has("ledger.read")} />
   </main>;
 }

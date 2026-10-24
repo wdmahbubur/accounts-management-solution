@@ -1,0 +1,168 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview" [expanded]:
+          - generic: Overview
+      - link "Dashboard":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+      - link "Reports":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+      - link "Notifications":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/notifications
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - link "Reports":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+    - generic: /
+    - generic: Cash flow
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Reports · Golden alpha
+  - heading "Cash flow" [level=1]
+  - paragraph: Management report · not an IAS 7 statutory statement.
+  - generic "Report basis and snapshot details"
+  - text: From
+  - textbox "From": 2025-01-01
+  - text: To
+  - textbox "To": 2025-01-31
+  - button "Run report"
+  - link "Download JSON snapshot":
+    - /url: /api/v1/organizations/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/cash_flow?from=2025-01-01&to=2025-01-31&format=json&finalization=59fae944-cbc2-4d31-88cd-3df97925076b
+  - heading "Review status" [level=2]
+  - status: Finalized snapshot · 2026-10-21T12:39:01.870625+00:00. This preserves the reviewed cutoff; it does not lock or certify the books.
+  - link "View current report":
+    - /url: "?from=2025-01-01&to=2025-01-31"
+  - heading "Reconciliation · 2025-01-01 to 2025-01-31" [level=2]
+  - term: Opening cash equivalents
+  - definition: BDT 0.00
+  - term: Operating
+  - definition: BDT 2000.00
+  - term: Investing
+  - definition: BDT 0.00
+  - term: Financing
+  - definition: BDT 100000.00
+  - term: Internal transfer in / out
+  - definition: BDT 0.00 / 0.00
+  - term: Internal transfer net
+  - definition: BDT 0.00
+  - term: Unclassified net movement
+  - definition: BDT 0.00
+  - term: Calculated closing cash
+  - definition: BDT 102000.00
+  - term: Ledger closing cash
+  - definition: BDT 102000.00
+  - term: Difference
+  - definition: BDT 0.00
+  - status: Finalized snapshot · classified cash movements reconcile to the ledger.
+  - heading "Cash-equivalent accounts" [level=2]
+  - table:
+    - rowgroup:
+      - row "Account Opening (BDT) Closing (BDT)":
+        - columnheader "Account"
+        - columnheader "Opening (BDT)"
+        - columnheader "Closing (BDT)"
+    - rowgroup:
+      - row "1010 · Bank 0.00 102000.00":
+        - cell "1010 · Bank":
+          - link "1010 · Bank":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-01&to=2025-01-31
+        - cell "0.00"
+        - cell "102000.00"
+  - heading "Classified activity" [level=2]
+  - table:
+    - rowgroup:
+      - row "Date Class Cash account Document Description Movement (BDT) Review note":
+        - columnheader "Date"
+        - columnheader "Class"
+        - columnheader "Cash account"
+        - columnheader "Document"
+        - columnheader "Description"
+        - columnheader "Movement (BDT)"
+        - columnheader "Review note"
+    - rowgroup:
+      - row "2025-01-15 Financing 1010 · Bank JV-FY 2025-000001 Synthetic golden owner contribution 100000.00 —":
+        - cell "2025-01-15"
+        - cell "Financing"
+        - cell "1010 · Bank"
+        - cell "JV-FY 2025-000001":
+          - link "JV-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-15&to=2025-01-15
+        - cell "Synthetic golden owner contribution"
+        - cell "100000.00"
+        - cell "—"
+      - row "2025-01-15 Operating 1010 · Bank RCPT-FY 2025-000001 6000.00 —":
+        - cell "2025-01-15"
+        - cell "Operating"
+        - cell "1010 · Bank"
+        - cell "RCPT-FY 2025-000001":
+          - link "RCPT-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-15&to=2025-01-15
+        - cell
+        - cell "6000.00"
+        - cell "—"
+      - row "2025-01-15 Operating 1010 · Bank EXP-FY 2025-000001 -1000.00 —":
+        - cell "2025-01-15"
+        - cell "Operating"
+        - cell "1010 · Bank"
+        - cell "EXP-FY 2025-000001":
+          - link "EXP-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-15&to=2025-01-15
+        - cell
+        - cell "-1000.00"
+        - cell "—"
+      - row "2025-01-15 Operating 1010 · Bank PAY-FY 2025-000001 -3000.00 —":
+        - cell "2025-01-15"
+        - cell "Operating"
+        - cell "1010 · Bank"
+        - cell "PAY-FY 2025-000001":
+          - link "PAY-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-15&to=2025-01-15
+        - cell
+        - cell "-3000.00"
+        - cell "—"
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: Cash flow

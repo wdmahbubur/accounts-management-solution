@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency,useCompanyCurrency} from '../../../../components/finance/company-currency.tsx';
+
 import {useEffect,useRef,useState} from "react";
 import styles from "./catalog.module.css";
 import finance from "../../../../components/finance/finance.module.css";
@@ -10,6 +12,7 @@ export type CatalogData={items:Item[];cost_centers:Center[];accounts:Account[];t
 const emptyItem=()=>({sku:"",name:"",unit:"unit",default_unit_price:"0.00",sales_account_id:"",purchase_account_id:"",tax_code_id:"",is_active:true});
 const emptyCenter=()=>({code:"",name:"",is_active:true});
 export function CatalogManager({organizationId,data,centers,canWrite}:{organizationId:string;data:CatalogData;centers:boolean;canWrite:boolean}){
+ const currency=useCompanyCurrency();
  const [items,setItems]=useState(data.items);const [costCenters,setCostCenters]=useState(data.cost_centers);const [selectedItem,setSelectedItem]=useState<Item|null>(null);const [selectedCenter,setSelectedCenter]=useState<Center|null>(null);const [item,setItem]=useState(emptyItem);const [center,setCenter]=useState(emptyCenter);const [itemOpen,setItemOpen]=useState(false);const [centerOpen,setCenterOpen]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState("");const idem=useRef(crypto.randomUUID());
  function editItem(row:Item|null){setSelectedItem(row);setItem(row?{sku:row.sku??"",name:row.name,unit:row.unit,default_unit_price:row.default_unit_price,sales_account_id:row.sales_account_id??"",purchase_account_id:row.purchase_account_id??"",tax_code_id:row.tax_code_id??"",is_active:row.is_active}:emptyItem());setItemOpen(true);setError("");}
  function editCenter(row:Center|null){setSelectedCenter(row);setCenter(row?{code:row.code,name:row.name,is_active:row.is_active}:emptyCenter());setCenterOpen(true);setError("");}
@@ -18,7 +21,7 @@ export function CatalogManager({organizationId,data,centers,canWrite}:{organizat
  const formHeading=useRef<HTMLHeadingElement>(null);
  useEffect(()=>{formHeading.current?.focus();},[itemOpen,centerOpen,selectedItem,selectedCenter]);
  return <section className={`panel ${finance.register}`}>
-   <div className={finance.listHeading}><div><h2>{centers?"Cost centers":"Service and non-stock items"}</h2><p>{centers?`${costCenters.length} saved cost centers`:`${items.length} saved items · rates in BDT`}</p></div>
+   <div className={finance.listHeading}><div><h2>{centers?"Cost centers":"Service and non-stock items"}</h2><p>{centers?`${costCenters.length} saved cost centers`:`${items.length} saved items · rates in ${currency}`}</p></div>
      {canWrite&&<button type="button" disabled={busy} onClick={()=>centers?editCenter(null):editItem(null)}>{centers?"New cost center":"New item"}</button>}
    </div>
    {centers?<>
@@ -46,7 +49,7 @@ export function CatalogManager({organizationId,data,centers,canWrite}:{organizat
            <label>Name<input required maxLength={160} value={item.name} onChange={e=>setItem({...item,name:e.target.value})}/></label>
            <label>SKU (optional)<input maxLength={80} value={item.sku} onChange={e=>setItem({...item,sku:e.target.value})}/></label>
            <label>Unit<input required maxLength={40} value={item.unit} onChange={e=>setItem({...item,unit:e.target.value})}/></label>
-           <label>Default selling rate (BDT)<input required inputMode="decimal" pattern="(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?" value={item.default_unit_price} onChange={e=>setItem({...item,default_unit_price:e.target.value})}/><span className={styles.hint}>Up to 6 decimal places.</span></label>
+           <label>Default selling rate (<CompanyCurrency />)<input required inputMode="decimal" pattern="(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?" value={item.default_unit_price} onChange={e=>setItem({...item,default_unit_price:e.target.value})}/><span className={styles.hint}>Up to 6 decimal places.</span></label>
          </div>
          <section className={styles.defaults}><h4>Account and tax defaults</h4><p className={styles.hint}>Choose at least one revenue or purchase account.</p><div className={styles.grid}>
            <label>Revenue account<select value={item.sales_account_id} onChange={e=>setItem({...item,sales_account_id:e.target.value})}><option value="">None</option>{data.accounts.filter(a=>a.account_type==="income").map(a=><option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></label>

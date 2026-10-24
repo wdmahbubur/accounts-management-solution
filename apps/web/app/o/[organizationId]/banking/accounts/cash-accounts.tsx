@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
@@ -69,7 +71,7 @@ export function CashAccounts({ organizationId, rows, options, canWrite }: { orga
     finally { pending.current = false; setBusy(null); }
   }
 
-  return <main className="content"><header className={styles.heading}><div><p className="eyebrow">Banking</p><h1>Cash and bank accounts</h1><p className={styles.metadata}>Posted book balances in BDT.</p></div>
+  return <main className="content"><header className={styles.heading}><div><p className="eyebrow">Banking</p><h1>Cash and bank accounts</h1><p className={styles.metadata}>Posted book balances in <CompanyCurrency />.</p></div>
       <div className={styles.actions}>{canWrite && <Link className="secondary" href={`/o/${organizationId}/banking/import`}>Import statement</Link>}{rows.length > 0 && <Link className="secondary" href={`/o/${organizationId}/banking/reconciliations`}>Reconcile statement</Link>}</div>
     </header>
     {error && <div className={styles.error} ref={errorRef} tabIndex={-1} role="alert"><strong>{error}</strong>{Object.entries(fieldErrors).length > 0 && <ul>{Object.entries(fieldErrors).map(([name, message]) => <li key={name}>
@@ -77,7 +79,7 @@ export function CashAccounts({ organizationId, rows, options, canWrite }: { orga
     </li>)}</ul>}</div>}
     {savedId && <p className={styles.success} role="status">Account saved. <Link href={`/o/${organizationId}/banking/accounts/${savedId}`}>Open the account ledger</Link></p>}
     {recovering && <div className={styles.notice} role="status"><p>The entered details are locked until the result is checked.</p><div className={styles.actions}><button type="button" disabled={busy !== null} onClick={() => void create()}>{busy === "create" ? "Checking…" : "Check save and retry"}</button></div></div>}
-    <section className="panel"><h2>Accounts</h2>{busy === "archive" && <p className={styles.muted} role="status">Archiving account…</p>}{rows.length === 0 ? <p className={styles.muted}>No cash, bank or wallet accounts configured.</p> : <div className="table-scroll" tabIndex={0} role="region" aria-label="Cash and bank accounts"><table><thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Ledger account</th><th scope="col" className={styles.number}>Book balance · BDT</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+    <section className="panel"><h2>Accounts</h2>{busy === "archive" && <p className={styles.muted} role="status">Archiving account…</p>}{rows.length === 0 ? <p className={styles.muted}>No cash, bank or wallet accounts configured.</p> : <div className="table-scroll" tabIndex={0} role="region" aria-label="Cash and bank accounts"><table><thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Ledger account</th><th scope="col" className={styles.number}>Book balance · <CompanyCurrency /></th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
       <tbody>{rows.map(row => <tr key={String(row.id)}><td><Link href={`/o/${organizationId}/banking/accounts/${String(row.id)}`}>{String(row.name)}</Link></td><td>{String(row.kind).replaceAll("_", " ")}</td><td>{String(row.account_code)} · {String(row.account_name)}</td><td className={styles.number}>{String(row.book_balance)}</td><td><span className={styles.badge}>{row.is_active ? "Active" : "Archived"}</span></td><td>{canWrite && row.is_active ? <button type="button" className="secondary" disabled={busy !== null || recovering} aria-label={`Archive ${String(row.name)}`} onClick={() => void archive(String(row.id))}>Archive</button> : "—"}</td></tr>)}</tbody>
     </table></div>}</section>
     {canWrite && <details ref={detailsRef} className={styles.details} open={rows.length === 0}><summary><span>Add account</span>{(dirty || recovering || busy === "create") && <span className={styles.detailMeta}>{busy === "create" ? "Saving…" : recovering ? "Save needs checking" : "Unsaved details"}</span>}</summary><div className={styles.detailsBody}>

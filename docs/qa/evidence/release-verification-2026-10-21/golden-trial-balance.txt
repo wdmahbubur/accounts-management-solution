@@ -1,0 +1,420 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents
+      - link "Journal register":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals
+      - link "General ledger":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - link "Reports":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+    - generic: /
+    - generic: Trial balance
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Reports · As of 2025-01-31
+  - heading "Trial balance" [level=1]
+  - generic "Report basis and snapshot · Posted ledger"
+  - paragraph:
+    - link "View export jobs":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/exports
+  - text: As of
+  - textbox "As of": 2025-01-31
+  - text: Movement from
+  - textbox "Movement from": 2025-01-01
+  - button "Refresh"
+  - button "Queue export"
+  - table:
+    - rowgroup:
+      - row "Code Account Type Opening (BDT) Movement debit Movement credit Closing debit Closing credit":
+        - columnheader "Code"
+        - columnheader "Account"
+        - columnheader "Type"
+        - columnheader "Opening (BDT)"
+        - columnheader "Movement debit"
+        - columnheader "Movement credit"
+        - columnheader "Closing debit"
+        - columnheader "Closing credit"
+    - rowgroup:
+      - row "1000 Cash on hand asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1000"
+        - cell "Cash on hand":
+          - link "Cash on hand":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=15425b40-0aa0-4907-9768-e2f9fdda61f9&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1010 Bank asset 0.00 106000.00 4000.00 102000.00 0.00":
+        - cell "1010"
+        - cell "Bank":
+          - link "Bank":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=238ed67f-8738-4b19-9ca0-496b608d73c5&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "106000.00"
+        - cell "4000.00"
+        - cell "102000.00"
+        - cell "0.00"
+      - row "1020 Mobile wallet asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1020"
+        - cell "Mobile wallet":
+          - link "Mobile wallet":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=f4cd9b97-b822-44ab-a374-5abcd3575906&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1030 Payment clearing asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1030"
+        - cell "Payment clearing":
+          - link "Payment clearing":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=7342cf46-9670-4c04-8582-20d4fc373f1c&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1100 Trade receivables asset 0.00 10000.00 6000.00 4000.00 0.00":
+        - cell "1100"
+        - cell "Trade receivables":
+          - link "Trade receivables":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=487340c2-e83b-46ff-94a6-177045d18465&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "10000.00"
+        - cell "6000.00"
+        - cell "4000.00"
+        - cell "0.00"
+      - row "1150 Supplier advances asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1150"
+        - cell "Supplier advances":
+          - link "Supplier advances":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=393a958d-2d42-475f-98ee-cd25bafcd1e0&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1200 Recoverable input tax asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1200"
+        - cell "Recoverable input tax":
+          - link "Recoverable input tax":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=6f02b354-3e90-4047-860d-96ad903e3163&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1300 Prepaid expenses asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1300"
+        - cell "Prepaid expenses":
+          - link "Prepaid expenses":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=6258c680-782a-40ee-9017-b901b45dc563&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1500 Equipment asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1500"
+        - cell "Equipment":
+          - link "Equipment":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=8f0cb786-7b37-4fa4-b57c-2b9600bf5724&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "1590 Accumulated depreciation asset 0.00 0.00 0.00 0.00 0.00":
+        - cell "1590"
+        - cell "Accumulated depreciation":
+          - link "Accumulated depreciation":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=7c0c2750-782c-4a6e-a549-cef0918b36e7&from=2025-01-01&to=2025-01-31
+        - cell "asset"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "2000 Trade payables liability 0.00 3000.00 4000.00 0.00 1000.00":
+        - cell "2000"
+        - cell "Trade payables":
+          - link "Trade payables":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=f1e0c72b-3416-46e0-b5d5-24bbc2d9a507&from=2025-01-01&to=2025-01-31
+        - cell "liability"
+        - cell "0.00"
+        - cell "3000.00"
+        - cell "4000.00"
+        - cell "0.00"
+        - cell "1000.00"
+      - row "2100 Output tax payable liability 0.00 0.00 0.00 0.00 0.00":
+        - cell "2100"
+        - cell "Output tax payable":
+          - link "Output tax payable":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=0f9c7bee-bcb2-45c5-8b58-12687088f19a&from=2025-01-01&to=2025-01-31
+        - cell "liability"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "2200 Customer advances liability 0.00 0.00 0.00 0.00 0.00":
+        - cell "2200"
+        - cell "Customer advances":
+          - link "Customer advances":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=32243c48-673e-431a-a61e-9351e3e506ba&from=2025-01-01&to=2025-01-31
+        - cell "liability"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "2250 Deferred revenue liability 0.00 0.00 0.00 0.00 0.00":
+        - cell "2250"
+        - cell "Deferred revenue":
+          - link "Deferred revenue":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=41d6c6af-3036-4570-9595-219724545338&from=2025-01-01&to=2025-01-31
+        - cell "liability"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "2300 Loans payable liability 0.00 0.00 0.00 0.00 0.00":
+        - cell "2300"
+        - cell "Loans payable":
+          - link "Loans payable":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=8c87683d-a2f3-4557-8709-68df52d7bde7&from=2025-01-01&to=2025-01-31
+        - cell "liability"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "3000 Owner/share capital equity 0.00 0.00 100000.00 0.00 100000.00":
+        - cell "3000"
+        - cell "Owner/share capital":
+          - link "Owner/share capital":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=ae5f42d1-628e-4590-8847-1e21fa49b75f&from=2025-01-01&to=2025-01-31
+        - cell "equity"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "100000.00"
+        - cell "0.00"
+        - cell "100000.00"
+      - row "3100 Retained earnings equity 0.00 0.00 0.00 0.00 0.00":
+        - cell "3100"
+        - cell "Retained earnings":
+          - link "Retained earnings":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=f3078070-f71a-4c9c-9a9e-f4eb89b05c0d&from=2025-01-01&to=2025-01-31
+        - cell "equity"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "3200 Distributions/drawings equity 0.00 0.00 0.00 0.00 0.00":
+        - cell "3200"
+        - cell "Distributions/drawings":
+          - link "Distributions/drawings":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=d440db72-408d-4bee-8391-b5f535708d96&from=2025-01-01&to=2025-01-31
+        - cell "equity"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "3900 Opening suspense equity 0.00 0.00 0.00 0.00 0.00":
+        - cell "3900"
+        - cell "Opening suspense":
+          - link "Opening suspense":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=99f9a6ed-81b7-484f-85d8-a82516a40222&from=2025-01-01&to=2025-01-31
+        - cell "equity"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "4000 Service revenue income 0.00 0.00 10000.00 0.00 10000.00":
+        - cell "4000"
+        - cell "Service revenue":
+          - link "Service revenue":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=924e037f-c2c3-447f-962e-802eb2dbc2be&from=2025-01-01&to=2025-01-31
+        - cell "income"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "10000.00"
+        - cell "0.00"
+        - cell "10000.00"
+      - row "4090 Sales returns/allowances income 0.00 0.00 0.00 0.00 0.00":
+        - cell "4090"
+        - cell "Sales returns/allowances":
+          - link "Sales returns/allowances":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=72594d4b-e112-455f-87f1-dd6486b843e9&from=2025-01-01&to=2025-01-31
+        - cell "income"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "5000 Direct service costs expense 0.00 4000.00 0.00 4000.00 0.00":
+        - cell "5000"
+        - cell "Direct service costs":
+          - link "Direct service costs":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=9419974c-e22f-40bf-8288-364cd1cacf4d&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "4000.00"
+        - cell "0.00"
+        - cell "4000.00"
+        - cell "0.00"
+      - row "6000 Rent expense 0.00 1000.00 0.00 1000.00 0.00":
+        - cell "6000"
+        - cell "Rent":
+          - link "Rent":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=78157bbe-6506-44b1-9dc8-c5d81e713ca5&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "1000.00"
+        - cell "0.00"
+        - cell "1000.00"
+        - cell "0.00"
+      - row "6100 Utilities expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6100"
+        - cell "Utilities":
+          - link "Utilities":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=cfb1dc71-1225-4da9-a377-b8a22a1da31d&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "6200 Salaries expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6200"
+        - cell "Salaries":
+          - link "Salaries":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=34942cb5-32ed-4b11-adee-820b756e2588&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "6300 Marketing expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6300"
+        - cell "Marketing":
+          - link "Marketing":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=887d5cc2-c2fc-4f6b-ba58-dee542f9c53a&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "6400 Bank charges expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6400"
+        - cell "Bank charges":
+          - link "Bank charges":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=0c57eb36-10e0-4c77-99ca-09e856553df3&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "6500 Bad debts expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6500"
+        - cell "Bad debts":
+          - link "Bad debts":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=9f3251e7-b310-4091-aa4f-5e823862a814&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+      - row "6600 Rounding difference expense 0.00 0.00 0.00 0.00 0.00":
+        - cell "6600"
+        - cell "Rounding difference":
+          - link "Rounding difference":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=d33d18b1-bbec-441a-bb64-73be4506d37f&from=2025-01-01&to=2025-01-31
+        - cell "expense"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+        - cell "0.00"
+    - rowgroup:
+      - row "Difference (debit − credit) 111000.00 111000.00":
+        - columnheader "Difference (debit − credit)"
+        - columnheader "111000.00"
+        - columnheader "111000.00"
+  - status: "Total difference: BDT 0.00 · Balanced"
+- contentinfo: BDT books · No financial changes are queued offline.

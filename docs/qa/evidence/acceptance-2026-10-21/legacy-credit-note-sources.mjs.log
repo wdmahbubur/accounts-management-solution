@@ -1,0 +1,13 @@
+{"check":"actual restricted login; unique synthetic organization and scoped read roles created","status":"passed"}
+{"check":"module-only customer/supplier source reads preserve exact original fields; permission, company, party and private helper denials have no effects","status":"passed"}
+{"check":"actor belonging to two companies cannot select or mix the other company's actual posted source, party or original line","status":"passed"}
+{"check":"contact edits and archived/replaced tax version leave original snapshot, source amount/version/digest and historical tax unchanged","status":"passed"}
+{"check":"customer and supplier partial credits post complete balanced opposite journals using original tax and expense/revenue basis","status":"passed"}
+{"check":"multiple drafts and approvals do not reserve capacity; editing an existing draft does not self-count","status":"passed"}
+{"check":"cumulative quantity/value, duplicate original lines, line-tax rounding, wrong parent/party and accounting-snapshot changes fail atomically","status":"passed"}
+{"check":"header capacity includes rounding; two individually permitted positive adjustments cannot exceed original document total","status":"passed"}
+{"check":"future-dated, reversed and inactive-party sources are unavailable; existing financial-history guard also prevents removing the original party role","status":"passed"}
+{"check":"credit reversal restores dated capacity; temporal peak protects future credits without double-counting non-overlapping reversed history","status":"passed"}
+{"check":"two actual runtime connections race different approved credits; one posts, one retains approval with zero accounting/outbox effects; exact replay adds nothing","status":"passed"}
+{"check":"original issued source remains unchanged; every committed synthetic journal is balanced","status":"passed"}
+{"status":"passed","checks":12,"run":"4ec9cc93-9093-44d8-bd96-1525bdc8e7e4","organizationId":"2312837b-53c0-46b9-93dc-7812d8786802","fixtures":{"invoice":"87f80342-6c09-494b-802c-9c3c789a4445","bill":"ed309987-7843-45ba-a0b1-247ca363e6d4","foreignOrganization":"251193b9-ec4a-4831-973f-d589ec9b6042","customerCredit":"e7e0aa47-928e-472a-801e-462e905c3876","supplierCredit":"c983b390-ac42-48b1-a424-18a9d775affa","temporalOriginal":"1d08d7b6-45c2-416c-899f-bfd042189fe6","raceOriginal":"d94a04a9-4d7f-46bb-b04c-ef8a3bf32899"},"fixtureSetup":"privileged unique synthetic identities/roles/master data; financial commands use actual restricted login","retained":true}

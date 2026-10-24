@@ -1,0 +1,5 @@
+{"check":"actual restricted login and runtime company setup; privileged identity/contact/role fixture setup explicitly separate","status":"passed","organization_id":"a72f861b-8316-424a-bd46-3bebf7b32db2"}
+{"check":"1625.63 income minus 500.00 expense yields 1125.63 equity, balanced trial balance and zero dashboard/report difference; expense row is negative","status":"passed"}
+{"check":"current/comparison statements retain cutoff behavior across future expense and later linked reversal; expense reduction increases earnings only when effective","status":"passed"}
+{"check":"reports.read and company boundaries remain enforced; read-only statements create no financial, audit, idempotency or saved-report effects","status":"passed"}
+{"result":"passed","checks":4,"organization_id":"a72f861b-8316-424a-bd46-3bebf7b32db2","invoice_id":"370e7d68-bf21-481e-b0e9-a35d28095563","bill_id":"0b8d5d7f-b09e-447c-b06f-2e4ee8162784","note":"New synthetic fixtures retained. Setup identities/contact/role seed is privileged; financial commands and reads use restricted runtime. Opening-import and year-close/reopen workflows are unchanged by the patch but not exercised here."}

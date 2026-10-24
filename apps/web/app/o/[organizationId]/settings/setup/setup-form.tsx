@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 import styles from "../../workspace.module.css";
 
 import Link from "next/link";
@@ -57,7 +59,7 @@ export function CompanySetupForm({ setup, nonce }: { setup: CompanySetup; nonce:
 
   return <main className={styles.page} data-company-context={nonce}>
     <header className={styles.pageHeader}><p className="eyebrow">Company settings · {setup.name}</p><h1>{active ? "Your books are active" : "Finish setting up your books"}</h1>
-    <p>Books start on <strong>{setup.booksStartDate}</strong>. Any imported opening balances belong to <strong>{setup.cutoverDate}</strong>. All amounts are in BDT.</p></header>
+    <p>Books start on <strong>{setup.booksStartDate}</strong>. Any imported opening balances belong to <strong>{setup.cutoverDate}</strong>. All amounts are in <CompanyCurrency />.</p></header>
     {error && <p role="alert" className="alert">{error}</p>}
     {active ? <section className="panel"><h2>Setup complete</h2>
       <p>{(receipt?.openingMode ?? setup.completion?.openingMode) === "zero_opening" ? "These books started with a recorded zero opening position. No opening journal was created." :
@@ -82,16 +84,16 @@ export function CompanySetupForm({ setup, nonce }: { setup: CompanySetup; nonce:
           <p><Link href={`${root}/settings/opening-balances`}>{setup.openingDocuments.length ? "Open the cutover workspace" : "Prepare opening balances"}</Link> · <Link href={`${root}/settings/approvals`}>Configure opening approval</Link> · <Link href={`${root}/approvals`}>Review approval requests</Link></p>
           <label>Approved opening document<select value={documentId} onChange={event => { changed(); setDocumentId(event.target.value); }}>
             <option value="">Choose an approved opening document</option>{setup.openingDocuments.filter(document => document.state === "approved" && document.hasCutoverSummary).map(document =>
-              <option key={document.id} value={document.id}>{document.description || "Opening balances"} · {document.accountingDate} · BDT {document.totalAmount}</option>)}
+              <option key={document.id} value={document.id}>{document.description || "Opening balances"} · {document.accountingDate} · <CompanyCurrency /> {document.totalAmount}</option>)}
           </select></label>
-          {selected && <p>Completing setup will post <strong>BDT {selected.totalAmount}</strong> dated {selected.accountingDate}. <Link href={`${root}/accounting/documents/${selected.id}`}>Review this document</Link></p>}
+          {selected && <p>Completing setup will post <strong><CompanyCurrency /> {selected.totalAmount}</strong> dated {selected.accountingDate}. <Link href={`${root}/accounting/documents/${selected.id}`}>Review this document</Link></p>}
         </div>}
         <p><button type="submit" disabled={busy || !ready}>{busy ? "Completing setup…" : mode === "import_opening" ? "Complete setup and post opening balances" : "Complete company setup"}</button></p>
         {!requiredReady && <p role="status">Resolve the foundation checks before completing setup.</p>}
       </fieldset></form>
     </>}
     {!active && setup.openingDocuments.length > 0 && <section className="panel"><h2>Opening work in progress</h2><ul className={`${styles.list} ${styles.checkList}`}>{setup.openingDocuments.map(document => <li key={document.id}>
-      {document.description || "Opening balances"} · BDT {document.totalAmount} · {document.state.replaceAll("_", " ")} · <Link href={`${root}/accounting/documents/${document.id}`}>Review</Link>
+      {document.description || "Opening balances"} · <CompanyCurrency /> {document.totalAmount} · {document.state.replaceAll("_", " ")} · <Link href={`${root}/accounting/documents/${document.id}`}>Review</Link>
       {document.state === "draft" && <> · <Link href={`${root}/settings/opening-balances?document=${document.id}`}>Resume editing</Link></>}
     </li>)}</ul></section>}
     <section className="panel"><h2>Before your first transactions</h2><p>Activation preserves every posting and approval check. Complete the configuration needed for the work you plan to do next.</p>

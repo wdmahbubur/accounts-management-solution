@@ -76,14 +76,14 @@ export function creditSelectionIssues(scope: CreditSelectionScope, options: Cred
       used.set(original.id, next);
       if (next.quantity > decimal6(original.remainingQuantity)) issues.push({ field: `${prefix}.quantity`, message: `Only ${original.remainingQuantity} remains available to credit on this original line.` });
       if (next.net > moneyUnits(original.remainingNetAmount) || next.tax > moneyUnits(original.remainingTaxAmount) || next.gross > moneyUnits(original.remainingGrossAmount)) {
-        issues.push({ field: `${prefix}.unit_price`, message: `The credit exceeds the remaining original amounts: net ${original.remainingNetAmount}, tax ${original.remainingTaxAmount}, total ${original.remainingGrossAmount} BDT. Adjust the quantity, unit price or discount.` });
+        issues.push({ field: `${prefix}.unit_price`, message: `The credit exceeds the remaining original amounts: net ${original.remainingNetAmount}, tax ${original.remainingTaxAmount}, total ${original.remainingGrossAmount} in company currency. Adjust the quantity, unit price or discount.` });
       }
     } catch { issues.push({ field: `${prefix}.quantity`, message: "Check this line’s quantity, unit price and discount before saving." }); }
   });
   if (!lines.length) issues.push({ field: "lines", message: "Select at least one original line to credit." });
   try {
     const total = [...used.values()].reduce((sum, line) => sum + line.gross, 0n) + moneyUnits(canonicalAmountInput(roundingAmount, true));
-    if (total > moneyUnits(source.remainingTotalAmount)) issues.push({ field: "rounding_adjustment", message: `The total credit, including rounding, cannot exceed the original document’s remaining ${source.remainingTotalAmount} BDT.` });
+    if (total > moneyUnits(source.remainingTotalAmount)) issues.push({ field: "rounding_adjustment", message: `The total credit, including rounding, cannot exceed the original document’s remaining ${source.remainingTotalAmount} in company currency.` });
   } catch { issues.push({ field: "rounding_adjustment", message: "Enter a valid rounding adjustment." }); }
   return issues;
 }

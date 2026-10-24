@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from '../../../../components/finance/company-currency.tsx';
+
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
@@ -96,7 +98,7 @@ function EditableContactForm({organizationId,scope,initial,readableScopes}:Props
       <ContactObjectFields title="Tax identifiers" error={fieldErrors.tax_identifiers} errorId={`${formId}-tax_identifiers-error`} original={baseline?.tax_identifiers} definitions={taxFieldDefinitions} values={tax} onChange={(key,value)=>setTax(current=>({...current,[key]:value}))}/>
       <section><h2 className={styles.sectionTitle}>Terms and reference</h2><div className={styles.grid}>
         <label>Payment terms (days)<input {...errorAttributes("payment_terms_days")} name="payment_terms_days" type="number" required min={0} max={3650} step={1} value={terms} onChange={event=>setTerms(event.target.value)}/>{message("payment_terms_days")}</label>
-        <label>Credit limit (BDT)<input {...errorAttributes("credit_limit")} name="credit_limit" inputMode="decimal" pattern="(?:0|[1-9][0-9]{0,13})(?:\.[0-9]{1,2})?" value={credit} onChange={event=>setCredit(event.target.value)}/>{message("credit_limit")}<span className={styles.hint}>Leave blank if no credit limit is set.</span></label>
+        <label>Credit limit (<CompanyCurrency />)<input {...errorAttributes("credit_limit")} name="credit_limit" inputMode="decimal" pattern="(?:0|[1-9][0-9]{0,13})(?:\.[0-9]{1,2})?" value={credit} onChange={event=>setCredit(event.target.value)}/>{message("credit_limit")}<span className={styles.hint}>Leave blank if no credit limit is set.</span></label>
         <label>External reference<input {...errorAttributes("external_key")} name="external_key" maxLength={160} value={external} onChange={event=>setExternal(event.target.value)}/>{message("external_key")}</label>
         {baseline&&<label className={styles.check}><input {...errorAttributes("is_active")} type="checkbox" checked={active} onChange={event=>setActive(event.target.checked)}/>Active contact{message("is_active")}</label>}
       </div></section>
