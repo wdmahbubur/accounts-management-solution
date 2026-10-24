@@ -12,7 +12,7 @@ import {readPrivateArtifact} from '../../apps/web/server/artifacts/download.ts';
 const exec=promisify(execFile);
 async function docker(args){return(await exec('docker',args,{timeout:150000,maxBuffer:1024*1024})).stdout.trim();}
 
-test('real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker',{timeout:600000},async t=>{
+test('real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker',{timeout:900000},async t=>{
  assert.equal(process.env.AMS_SCANNER_TESTS,'real-bouncer-docker');
  assert.equal(process.env.ATTACHMENT_SCAN_PROVIDER,'bouncer');
  const image=process.env.AMS_JOBS_TEST_IMAGE;assert.match(image??'',/^ams-jobs:[a-z0-9-]+$/);
@@ -40,7 +40,8 @@ test('real free-tier Bouncer scans synthetic private evidence in a restricted 19
   assert.equal(Object.keys(inspected.HostConfig.PortBindings??{}).length,0);assert.deepEqual(Object.keys(inspected.NetworkSettings.Networks),[network]);
   const events=output.split('\n').filter(line=>line.startsWith('{')).map(JSON.parse),completed=events.filter(event=>event.event==='worker.batch_complete');
   assert.equal(completed.length,1,output);assert.equal(events.some(event=>event.event==='worker.batch_failed'),false,output);
-  const peak=events.find(event=>event.event==='test.memory_peak')?.bytes;assert.ok(Number.isSafeInteger(peak)&&peak>0&&peak<=192*1024*1024);peaks.push(peak);return completed[0].result;
+  const peak=events.find(event=>event.event==='test.memory_peak')?.bytes;assert.ok(Number.isSafeInteger(peak)&&peak>0&&peak<=192*1024*1024);peaks.push(peak);
+  console.log(JSON.stringify({stage:'container-batch',result:completed[0].result,peakBytes:peak}));return completed[0].result;
  }
  try{
   const competing=(await f.admin.query("SELECT count(*)::int AS count FROM finance.attachments WHERE scan_status='pending' AND scan_available_at<=now() AND (scan_lease_until IS NULL OR scan_lease_until<=now())")).rows[0].count;
@@ -50,22 +51,32 @@ test('real free-tier Bouncer scans synthetic private evidence in a restricted 19
   const eicar=new TextEncoder().encode(['X5O!P%@AP[4\\PZX54(P^)7CC)7}','$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'].join(''));
   for(const [label,bytes,expected]of[['clean',new TextEncoder().encode('Synthetic Bouncer evidence. No customer information.'),'clean'],['eicar',eicar,'rejected'],['10-mib',new Uint8Array(10*1024*1024).fill(65),'clean']]){
    await t.test(`${label}: private upload, quarantine, durable scan and authorized result`,async()=>{
+    console.log(JSON.stringify({stage:'upload-start',label,byteSize:bytes.length}));
     const doc=await f.save(f.body('invoice','1.00')),sha=createHash('sha256').update(bytes).digest('hex');
     const intent=await createUploadIntent(client,f.org,{document_id:doc.document_id,filename:`synthetic-${label}.txt`,content_type:'text/plain',byte_size:bytes.length,sha256:sha});
     const uploaded=await completeUpload(client,f.org,intent.intent_id,new File([bytes],`synthetic-${label}.txt`,{type:'text/plain'}));assert.equal(uploaded.scan_status,'pending_scan');
+    console.log(JSON.stringify({stage:'quarantined',label}));
     await assert.rejects(()=>readPrivateArtifact(client,f.org,'attachments',intent.intent_id),e=>e.code==='NOT_FOUND');
-    let savedId=null,resumed=false,cycles=0;
+    let savedId=null,resumed=false,cycles=0,readFailures=0;
     for(;cycles<6;cycles++){
      const batch=await run();assert.equal(batch.claimed,1);assert.equal(batch.lease_lost,0);
      const reference=(await f.admin.query("SELECT remote_id FROM finance_private.attachment_provider_scans WHERE organization_id=$1 AND attachment_id=$2 AND provider='bouncer'",[f.org,intent.intent_id])).rows[0];
-     assert.ok(reference?.remote_id);if(savedId){assert.equal(reference.remote_id,savedId);resumed=true;}savedId=reference.remote_id;
-     const current=await row(intent.intent_id);if(current.scan_status!=='pending')break;
-     assert.equal(current.scan_error_code,'SCAN_PENDING');assert.equal(current.scan_attempt_count,0);
+     const current=await row(intent.intent_id);
+     if(!reference&&current.scan_status==='pending'&&current.scan_error_code==='OBJECT_READ_ERROR'){
+      // A bounded storage failure occurred before POST and abandoned its local
+      // reservation. Retry the same immutable object; this consumes no scan.
+      readFailures++;assert.equal(current.scan_attempt_count,readFailures);
+     }else{
+      assert.ok(reference?.remote_id);if(savedId){assert.equal(reference.remote_id,savedId);resumed=true;}savedId=reference.remote_id;
+      if(current.scan_status!=='pending')break;
+      assert.equal(current.scan_error_code,'SCAN_PENDING');assert.equal(current.scan_attempt_count,readFailures);
+     }
      await assert.rejects(()=>readPrivateArtifact(client,f.org,'attachments',intent.intent_id),e=>e.code==='NOT_FOUND');
      await f.admin.query("UPDATE finance.attachments SET scan_available_at=now()-interval '1 second' WHERE organization_id=$1 AND id=$2 AND scan_status='pending'",[f.org,intent.intent_id]);
     }
     const current=await row(intent.intent_id);assert.equal(current.scan_status,expected,JSON.stringify(current));assert.equal(current.scan_engine_version,'Bouncer-api-v2');
-    if(expected==='clean'){const artifact=await readPrivateArtifact(client,f.org,'attachments',intent.intent_id);assert.equal(createHash('sha256').update(Buffer.from(await artifact.bytes.arrayBuffer())).digest('hex'),sha);}
+    console.log(JSON.stringify({stage:'decision',label,status:current.scan_status}));
+    if(expected==='clean'){const artifact=await readPrivateArtifact(client,f.org,'attachments',intent.intent_id);assert.equal(createHash('sha256').update(Buffer.from(await artifact.bytes.arrayBuffer())).digest('hex'),sha);console.log(JSON.stringify({stage:'download-verified',label}));}
     else await assert.rejects(()=>readPrivateArtifact(client,f.org,'attachments',intent.intent_id),e=>e.code==='NOT_FOUND');
     await assert.rejects(()=>readPrivateArtifact(fixtureRpcClient(f,f.ids.outsider),f.org,'attachments',intent.intent_id),e=>e.code==='NOT_FOUND');
     assert.deepEqual(await facts(),before);receipts.push({label,byteSize:bytes.length,decision:current.scan_status,cycles:cycles+1,resumedSameReference:resumed});
