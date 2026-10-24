@@ -16,9 +16,7 @@ function rows(value: unknown): Row[] {
   if (!Array.isArray(value)) throw new Error('Invalid report rows');
   return value.map(row);
 }
-function amount(value: unknown): string {
-  return `BDT ${canonicalReportMoney(value)}`;
-}
+
 function label(value: unknown): string {
   if (typeof value !== 'string') throw new Error('Invalid report label');
   return value;
@@ -26,7 +24,8 @@ function label(value: unknown): string {
 const title = (value: string) => value.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
 
 /** Presentation of the captured snapshot only. Never reads newer accounting data. */
-export function reportPresentation(type: string, value: unknown): ReportLine[] {
+export function reportPresentation(type: string, value: unknown, currency: import('@ams/contracts').BaseCurrency = 'BDT'): ReportLine[] {
+  const amount=(value:unknown)=>`${currency} ${canonicalReportMoney(value)}`;
   const lines: ReportLine[] = [];
   const heading = (text: string) => lines.push({ text, heading: true });
   const field = (name: string, value: unknown) => lines.push({ text: `${name}: ${amount(value)}` });
@@ -47,11 +46,11 @@ export function reportPresentation(type: string, value: unknown): ReportLine[] {
     for (const account of accounts) {
       const raw = canonicalReportMoney(account.current_amount);
       const display = account.account_type === 'expense' && raw !== '0.00' ? raw.startsWith('-') ? raw.slice(1) : `-${raw}` : raw;
-      lines.push({ text: `${label(account.account_code)} - ${label(account.account_name)} (${title(label(account.report_group))}): BDT ${display}` });
+      lines.push({ text: `${label(account.account_code)} - ${label(account.account_name)} (${title(label(account.report_group))}): ${currency} ${display}` });
       if (periods.comparison) {
         const compare = canonicalReportMoney(account.comparison_amount);
         const signed = account.account_type === 'expense' && compare !== '0.00' ? compare.startsWith('-') ? compare.slice(1) : `-${compare}` : compare;
-        lines.push({ text: `Comparison: BDT ${signed}` });
+        lines.push({ text: `Comparison: ${currency} ${signed}` });
       }
       if (account.current_evidence_reference) lines.push({ text: `Imported YTD evidence: ${label(account.current_evidence_reference)}` });
     }

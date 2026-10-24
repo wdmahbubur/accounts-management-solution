@@ -16,7 +16,7 @@ function date(value: unknown): string {
 }
 export function bankingCents(value: string): bigint {
   const parsed = /^(-?)(\d{1,18})(?:\.(\d{1,2}))?$/.exec(value);
-  if (!parsed) throw new Error("Invalid exact BDT amount.");
+  if (!parsed) throw new Error("Invalid exact amount.");
   const cents = BigInt(parsed[2]!) * 100n + BigInt((parsed[3] ?? "").padEnd(2,"0"));
   return parsed[1] ? -cents : cents;
 }
@@ -68,7 +68,7 @@ export function matchValidation(statement:StatementLine|undefined,book:BookLine|
   if(matches.some(match=>!match.reversed&&match.statement_line_id===statement.id&&match.journal_line_id===book.id))return {amount:null,error:"These entries already have an active match. Reverse that match before changing its amount."};
   if(!/^\d{1,12}(?:\.\d{1,2})?$/.test(amount))return {amount:null,error:"Enter a positive amount with up to two decimal places."};
   const cents=bankingCents(amount); const capacity=bankingCents(statement.remaining)<bankingCents(book.remaining)?bankingCents(statement.remaining):bankingCents(book.remaining);
-  if(cents<=0n||cents>capacity)return {amount:null,error:`Enter an amount above zero and no more than BDT ${bankingAmount(capacity)}.`};
+  if(cents<=0n||cents>capacity)return {amount:null,error:`Enter an amount above zero and no more than ${bankingAmount(capacity)} in company currency.`};
   return {amount:bankingAmount(cents),error:""};
 }
 export function suggestedMatchAmount(statement:StatementLine|undefined,book:BookLine|undefined): string {

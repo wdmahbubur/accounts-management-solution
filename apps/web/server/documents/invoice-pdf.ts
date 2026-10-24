@@ -1,3 +1,4 @@
+import {isBaseCurrency} from '@ams/contracts';
 import "server-only";
 
 import { createHash } from "node:crypto";
@@ -32,7 +33,7 @@ export interface IssuedInvoicePdfSnapshot {
   documentVersion: number;
   issueDate: string;
   dueDate: string | null;
-  currency: "BDT";
+  currency: import('@ams/contracts').BaseCurrency;
   netAmount: string;
   taxAmount: string;
   roundingAdjustment: string;
@@ -91,7 +92,7 @@ function date(value: string | null): string {
 }
 
 function validMoney(value: string): string {
-  if (!/^-?(?:0|[1-9]\d{0,13})\.\d{2}$/.test(value)) throw new Error("Invoice PDF snapshot contains invalid BDT amount.");
+  if (!/^-?(?:0|[1-9]\d{0,13})\.\d{2}$/.test(value)) throw new Error("Invoice PDF snapshot contains invalid amount.");
   return value;
 }
 
@@ -105,7 +106,7 @@ function unitPrice(value: string): string {
 }
 
 function assertSnapshot(snapshot: IssuedInvoicePdfSnapshot): void {
-  if (snapshot.state !== "posted" || snapshot.currency !== "BDT" || !snapshot.documentId || !snapshot.documentNumber ||
+  if (snapshot.state !== "posted" || !isBaseCurrency(snapshot.currency) || !snapshot.documentId || !snapshot.documentNumber ||
       !Number.isSafeInteger(snapshot.documentVersion) || snapshot.documentVersion < 1 || !/^[a-f\d]{64}$/i.test(snapshot.materialDigest) ||
       !/^\d{4}-\d{2}-\d{2}$/.test(snapshot.issueDate) || snapshot.lines.length < 1 || snapshot.lines.length > 500) {
     throw new Error("Invoice PDF requires a valid issued invoice snapshot.");
@@ -212,7 +213,7 @@ export async function renderIssuedInvoicePdf(snapshot: IssuedInvoicePdfSnapshot)
     snapshot.customer.email, snapshot.customer.phone, ...snapshot.customer.taxIdentifiers.map((item) => `${clean(item.label)}: ${clean(item.value)}`)].filter(Boolean) as string[];
   for (const line of customerLines) { y = mixedText(doc, clean(line), left, y, bodyWidth / 2 - 18, { size: 8 }); y += 2; }
   let metaY = detailY;
-  for (const [label, value] of [["Invoice number", snapshot.documentNumber], ["Issue date", date(snapshot.issueDate)], ["Due date", date(snapshot.dueDate)], ["Currency", "BDT"]] as const) {
+  for (const [label, value] of [["Invoice number", snapshot.documentNumber], ["Issue date", date(snapshot.issueDate)], ["Due date", date(snapshot.dueDate)], ["Currency", snapshot.currency]] as const) {
     doc.font("ams-regular-latin").fontSize(8).fillColor("#425866").text(label, left + bodyWidth / 2, metaY, { width: 100 });
     doc.font("ams-bold-latin").fontSize(8).fillColor("#172b35").text(value, left + bodyWidth / 2 + 102, metaY, { width: bodyWidth / 2 - 102 });
     metaY += 15;
@@ -251,14 +252,14 @@ export async function renderIssuedInvoicePdf(snapshot: IssuedInvoicePdfSnapshot)
   const totalsValueX = right - 75;
   const totalRow = (label: string, value: string, emphasis = false) => {
     doc.font(emphasis ? "ams-bold-latin" : "ams-regular-latin").fontSize(emphasis ? 11 : 9).fillColor(emphasis ? "#123c4a" : "#425866").text(label, totalsLabelX, y, { width: 120 });
-    doc.font(emphasis ? "ams-bold-latin" : "ams-regular-latin").fontSize(emphasis ? 11 : 9).fillColor(emphasis ? "#123c4a" : "#172b35").text(`BDT ${validMoney(value)}`, totalsValueX, y, { width: 75, align: "right" });
+    doc.font(emphasis ? "ams-bold-latin" : "ams-regular-latin").fontSize(emphasis ? 11 : 9).fillColor(emphasis ? "#123c4a" : "#172b35").text(`${snapshot.currency} ${validMoney(value)}`, totalsValueX, y, { width: 75, align: "right" });
     y += emphasis ? 22 : 16;
   };
   totalRow("Subtotal", snapshot.netAmount);
   totalRow("Tax", snapshot.taxAmount);
   if (snapshot.roundingAdjustment !== "0.00") totalRow("Rounding adjustment", snapshot.roundingAdjustment);
   doc.moveTo(totalsLabelX, y - 4).lineTo(right, y - 4).strokeColor("#cbd7dc").stroke();
-  totalRow("Total due (BDT)", snapshot.totalAmount, true);
+  totalRow(`Total due (${snapshot.currency})`, snapshot.totalAmount, true);
 
   const range = doc.bufferedPageRange();
   for (let pageIndex = range.start; pageIndex < range.start + range.count; pageIndex += 1) {

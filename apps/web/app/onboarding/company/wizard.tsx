@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import {countryOptions,currencyOptions,isCountryCode,isBaseCurrency} from '@ams/contracts';
 
 import { createCompanyAction } from "../actions.ts";
 
@@ -11,6 +12,7 @@ type Draft = {
   name: string;
   legalName: string;
   countryCode: string;
+  baseCurrency: string;
   timezone: string;
   fiscalMonth: string;
   booksStartDate: string;
@@ -21,6 +23,7 @@ const emptyDraft: Draft = {
   name: "",
   legalName: "",
   countryCode: "BD",
+  baseCurrency: "BDT",
   timezone: "Asia/Dhaka",
   fiscalMonth: "1",
   booksStartDate: "",
@@ -81,9 +84,9 @@ export function CompanyOnboardingWizard({
 
   const canContinue =
     step === 0
-      ? Boolean(draft.name && draft.legalName && /^[A-Za-z]{2}$/.test(draft.countryCode))
+      ? Boolean(draft.name && draft.legalName && isCountryCode(draft.countryCode))
       : step === 1
-        ? Boolean(draft.timezone && Number(draft.fiscalMonth) >= 1 && Number(draft.fiscalMonth) <= 12)
+        ? Boolean(isBaseCurrency(draft.baseCurrency) && draft.timezone && Number(draft.fiscalMonth) >= 1 && Number(draft.fiscalMonth) <= 12)
         : step === 2
           ? Boolean(draft.booksStartDate)
           : true;
@@ -99,7 +102,7 @@ export function CompanyOnboardingWizard({
       <input type="hidden" name="name" value={draft.name} />
       <input type="hidden" name="legal_name" value={draft.legalName} />
       <input type="hidden" name="country_code" value={draft.countryCode.toUpperCase()} />
-      <input type="hidden" name="base_currency" value="BDT" />
+      <input type="hidden" name="base_currency" value={draft.baseCurrency} />
       <input type="hidden" name="timezone" value={draft.timezone} />
       <input type="hidden" name="fiscal_year_start_month" value={draft.fiscalMonth} />
       <input type="hidden" name="books_start_date" value={draft.booksStartDate} />
@@ -136,13 +139,10 @@ export function CompanyOnboardingWizard({
               />
             </label>
             <label className="field">
-              <span>Country code</span>
-              <input
-                value={draft.countryCode}
-                onChange={(event) => update("countryCode", event.target.value)}
-                maxLength={2}
-                required
-              />
+              <span>Country or region</span>
+              <select value={draft.countryCode} onChange={event=>update('countryCode',event.target.value)} required>
+                {countryOptions.map(option=><option key={option.code} value={option.code}>{option.name} ({option.code})</option>)}
+              </select>
             </label>
           </>
         ) : null}
@@ -152,10 +152,13 @@ export function CompanyOnboardingWizard({
             <h2>Fiscal calendar</h2>
             <label className="field">
               <span>Base currency</span>
-              <input value="BDT" readOnly aria-describedby="bdt-note" />
+              <select value={draft.baseCurrency} onChange={event=>update('baseCurrency',event.target.value)} aria-describedby="currency-note" required>
+                {currencyOptions.map(option=><option key={option.code} value={option.code}>{option.code} — {option.name}</option>)}
+              </select>
             </label>
-            <p id="bdt-note" className="muted">
-              Your company’s books use Bangladeshi taka (BDT).
+            <p id="currency-note" className="muted">
+              All transactions use this currency. Country and currency are fixed after creation.
+              Currently supports currencies with two decimal places. Local tax rules need separate configuration.
             </p>
             <label className="field">
               <span>Timezone</span>
@@ -214,8 +217,8 @@ export function CompanyOnboardingWizard({
             <dl className="review-list">
               <div><dt>Company</dt><dd>{draft.name || "—"}</dd></div>
               <div><dt>Legal name</dt><dd>{draft.legalName || "—"}</dd></div>
-              <div><dt>Country</dt><dd>{draft.countryCode.toUpperCase() || "—"}</dd></div>
-              <div><dt>Currency</dt><dd>BDT</dd></div>
+              <div><dt>Country</dt><dd>{countryOptions.find(option=>option.code===draft.countryCode)?.name ?? '—'} ({draft.countryCode})</dd></div>
+              <div><dt>Currency</dt><dd>{draft.baseCurrency}</dd></div>
               <div><dt>Timezone</dt><dd>{draft.timezone || "—"}</dd></div>
               <div><dt>Fiscal start month</dt><dd>{draft.fiscalMonth}</dd></div>
               <div><dt>Books start</dt><dd>{draft.booksStartDate || "—"}</dd></div>

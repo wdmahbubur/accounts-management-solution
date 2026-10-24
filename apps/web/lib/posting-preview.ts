@@ -1,4 +1,5 @@
 import { parseMoneyString, parseUuid, type MoneyString } from "@ams/contracts";
+import {parseBaseCurrency,type BaseCurrency} from '@ams/contracts';
 import type { DocumentPreview } from "@ams/accounting";
 
 export const cashPreviewTypes = ["receipt", "vendor_payment", "customer_refund", "vendor_refund", "customer_advance", "vendor_advance", "transfer", "advance_application"] as const;
@@ -11,7 +12,7 @@ export interface AllocationPreview {
   targetOpenItemId: string; documentNumber: string | null; amount: MoneyString; availableAmount: MoneyString;
 }
 export interface JournalPostingPreview {
-  kind: "journal"; currency: "BDT"; debit: MoneyString; credit: MoneyString; balanced: boolean; lines: PostingPreviewLine[];
+  kind: "journal"; currency: BaseCurrency; debit: MoneyString; credit: MoneyString; balanced: boolean; lines: PostingPreviewLine[];
 }
 export interface CashPostingPreview extends Omit<JournalPostingPreview, "kind"> {
   kind: "cash"; sourceType: CashPreviewType; allocations: AllocationPreview[];
@@ -64,7 +65,7 @@ function line(raw: unknown): PostingPreviewLine {
 /** Parse the same public DTO on the server and browser. Money remains canonical text. */
 export function parsePostingPreviewResult(raw: unknown): PostingPreviewResult {
   const result = object(raw), preview = object(result.preview);
-  if (preview.currency !== "BDT") throw new Error("Invalid posting preview currency.");
+  const currency=parseBaseCurrency(preview.currency);
   const common = {
     documentId: parseUuid(result.documentId), documentVersion: integer(result.documentVersion),
     warnings: array(result.warnings, 100).map(text)
@@ -76,14 +77,14 @@ export function parsePostingPreviewResult(raw: unknown): PostingPreviewResult {
     });
     const descriptions = array(preview.descriptions).map(text);
     if (!lines.length || descriptions.length !== lines.length) throw new Error("Invalid trade preview lines.");
-    return { ...common, preview: { kind: "trade", currency: "BDT", lines, descriptions,
+    return { ...common, preview: { kind: "trade", currency, lines, descriptions,
       base: amount(preview.base), discount: amount(preview.discount), net: amount(preview.net), tax: amount(preview.tax),
       gross: amount(preview.gross), rounding_adjustment: amount(preview.rounding_adjustment), total: amount(preview.total) } };
   }
   if (preview.kind !== "cash" && preview.kind !== "journal" || typeof preview.balanced !== "boolean") {
     throw new Error("Unsupported posting preview response.");
   }
-  const ledger = { currency: "BDT" as const, debit: positiveSide(preview.debit), credit: positiveSide(preview.credit),
+  const ledger = { currency, debit: positiveSide(preview.debit), credit: positiveSide(preview.credit),
     balanced: preview.balanced, lines: array(preview.lines).map(line) };
   if (preview.kind === "journal") return { ...common, preview: { kind: "journal", ...ledger } };
   if (!(cashPreviewTypes as readonly unknown[]).includes(preview.sourceType) || ledger.lines.length < 2 || ledger.lines.length > 3

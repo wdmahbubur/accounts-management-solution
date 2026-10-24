@@ -1,4 +1,5 @@
-'use client';
+"use client";
+import {CompanyCurrency} from '../../../../components/finance/company-currency.tsx';
 import { useEffect,useRef,useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -46,15 +47,15 @@ export function SettlementForm({organizationId,nonce,options,cashAccounts,initia
       <fieldset className={styles.fields} disabled={busy||retry||saved}><legend>Settlement details</legend>
         <label>Action<select value={type} disabled={!!initial} onChange={e=>{setType(e.target.value);setSource('');}}><option value="advance_application">Apply advance</option><option value="customer_refund">Customer refund</option><option value="vendor_refund">Supplier refund</option></select></label>
         {type==='advance_application'&&<label>Advance type<select value={side} onChange={e=>{setSide(e.target.value);setSource('');}}><option value="customer">Customer</option><option value="vendor">Supplier</option></select></label>}
-        <label>Eligible balance<select required value={source} onChange={e=>setSource(e.target.value)}><option value="">Choose a balance</option>{sources.map(s=><option key={s.id} value={s.id}>{s.party_name} · {s.document_type==='opening_balance'?s.reference:s.document_number} · BDT {s.remaining_amount} · {s.control_kind.replaceAll('_',' ')}</option>)}</select></label>
+        <label>Eligible balance<select required value={source} onChange={e=>setSource(e.target.value)}><option value="">Choose a balance</option>{sources.map(s=><option key={s.id} value={s.id}>{s.party_name} · {s.document_type==='opening_balance'?s.reference:s.document_number} · <CompanyCurrency /> {s.remaining_amount} · {s.control_kind.replaceAll('_',' ')}</option>)}</select></label>
         {!sources.length&&<p role="status">No eligible balances for this date.</p>}
-        {type==='advance_application'?<label>Invoice or bill<select name="target" key={source} required defaultValue={String(linked.target_open_item_id??'')}><option value="">Choose a target</option>{targets.map(t=><option value={t.id} key={t.id}>{t.document_type==='opening_balance'?t.reference:t.document_number} · BDT {t.remaining_amount}</option>)}</select></label>:<>
+        {type==='advance_application'?<label>Invoice or bill<select name="target" key={source} required defaultValue={String(linked.target_open_item_id??'')}><option value="">Choose a target</option>{targets.map(t=><option value={t.id} key={t.id}>{t.document_type==='opening_balance'?t.reference:t.document_number} · <CompanyCurrency /> {t.remaining_amount}</option>)}</select></label>:<>
           <label>Cash or bank account<select name="cash" required defaultValue={String((initial?.movement as Record<string,unknown>)?.cash_account_id??'')}><option value="">Choose account</option>{cashAccounts.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
           <label>Cash classification<select name="classification" required defaultValue={String((initial?.movement as Record<string,unknown>)?.cash_flow_class??'')}><option value="">Choose classification</option><option value="operating">Operating</option><option value="investing">Investing</option><option value="financing">Financing</option></select></label>
           <label>Payment method<select name="method" required defaultValue={String((initial?.movement as Record<string,unknown>)?.method??'')}><option value="">Choose method</option><option value="cash">Cash</option><option value="bank_transfer">Bank transfer</option><option value="mobile_wallet">Mobile wallet</option><option value="card">Card</option><option value="other">Other</option></select></label>
           <label>Payment reference<input name="reference" required maxLength={160} defaultValue={String(initial?.external_reference??'')}/></label>
         </>}
-        <label>Amount · BDT<input name="amount" inputMode="decimal" required defaultValue={String(linked.amount??'')} /></label>
+        <label>Amount · <CompanyCurrency /><input name="amount" inputMode="decimal" required defaultValue={String(linked.amount??'')} /></label>
         <label>Description<input name="description" required maxLength={500} defaultValue={String(initial?.description??'')}/></label>
       </fieldset>
       <div className="actions"><button type="submit" disabled={busy||saved||(!retry&&!selected)}>{busy?'Saving…':saved?'Opening draft…':retry?'Retry save':'Save draft'}</button><Link className="secondary" href={`/o/${organizationId}/advances`}>Cancel</Link></div>

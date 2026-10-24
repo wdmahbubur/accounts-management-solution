@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -81,7 +82,7 @@ export default async function ReconciliationsPage({ params, searchParams }: { pa
           <label>Status<select name="status" defaultValue={filters.status ?? ""}><option value="">All statuses</option><option value="draft">Draft</option><option value="reopened">Reopened</option><option value="finalized">Finalized</option></select></label>
           <button type="submit" className="secondary">Apply filters</button>{filters.cashAccountId || filters.status ? <Link href={root}>Clear filters</Link> : null}
         </form>
-        {history.sessions.length ? <div className="table-scroll" tabIndex={0} role="region" aria-label="Saved reconciliation sessions"><table><caption>Page {history.page} · newest first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col" className={styles.number}>Closing · BDT</th><th scope="col">Status</th><th scope="col">Open</th></tr></thead><tbody>
+        {history.sessions.length ? <div className="table-scroll" tabIndex={0} role="region" aria-label="Saved reconciliation sessions"><table><caption>Page {history.page} · newest first · times in Asia/Dhaka</caption><thead><tr><th scope="col">Account</th><th scope="col">Statement period</th><th scope="col" className={styles.number}>Closing · <CompanyCurrency /></th><th scope="col">Status</th><th scope="col">Open</th></tr></thead><tbody>
           {history.sessions.map(session => {
             const eventDate = session.finalizedAt ?? session.lastReopenedAt ?? session.createdAt;
             const eventLabel = session.finalizedAt ? "Finalized" : session.lastReopenedAt ? "Reopened" : "Created";

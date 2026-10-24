@@ -92,9 +92,9 @@ test("document back links use an authorized existing module route and account ID
 
 test("settlement history caption includes an as-of date only when the response provides a displayable date", () => {
   for (const absent of [undefined, null, "", "invalid", "2026-10-09T00:00:00Z"]) {
-    assert.equal(settlementHistoryCaption(absent), "Linked settlement history · BDT");
+    assert.equal(settlementHistoryCaption(absent), "Linked settlement history · company currency");
   }
-  assert.equal(settlementHistoryCaption("2026-10-09"), "Linked settlement history · BDT · status as of 09 Oct 2026");
+  assert.equal(settlementHistoryCaption("2026-10-09"), "Linked settlement history · company currency · status as of 09 Oct 2026");
 });
 
 test("dated settlement history distinguishes scheduled events, active allocations and effective reversals", () => {

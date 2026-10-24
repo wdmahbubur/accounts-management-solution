@@ -63,6 +63,7 @@ const definitions: { id: string; label: string; items: NavigationDefinition[] }[
     { path: "/settings/roles", label: "Roles and permissions", anyCapability: ["users.read"] },
     { path: "/settings/taxes", label: "Tax configuration", anyCapability: ["tax.read"] },
     { path: "/settings/approvals", label: "Approval policies", anyCapability: ["approvals.manage"] },
+    { path: "/settings/subscription", label: "Subscription", anyCapability: ["subscription.read"] },
     { path: "/settings/opening-balances", label: "Opening balances", allCapabilities: ["journal.write", "documents.read", "accounting.read"] },
     { path: "/notifications/preferences", label: "Email preferences" }
   ] }

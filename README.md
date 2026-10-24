@@ -4,13 +4,20 @@ Multi-tenant finance and accounting SaaS for companies.
 
 ## Project status
 
-The approved V1 is a Bangladesh-focused, BDT-only accrual accounting SaaS for
-service and non-stock SMEs. A provider migration to Auth.js and Neon PostgreSQL
-is in progress. The Neon target currently has the complete 52-table finance
-schema and 97 row-level security policies applied through 11 checksum-tracked
-migrations. Auth.js credentials/session foundations are present. Existing web
-routes and storage still have transitional provider dependencies, so the
-application is not yet fully migrated or ready for financial use.
+The release candidate uses Auth.js, Neon PostgreSQL and private object storage
+for separate company accrual books. On 21 October 2026 the owner requested
+country/region and accounting-currency selection during company setup. The
+candidate supports 249 country/region choices and 132 two-decimal currencies,
+with one immutable accounting currency per company. Existing BDT books retain
+their currency and history. See [the scope decision](docs/adr/0004-company-country-and-accounting-currency.md).
+
+Paid billing and privileged support access are deferred and unavailable.
+Country selection does not configure or certify local tax/filing rules, and
+foreign-currency transactions within one company are not implemented. The
+original v1.0 specification in `docs/` is retained as the source baseline;
+current implementation, actual tests and remaining release gates are recorded
+in [the release evidence](docs/qa/company-country-currency-2026-10-21.md).
+Candidate verification is not a production deployment or worldwide launch approval.
 
 ## Local setup
 

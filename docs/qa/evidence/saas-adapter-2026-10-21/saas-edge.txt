@@ -1,0 +1,86 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings" [expanded]:
+          - generic: Settings
+      - link "Company setup":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/setup
+      - link "Users and invitations":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/users
+      - link "Roles and permissions":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/roles
+      - link "Tax configuration":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/taxes
+      - link "Approval policies":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/approvals
+      - link "Subscription":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/subscription
+      - link "Opening balances":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/settings/opening-balances
+      - link "Email preferences":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/notifications/preferences
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - generic: Subscription
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Company settings
+  - heading "Subscription" [level=1]
+  - heading "Paid billing" [level=2]
+  - status: Paid billing is not enabled.
+  - paragraph: Paid plans, prices and limits will appear after approval.
+  - heading "Company account" [level=2]
+  - term: Active members
+  - definition: "4"
+  - term: Paid plan
+  - definition: Not configured
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+  - text: Rendering
+  - generic: .
+  - generic: .
+  - generic: .
+- alert

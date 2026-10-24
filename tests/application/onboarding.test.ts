@@ -42,7 +42,7 @@ test("US-007 onboarding input normalizes the supported V1 contract", () => {
 
 test("US-007 onboarding rejects unsupported currency before RPC execution", () => {
   assert.throws(
-    () => parseCompanyOnboardingForm(form({ base_currency: "USD" })),
+    () => parseCompanyOnboardingForm(form({ base_currency: "XXX" })),
     (error: unknown) =>
       error instanceof CompanyOnboardingValidationError &&
       error.field === "base_currency"

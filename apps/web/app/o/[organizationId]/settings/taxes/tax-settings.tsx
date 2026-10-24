@@ -1,13 +1,19 @@
 "use client";
+import {useCompanyToday} from '../../../../../components/finance/company-currency.tsx';
+
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 import { useMemo, useState } from "react";
 import { calculateLine } from "@ams/accounting";
-import { bangladeshDate } from "../../../../../lib/date.ts";
+
 import type { TaxCatalog, TaxCode, TaxKind } from "../../../../../server/taxes/contracts.ts";
 import styles from "./tax-settings.module.css";
 
 const kindLabels: Record<TaxKind, string> = { standard: "Standard rate", zero_rated: "Zero rated", exempt: "Exempt", out_of_scope: "Out of scope" };
 type Props = { organizationId: string; nonce: string; catalog: TaxCatalog; canManage: boolean };
 export function TaxSettings({ organizationId, nonce, catalog, canManage }: Props) {
+ const companyToday=useCompanyToday();
+
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
   const [selectedId, setSelectedId] = useState(catalog.codes.find((code) => code.isActive)?.id ?? "");
   const [versionCode, setVersionCode] = useState(""); const [existingVersion, setExistingVersion] = useState("new");
@@ -57,7 +63,7 @@ export function TaxSettings({ organizationId, nonce, catalog, canManage }: Props
         <label>Purchase tax recovery<select name="recoverability" defaultValue="none"><option value="none">Nonrecoverable</option><option value="full">Fully recoverable</option></select></label>
         <label>Output-tax account<select name="output_account_id" defaultValue=""><option value="">No account</option>{outputAccounts.map((account) => <option key={account.id} value={account.id}>{account.code} · {account.name}</option>)}</select></label>
         <label>Input-tax account<select name="input_account_id" defaultValue=""><option value="">No account</option>{inputAccounts.map((account) => <option key={account.id} value={account.id}>{account.code} · {account.name}</option>)}</select></label>
-        <label>Effective from<input name="effective_from" type="date" required defaultValue={bangladeshDate()} /></label>
+        <label>Effective from<input name="effective_from" type="date" required defaultValue={companyToday} /></label>
         <label>Effective to (optional)<input name="effective_to" type="date" /></label>
         <label>Reason for this version<input name="reason" required minLength={10} maxLength={1000} /></label>
         <label>Current latest version (for an existing code)<select name="existing_code_version" value={existingVersion} onChange={(event) => { setExistingVersion(event.target.value); const code = [...latest.values()].find((item) => `${item.code}:${item.rowVersion}` === event.target.value); if (code) setVersionCode(code.code); }}>
@@ -75,7 +81,7 @@ export function TaxSettings({ organizationId, nonce, catalog, canManage }: Props
     <section className={`panel ${styles.panel}`}><h2>Sample calculation</h2><p>Preview only. Select an existing version; the selected inclusive or exclusive mode is stored with each document line.</p>
       {catalog.codes.length === 0 ? <p>Add a tax-code version to preview its configured rate.</p> : <div className={styles.sample}>
         <label>Tax code<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{catalog.codes.map((code) => <option key={code.id} value={code.id}>{code.code} v{code.versionNo} · {code.label} ({code.ratePercent}%) {code.isActive ? "" : "· archived"}</option>)}</select></label>
-        <label>Entered amount (BDT)<input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" /></label>
+        <label>Entered amount (<CompanyCurrency />)<input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" /></label>
         <label>Amount includes tax?<select value={mode} onChange={(event) => setMode(event.target.value as "exclusive" | "inclusive")}><option value="exclusive">No, exclusive</option><option value="inclusive">Yes, inclusive</option></select></label>
         {sample && <dl><div><dt>Net</dt><dd>{sample.net}</dd></div><div><dt>Tax</dt><dd>{sample.tax}</dd></div><div><dt>Gross</dt><dd>{sample.gross}</dd></div></dl>}
       </div>}
