@@ -138,7 +138,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
     !document.reversed_by_document_id && !["reversal", "opening_balance", "year_close"].includes(type);
   const invoiceActions = invoiceDetailActions(document, capabilities);
   const supplierActions = supplierDetailActions(document, capabilities);
-  const canRecordReceipt = invoiceActions.recordReceipt && invoiceLifecycle?.residual_amount !== "0.00";
+  const canRecordReceipt = invoiceActions.recordReceipt && typeof invoiceLifecycle?.residual_amount === "string" && invoiceLifecycle.residual_amount !== "0.00";
   const canRecordPayment = supplierActions.recordPayment && typeof supplierLifecycle?.residual_amount === "string" && supplierLifecycle.residual_amount !== "0.00";
   const canEditOpening = type === "opening_balance" && document.state === "draft" && has("journal.write", "documents.read", "accounting.read");
   const canReviewApproval = document.state === "pending_approval" && has("approvals.read");
