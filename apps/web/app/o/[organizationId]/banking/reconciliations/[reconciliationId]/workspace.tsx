@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency,useCompanyCurrency} from '../../../../../../components/finance/company-currency.tsx';
+
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -7,6 +9,7 @@ import { bankingAmount, bankingCents, matchValidation, reconciliationActionObser
 import styles from "../../banking.module.css";
 
 export function ReconciliationWorkspace({organizationId,data,canWrite,canFinalize,canReopen}:{organizationId:string;data:ReconciliationWorkspaceData;canWrite:boolean;canFinalize:boolean;canReopen:boolean}) {
+ const currency=useCompanyCurrency();
   const router=useRouter(); const [refreshing,startRefresh]=useTransition();
   const [statementId,setStatementId]=useState("");const [bookId,setBookId]=useState("");const [amount,setAmount]=useState("");
   const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [success,setSuccess]=useState("");
@@ -50,7 +53,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
         throw new Error(typeof field==="string"?field:typeof json?.error?.message==="string"?json.error.message:"The change could not be confirmed.");
       }
       validateReconciliationReceipt(action,json.data,session.id);
-      setSuccess(action.kind==="match"?`BDT ${action.amount} matched successfully.`:action.kind==="reverse"?"Match reversed. The original match stays in history.":action.kind==="finalize"?"Reconciliation finalized. Its evidence is now protected.":"Reconciliation reopened. The previous finalized evidence is preserved.");
+      setSuccess(action.kind==="match"?`${currency} ${action.amount} matched successfully.`:action.kind==="reverse"?"Match reversed. The original match stays in history.":action.kind==="finalize"?"Reconciliation finalized. Its evidence is now protected.":"Reconciliation reopened. The previous finalized evidence is preserved.");
       setUncertain(null);setMatchError("");setStatementId("");setBookId("");setAmount("");setReverseId("");setReason("");setReopenOpen(false);setFinalizeOpen(false);
       startRefresh(()=>router.refresh());
     }catch(cause){
@@ -81,7 +84,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
       <div>
         <p className="eyebrow">Banking</p>
         <div className={styles.titleLine}><h1>Bank reconciliation</h1><span className={styles.badge} data-tone={session.state==="finalized"?"success":"neutral"}>{session.state==="finalized"?"Finalized":evidence?"Reopened":"Draft"}</span></div>
-        <p className={styles.metadata}><strong>{account.name}</strong><span>{formatDate(session.starts_on)} – {formatDate(session.ends_on)}</span><span>BDT</span></p>
+        <p className={styles.metadata}><strong>{account.name}</strong><span>{formatDate(session.starts_on)} – {formatDate(session.ends_on)}</span><span><CompanyCurrency /></span></p>
       </div>
       <div className={styles.actions}>
         <Link href={`/o/${organizationId}/banking/reconciliations`} className={styles.textAction}>All reconciliations</Link>
@@ -100,7 +103,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
         <div><dt>Closing balance</dt><dd>{session.statement_closing}</dd></div>
         <div><dt>Statement rows matched</dt><dd>{matchedCount}<span className={styles.metricUnit}> / {bankLines.length}</span></dd></div>
       </dl>
-      {statementDifference!==0n&&<p className={styles.error}>Opening balance plus imported movements differs from statement closing by BDT {bankingAmount(statementDifference)}. Check the dates and balances before finalizing.</p>}
+      {statementDifference!==0n&&<p className={styles.error}>Opening balance plus imported movements differs from statement closing by <CompanyCurrency /> {bankingAmount(statementDifference)}. Check the dates and balances before finalizing.</p>}
     </section>
 
     <div className={styles.matchingGrid}>
@@ -108,7 +111,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
         <div className={styles.sectionHeading}><h2 id="statement-rows-title">Bank statement</h2><span className={styles.count}>{bankLines.length} rows</span></div>
         {!bankLines.length?<div className={styles.empty}><p>No statement rows for this account and period.</p>{canWrite&&<Link href={`/o/${organizationId}/banking/import`}>Import a statement</Link>}</div>:<div className={styles.scroll} tabIndex={0} role="region" aria-label="Statement rows">
           <table className={styles.matchTable}>
-            <caption className={styles.srOnly}>Statement rows. Select a row, then a cashbook entry with the same direction. Amounts in BDT.</caption>
+            <caption className={styles.srOnly}>Statement rows. Select a row, then a cashbook entry with the same direction. Amounts in <CompanyCurrency />.</caption>
             <thead><tr><th scope="col">Entry</th><th scope="col" className={styles.number}>Amount</th><th scope="col" className={styles.number}>Remaining</th><th scope="col"><span className={styles.srOnly}>Match</span></th></tr></thead>
             <tbody>{bankLines.map(row=><tr key={row.id} className={statementId===row.id?styles.selected:undefined}>
               <td><strong className={styles.entryTitle}>{row.description}</strong><span className={styles.entryMeta}>{formatDate(row.transaction_date)} · Row {row.row_no}</span>{row.reference&&<span className={styles.entryMeta}>{row.reference}</span>}{row.review_required&&<span className={styles.reviewNote}>Possible duplicate — review original.</span>}</td>
@@ -124,7 +127,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
         <div className={styles.sectionHeading}><h2 id="cashbook-entries-title">Cashbook</h2><span className={styles.count}>{bookLines.length} entries</span></div>
         {!bookLines.length?<div className={styles.empty}><p>No posted entries for this period.</p></div>:<div className={styles.scroll} tabIndex={0} role="region" aria-label="Posted cashbook entries">
           <table className={styles.matchTable}>
-            <caption className={styles.srOnly}>Posted cashbook entries for {account.name}. Amounts in BDT; matched amounts remain in history.</caption>
+            <caption className={styles.srOnly}>Posted cashbook entries for {account.name}. Amounts in <CompanyCurrency />; matched amounts remain in history.</caption>
             <thead><tr><th scope="col">Entry</th><th scope="col" className={styles.number}>Amount</th><th scope="col" className={styles.number}>Remaining</th><th scope="col"><span className={styles.srOnly}>Match</span></th></tr></thead>
             <tbody>{bookLines.map(row=><tr key={row.id} className={bookId===row.id?styles.selected:undefined}>
               <td><strong className={styles.entryTitle}>{row.document_number||row.description||"Cashbook entry"}</strong><span className={styles.entryMeta}>{formatDate(row.accounting_date)}</span>{row.document_number&&row.description&&<span className={styles.entryMeta}>{row.description}</span>}{row.reference&&<span className={styles.entryMeta}>{row.reference}</span>}{statement&&statement.transaction_date===row.accounting_date&&statement.amount===row.signed_amount&&bankingCents(row.remaining)>0n&&<span className={styles.matchHint}>Same date and amount</span>}</td>
@@ -140,11 +143,11 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
     {canWrite&&session.state==="draft"&&<section className={styles.matchComposer} aria-labelledby="selected-match-title">
       <div className={styles.sectionHeading}><h2 id="selected-match-title">Match selected entries</h2><button type="button" className={styles.textAction} disabled={!editable||(!statement&&!book)} onClick={()=>{setStatementId("");setBookId("");setAmount("");setMatchError("");}}>Clear selection</button></div>
       <div className={styles.comparison}>
-        <div><span className={styles.entryMeta}>Statement row</span><strong>{statement?`Row ${statement.row_no} · ${statement.description}`:"Select a statement row"}</strong>{statement&&<span className={styles.entryMeta}>Available {statement.remaining} BDT · {direction(statement.amount)}</span>}</div>
-        <div><span className={styles.entryMeta}>Cashbook entry</span><strong>{book?book.document_number||book.description||"Selected entry":"Select a cashbook entry"}</strong>{book&&<span className={styles.entryMeta}>Available {book.remaining} BDT · {direction(book.signed_amount)}</span>}</div>
+        <div><span className={styles.entryMeta}>Statement row</span><strong>{statement?`Row ${statement.row_no} · ${statement.description}`:"Select a statement row"}</strong>{statement&&<span className={styles.entryMeta}>Available {statement.remaining} <CompanyCurrency /> · {direction(statement.amount)}</span>}</div>
+        <div><span className={styles.entryMeta}>Cashbook entry</span><strong>{book?book.document_number||book.description||"Selected entry":"Select a cashbook entry"}</strong>{book&&<span className={styles.entryMeta}>Available {book.remaining} <CompanyCurrency /> · {direction(book.signed_amount)}</span>}</div>
       </div>
       <form onSubmit={saveMatch} className={styles.matchForm}>
-        <label htmlFor="match-amount">Amount to match · BDT<input id="match-amount" value={amount} inputMode="decimal" autoComplete="off" placeholder="0.00" disabled={!editable} aria-invalid={!!matchError} aria-describedby={matchError?"match-amount-error":"match-amount-help"} onChange={event=>{if(!editable)return;setAmount(event.target.value);setMatchError("");}}/></label>
+        <label htmlFor="match-amount">Amount to match · <CompanyCurrency /><input id="match-amount" value={amount} inputMode="decimal" autoComplete="off" placeholder="0.00" disabled={!editable} aria-invalid={!!matchError} aria-describedby={matchError?"match-amount-error":"match-amount-help"} onChange={event=>{if(!editable)return;setAmount(event.target.value);setMatchError("");}}/></label>
         <button type="submit" disabled={!editable||!statement||!book}>{busy?"Saving…":"Save match"}</button>
         {matchError?<p id="match-amount-error" role="alert" className={styles.fieldError}>{matchError}</p>:<p id="match-amount-help" className={styles.muted}>Partial amounts are allowed. The remaining balance stays available.</p>}
       </form>
@@ -158,7 +161,7 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
         return <div key={match.id} className={styles.historyItem}>
           <div className={styles.historyRow}>
             <div><strong className={styles.entryTitle}>Row {bank.row_no} · {bank.description}</strong><span className={styles.entryMeta}>{ledger.document_number||ledger.description||"Cashbook entry"}</span></div>
-            <strong className={styles.number}>{match.amount}<span className={styles.entryMeta}>BDT</span></strong>
+            <strong className={styles.number}>{match.amount}<span className={styles.entryMeta}><CompanyCurrency /></span></strong>
             <span className={styles.badge} data-tone={match.reversed?"neutral":"success"}>{match.reversed?"Reversed":"Active"}</span>
             {!match.reversed&&canWrite&&session.state==="draft"&&reverseId!==match.id&&<button type="button" className={styles.textAction} disabled={locked} onClick={()=>{setReverseId(match.id);setReason("");setError("");}}>Reverse match</button>}
           </div>
@@ -171,9 +174,9 @@ export function ReconciliationWorkspace({organizationId,data,canWrite,canFinaliz
     </details>
 
     {evidence&&<details className={styles.details}>
-      <summary><span>{session.state==="finalized"?"Finalized evidence":"Previous finalized evidence"}</span><span className={styles.detailMeta}>Difference {String(evidence.unexplained_difference)} BDT</span></summary>
+      <summary><span>{session.state==="finalized"?"Finalized evidence":"Previous finalized evidence"}</span><span className={styles.detailMeta}>Difference {String(evidence.unexplained_difference)} <CompanyCurrency /></span></summary>
       <div className={styles.detailsBody}>
-        <dl className={styles.summary}><div><dt>Book closing · BDT</dt><dd>{String(evidence.book_closing)}</dd></div><div><dt>Adjusted statement closing · BDT</dt><dd>{String(evidence.adjusted_statement_closing)}</dd></div><div><dt>Difference · BDT</dt><dd>{String(evidence.unexplained_difference)}</dd></div></dl>
+        <dl className={styles.summary}><div><dt>Book closing · <CompanyCurrency /></dt><dd>{String(evidence.book_closing)}</dd></div><div><dt>Adjusted statement closing · <CompanyCurrency /></dt><dd>{String(evidence.adjusted_statement_closing)}</dd></div><div><dt>Difference · <CompanyCurrency /></dt><dd>{String(evidence.unexplained_difference)}</dd></div></dl>
         <p className={styles.muted}>Saved <time dateTime={savedAt}>{savedDateLabel}</time> · Asia/Dhaka{session.state==="draft"?". This snapshot is preserved while you edit the reopened session.":"."}</p>
       </div>
     </details>}

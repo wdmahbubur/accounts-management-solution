@@ -13,7 +13,7 @@ export const goldenCases = [
   { name: "beyond JS safe integer", input: document([line({ quantity: "10000", unit_price: "99999999999999.999999", tax_rate: "0" })]), amounts: ["999999999999999999.99", "0.00", "999999999999999999.99"] },
   { name: "signed explicit adjustment", input: document([line({ unit_price: "1", tax_rate: "0" })], { rounding: { amount: "-0.05", reason: "Supplier rounding evidence", account_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" } }), amounts: ["1.00", "0.00", "0.95"] }
 ];
-export const invalidCases: unknown[] = [null, [], {}, document([], {}), document([line()], { currency: "USD" }),
+export const invalidCases: unknown[] = [null, [], {}, document([], {}), document([line()], { currency: "XXX" }),
   document([line()], { total: "1.00" }), document([line()], { discount_amount: "0.00" }),
   ...["0", "-1", "NaN", "Infinity", "1e2", "01", " 1", "1.", ".1", "0.0000001", "100000000000000", 1, null].map((quantity) => document([line({ quantity })])),
   ...["-1", "NaN", "Infinity", "1.0000001", 1].map((unit_price) => document([line({ unit_price })])),

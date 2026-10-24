@@ -1,3 +1,4 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Run only against an explicitly selected isolated database with migrations through 0087.
 // TEST_DATABASE_URL is the fixture owner; TEST_DATABASE_RUNTIME_URL is the real restricted login.
 // Each run owns a unique synthetic organization and retains it for browser/ledger evidence.
@@ -10,8 +11,9 @@ const runtimeUrl = process.env.TEST_DATABASE_RUNTIME_URL;
 if (!ownerUrl || !runtimeUrl) throw new Error("Set TEST_DATABASE_URL and TEST_DATABASE_RUNTIME_URL for an isolated test database.");
 const ownerTarget = new URL(ownerUrl), runtimeTarget = new URL(runtimeUrl);
 if (ownerTarget.hostname !== runtimeTarget.hostname || ownerTarget.pathname !== runtimeTarget.pathname
-  || decodeURIComponent(runtimeTarget.username) !== "ams_app_login") throw new Error("Test owner and restricted login must target the same isolated database.");
+  || decodeURIComponent(runtimeTarget.username) === decodeURIComponent(ownerTarget.username)) throw new Error("Test owner and restricted login must target the same isolated database.");
 types.setTypeParser(types.builtins.DATE, value => value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool = new Pool({ connectionString: ownerUrl, max: 1, connectionTimeoutMillis: 30_000 });
 const runtimePool = new Pool({ connectionString: runtimeUrl, max: 2, connectionTimeoutMillis: 30_000 });
 const run = randomUUID();
@@ -137,8 +139,9 @@ async function assertPostedPlan(document, planned) {
 }
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role = await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole FROM pg_roles r WHERE r.rolname=current_user");
-  assert.equal(role.rows[0].current_user, "ams_app_login");
+  assert.equal(role.rows[0].current_user, decodeURIComponent(new URL(runtimeUrl).username));
   assert.equal(role.rows[0].rolsuper, false); assert.equal(role.rows[0].rolbypassrls, false); assert.equal(role.rows[0].rolcreaterole, false);
   for (const [id, name] of [[ownerId, "Owner"], [writerId, "Sales writer"], [readerId, "Sales reader"], [reviewerId, "Approval reader"]]) {
     await ownerQuery("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,$3,$4,now())",
@@ -232,11 +235,18 @@ try {
     await post(transfer); await assertPostedPlan(transfer, planned);
     report(`transfer preview equals committed principal/fee journal (${fee} fee)`);
   }
-  for (const type of ["customer_advance", "vendor_advance", "customer_refund", "vendor_refund"]) {
+  for (const type of ["customer_advance", "vendor_advance"]) {
     const document = await save(payload(type, "0.01")); const planned = await preview(document);
     await submit(document); await post(document); await assertPostedPlan(document, planned);
   }
-  report("all four refund/advance branches preserve authoritative accounting at one-paisa precision");
+  report("customer/supplier advances preserve authoritative accounting at one-paisa precision");
+  for (const type of ["customer_refund", "vendor_refund"]) {
+    const document = await save(payload(type, "0.01"));
+    await expectSql("23514", () => preview(document));
+    await submit(document); const before = await snapshot();
+    await expectSql("23514", () => post(document)); assert.deepEqual(await snapshot(), before);
+  }
+  report("unlinked refund previews/posting fail closed without financial, numbering, audit or outbox effects");
 
   await expectSql("42501", () => preview(unallocated, readerId));
   await expectSql("42501", () => preview(unallocated, reviewerId));

@@ -1,0 +1,13 @@
+▶ verification tokens enforce cooldown, single use, expiry and independent issuance races
+  ✔ cooldown preserves the first link; consumption and replay are atomic (5662.316ms)
+  ✔ expired tokens fail and different purposes have independent limits (2994.5554ms)
+  ✔ four independent app processes issue one live verification link (20753.5621ms)
+✔ verification tokens enforce cooldown, single use, expiry and independent issuance races (33043.2293ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41607.2787

@@ -1,3 +1,4 @@
+import {parseBaseCurrency} from '@ams/contracts';
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
@@ -110,7 +111,7 @@ function buildSnapshot(document: Record<string, unknown>, company: { organizatio
   return {
     state: "posted", documentId, documentNumber: document.document_number, materialDigest: document.material_digest,
     documentVersion: document.version, issueDate: document.issue_date,
-    dueDate: typeof document.due_date === "string" ? document.due_date : null, currency: "BDT",
+    dueDate: typeof document.due_date === "string" ? document.due_date : null, currency: parseBaseCurrency(document.currency),
     netAmount: document.net_amount, taxAmount: document.tax_amount,
     roundingAdjustment: typeof document.rounding_adjustment === "string" ? document.rounding_adjustment : "0.00",
     totalAmount: document.total_amount,

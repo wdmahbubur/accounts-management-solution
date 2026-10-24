@@ -1,5 +1,6 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Explicit isolated-only verifier. New fixtures; no reset, browser-org changes or provider calls.
-// Privileged SQL seeds identities/roles/contacts/bank only. All financial commands use ams_app_login.
+// Privileged SQL seeds identities/roles/contacts/bank only. All financial commands use the configured restricted login.
 // AMS_DATABASE_TESTS=isolated node tests/database/credit-application-workflow.mjs
 import assert from "node:assert/strict";
 import {createHash,randomUUID} from "node:crypto";
@@ -11,9 +12,10 @@ assert.equal(process.env.AMS_DATABASE_TESTS,"isolated","Explicitly select an iso
 const ownerUrl=process.env.TEST_DATABASE_URL??process.env.MIGRATION_DATABASE_URL??process.env.DATABASE_URL;
 const runtimeUrl=process.env.TEST_DATABASE_RUNTIME_URL??process.env.DATABASE_RUNTIME_URL;
 let sameTarget=false;
-try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)==="ams_app_login";}catch{/* Never echo configuration. */}
-assert.ok(sameTarget,"Select the isolated owner and actual ams_app_login on the same database.");
+try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)!==decodeURIComponent(a.username);}catch{/* Never echo configuration. */}
+assert.ok(sameTarget,"Select the isolated owner and configured restricted login on the same database.");
 neonConfig.webSocketConstructor=WebSocket;types.setTypeParser(types.builtins.DATE,value=>value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool=new Pool({connectionString:ownerUrl,max:1,connectionTimeoutMillis:30000});
 const runtimePool=new Pool({connectionString:runtimeUrl,max:2,connectionTimeoutMillis:30000});
 const ids={owner:randomUUID(),reader:randomUUID(),sales:randomUUID(),purchases:randomUUID(),dues:randomUUID(),noRead:randomUUID(),outsider:randomUUID()};
@@ -82,8 +84,9 @@ async function policy(organization,type){const ownerRole=(await ownerQuery("SELE
 }
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role=(await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole,pg_has_role(current_user,'ams_runtime','member') AS runtime_member FROM pg_roles r WHERE r.rolname=current_user")).rows[0];
-  assert.equal(role.current_user,"ams_app_login");assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
+  assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username));assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
   assert.ok((await ownerQuery("SELECT to_regprocedure('public.read_credit_application_options(uuid,uuid,date)') IS NOT NULL AS ready")).rows[0].ready,"Install reviewed migration 0094 before running this verifier.");
   stage="isolated fixture setup";
   for(const [name,id] of Object.entries(ids)){

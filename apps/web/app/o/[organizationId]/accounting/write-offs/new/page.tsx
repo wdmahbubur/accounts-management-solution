@@ -1,3 +1,4 @@
+import {companyDate} from '../../../../../../server/companies/today.ts';
 import styles from "../../../reports/report.module.css";
 import { parseOrganizationId } from "@ams/contracts";
 import { redirect } from "next/navigation";
@@ -5,13 +6,13 @@ import { resolveActorContext } from "../../../../../../server/auth/resolve-actor
 import { CommandError } from "../../../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../../../server/roles/runtime.ts";
 import { WriteOffForm } from "./write-off-form.tsx";
-import { bangladeshDate } from "../../../../../../lib/date.ts";
+
 
 export const dynamic="force-dynamic";export const revalidate=0;
 export default async function NewWriteOffPage({params}:{params:Promise<{organizationId:string}>}){
  let organizationId;try{organizationId=parseOrganizationId((await params).organizationId);}catch{redirect("/companies?error=not_found");}
  const runtime=await roleRuntime();if(!runtime.current||runtime.current.organizationId!==organizationId)redirect("/companies?error=context_mismatch");
- const today=bangladeshDate();let receivables:{id:string;party_name:string;reference:string;issue_date:string;available_amount:string}[]=[];
+ const today=(await companyDate());let receivables:{id:string;party_name:string;reference:string;issue_date:string;available_amount:string}[]=[];
  let accounts:{id:string;code:string;name:string}[]=[];let forbidden=false;
  try{const actor=await resolveActorContext(organizationId,runtime.dependencies);if(!actor.capabilities.includes("dues.adjust"))throw CommandError.forbidden();
   const r=await runtime.client.rpc("list_write_off_options",{p_organization_id:organizationId,p_as_of:today});if(r.error)throw new Error("Write-off options could not be loaded.");

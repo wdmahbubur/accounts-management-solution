@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../components/finance/company-currency.tsx';
 import Link from "next/link";
 import {DirectoryFilters} from "./directory-filters.tsx";
 import {formatContactMoney} from "../../../../lib/contact-details.ts";
@@ -9,7 +10,7 @@ export function DirectoryTable({scope,base,search,status,userId,organizationId,p
  const label=scope==="customer"?"Customers":"Suppliers";
  const amount=(value:string)=>formatContactMoney(value)??"Unavailable";
  return <section className={`panel ${styles.register}`}><DirectoryFilters scope={scope} base={base} search={search} status={status} userId={userId} organizationId={organizationId}/>
-   <div className={styles.listHeading}><h2>{label}</h2><p>Amounts in BDT</p></div>
+   <div className={styles.listHeading}><h2>{label}</h2><p>Amounts in <CompanyCurrency /></p></div>
    {page.items.length===0?<p className={styles.empty}>No {label.toLowerCase()} match these filters.</p>:<div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label={`${label} and balances`}><table>
      <thead><tr><th scope="col">Name</th><th scope="col" className={styles.amount}>Open {scope==="customer"?"receivables":"payables"}</th><th scope="col" className={styles.amount}>Overdue</th><th scope="col" className={styles.amount}>Available credits</th><th scope="col" className={styles.amount}>Advances</th><th scope="col">Status</th></tr></thead>
      <tbody>{page.items.map(row=>{const detail=row.email||row.phone||row.legal_name;return <tr key={row.id}>

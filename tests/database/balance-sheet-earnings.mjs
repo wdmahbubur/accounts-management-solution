@@ -1,5 +1,6 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Isolated-only regression: fresh synthetic companies, no reset or existing-company mutation.
-// Identity/contact/role seeds use the owner; setup and financial commands use actual ams_app_login.
+// Identity/contact/role seeds use the owner; setup and financial commands use configured restricted login.
 // AMS_DATABASE_TESTS=isolated node tests/database/balance-sheet-earnings.mjs
 import assert from "node:assert/strict";
 import {createHash,randomUUID} from "node:crypto";
@@ -11,9 +12,10 @@ assert.equal(process.env.AMS_DATABASE_TESTS,"isolated","Explicitly select an iso
 const ownerUrl=process.env.TEST_DATABASE_URL??process.env.MIGRATION_DATABASE_URL??process.env.DATABASE_URL;
 const runtimeUrl=process.env.TEST_DATABASE_RUNTIME_URL??process.env.DATABASE_RUNTIME_URL;
 let sameTarget=false;
-try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)==="ams_app_login";}catch{/* Never echo configuration. */}
-assert.ok(sameTarget,"Select the isolated owner and actual ams_app_login on the same database.");
+try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)!==decodeURIComponent(a.username);}catch{/* Never echo configuration. */}
+assert.ok(sameTarget,"Select the isolated owner and configured restricted login on the same database.");
 neonConfig.webSocketConstructor=WebSocket;types.setTypeParser(types.builtins.DATE,value=>value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool=new Pool({connectionString:ownerUrl,max:1,connectionTimeoutMillis:30000});
 const runtimePool=new Pool({connectionString:runtimeUrl,max:1,connectionTimeoutMillis:30000});
 const owner=randomUUID(),reader=randomUUID(),outsider=randomUUID(),run=randomUUID(),today=bangladeshDate();
@@ -53,8 +55,9 @@ async function balance(asOf,comparison=null,user=owner,organization=org){return(
 function statement(row,{assets,liabilities,earnings}){money(row.assets,assets);money(row.liabilities,liabilities);money(row.equity_accounts,"0.00");money(row.untransferred_earnings,earnings);money(row.equity,earnings);money(row.liabilities_and_equity,assets);money(row.difference,"0.00");}
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role=(await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole,pg_has_role(current_user,'ams_runtime','member') AS runtime_member FROM pg_roles r WHERE r.rolname=current_user")).rows[0];
-  assert.equal(role.current_user,"ams_app_login");assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
+  assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username));assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
   stage="isolated fixture setup";
   for(const user of [owner,reader]){await ownerQuery("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,'Balance Sheet QA',$3,now())",[user,`balance-${user}@example.invalid`,"$argon2id$synthetic-unusable-test-hash"]);
     await ownerQuery("INSERT INTO finance.profiles(user_id,display_name,locale,timezone) VALUES($1,'Balance Sheet QA','en-BD','Asia/Dhaka')",[user]);}

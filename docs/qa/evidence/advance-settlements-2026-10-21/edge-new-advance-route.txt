@@ -1,0 +1,42 @@
+DRAFT · BDT
+
+New supplier advance
+
+Save your draft, check the saved preview, then submit it for approval. Saving a draft does not post to your books.
+
+Document details
+Supplier
+Choose a supplier
+Synthetic dual
+Synthetic vendor
+Issue date
+Accounting date
+Due date Optional
+Reference Optional
+Description Optional
+
+The issue date appears on the document. The accounting date determines when it is recorded in the books.
+
+Cash movement
+Cash or bank account
+Choose an account
+Synthetic acceptance bank · bank
+Amount (BDT)
+Method
+Cash
+Bank transfer
+Mobile wallet
+Card
+Other
+Payment reference
+Optional
+Cash-flow class
+Unclassified · report stays provisional
+Operating
+Investing
+Financing
+Rounding adjustment Optional · up to ৳0.05
+
+Draft only · save to continue
+
+Save draft

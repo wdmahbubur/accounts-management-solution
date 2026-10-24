@@ -54,7 +54,7 @@ function calculationIssue(error: unknown, prefix = ""): DraftFieldIssue {
     discount: "The discount cannot be more than the line amount before discount.",
     discount_amount: "Enter a nonnegative discount with up to two decimal places.",
     tax_rate: "The selected tax rate could not be calculated. Check the tax code.",
-    "rounding.amount": "The rounding adjustment must be between -0.05 and 0.05 BDT.",
+    "rounding.amount": "The rounding adjustment must be between -0.05 and 0.05 in company currency.",
     "rounding.reason": "Add a reason for this rounding adjustment.",
     "rounding.account_id": "Choose the configured rounding account."
   };
@@ -64,6 +64,7 @@ function calculationIssue(error: unknown, prefix = ""): DraftFieldIssue {
 
 /** Display only. Saving and posting still validate and calculate on the server. */
 export function calculateTradeDraft(input: {
+  currency?: import('@ams/contracts').BaseCurrency;
   lines: readonly TradeLineInput[];
   taxCodes: readonly { id: string; rate_percent?: string }[];
   savedLines?: readonly SavedLineTax[];
@@ -118,13 +119,13 @@ export function calculateTradeDraft(input: {
     return { lines, totals: null, issues };
   }
   const units = moneyUnits(adjustment);
-  if (units < -5n || units > 5n) issues.push({ field: "rounding_adjustment", message: "The rounding adjustment must be between -0.05 and 0.05 BDT." });
+  if (units < -5n || units > 5n) issues.push({ field: "rounding_adjustment", message: "The rounding adjustment must be between -0.05 and 0.05 in company currency." });
   if (units !== 0n && !input.rounding.reason.trim()) issues.push({ field: "rounding_reason", message: "Add a reason for this rounding adjustment." });
   if (units !== 0n && !input.rounding.accountId) issues.push({ field: "rounding_account_id", message: "Choose the configured rounding account." });
   if (issues.length || calculationLines.length !== input.lines.length) return { lines, totals: null, issues };
   try {
     const totals = calculateDocument({
-      currency: "BDT", lines: calculationLines,
+      currency: input.currency ?? 'BDT', lines: calculationLines,
       ...(units === 0n ? {} : { rounding: { amount: adjustment, reason: input.rounding.reason, account_id: input.rounding.accountId } })
     });
     return { lines, totals, issues };

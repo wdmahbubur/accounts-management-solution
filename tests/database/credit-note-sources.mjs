@@ -1,7 +1,8 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Isolated database only, migrated through 0093. Uses the actual restricted login.
 // AMS_DATABASE_TESTS=isolated node tests/database/credit-note-sources.mjs
 // Privileged writes create only unique synthetic identities/roles/master data.
-// Source save/approval/post/reversal and all tested reads run as ams_app_login.
+// Source save/approval/post/reversal and all tested reads use the configured restricted login.
 // Committed synthetic fixtures are retained for evidence; failed commands roll back.
 import assert from "node:assert/strict";
 import { createHash, randomUUID } from "node:crypto";
@@ -14,11 +15,12 @@ assert.ok(ownerUrl && runtimeUrl, "Set both TEST_DATABASE_URL and TEST_DATABASE_
 let targetsMatch = false;
 try {
   const owner = new URL(ownerUrl), runtime = new URL(runtimeUrl);
-  targetsMatch = owner.hostname === runtime.hostname && owner.pathname === runtime.pathname && decodeURIComponent(runtime.username) === "ams_app_login";
+  targetsMatch = owner.hostname === runtime.hostname && owner.pathname === runtime.pathname && decodeURIComponent(runtime.username) !== decodeURIComponent(owner.username);
 } catch { /* Never print connection strings. */ }
-assert.ok(targetsMatch, "Owner and actual ams_app_login must target the same isolated database.");
+assert.ok(targetsMatch, "Owner and configured restricted login must target the same isolated database.");
 neonConfig.webSocketConstructor = WebSocket;
 types.setTypeParser(types.builtins.DATE, value => value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool = new Pool({ connectionString: ownerUrl, max: 1, connectionTimeoutMillis: 30_000 });
 const runtimePool = new Pool({ connectionString: runtimeUrl, max: 2, connectionTimeoutMillis: 30_000 });
 const run = randomUUID(), ownerId = randomUUID(), salesReader = randomUUID(), purchaseReader = randomUUID(), documentReader = randomUUID(), outsider = randomUUID();
@@ -150,11 +152,12 @@ async function foreignOriginal() {
 }
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role = (await runtimePool.query(`SELECT current_user,session_user=current_user AS direct_login,NOT rolsuper AND NOT rolbypassrls AND NOT rolcreatedb AND NOT rolcreaterole AS restricted,
     pg_has_role(current_user,'ams_runtime','member') AS runtime_member,has_table_privilege(current_user,'finance.journal_lines','INSERT') AS direct_insert,
     has_function_privilege(current_user,'finance_private.credit_remaining_capacity(uuid,uuid,date,uuid)','EXECUTE') AS private_execute
     FROM pg_roles WHERE rolname=current_user`)).rows[0];
-  assert.equal(role.current_user, "ams_app_login"); assert.ok(role.direct_login && role.restricted && role.runtime_member && !role.direct_insert && !role.private_execute);
+  assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username)); assert.ok(role.direct_login && role.restricted && role.runtime_member && !role.direct_insert && !role.private_execute);
   stage = "synthetic fixture setup";
   for (const [id, name] of [[ownerId, "Credit QA owner"], [salesReader, "Sales reader"], [purchaseReader, "Purchase reader"], [documentReader, "Document reader"], [outsider, "Unrelated reader"]]) {
     await query("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,$3,$4,now())", [id, `credit-${id}@example.invalid`, name, "$argon2id$synthetic-unusable-test-hash"]);

@@ -1,0 +1,73 @@
+← Financial documents
+
+Financial document
+
+Supplier refund
+Draft
+
+Saved draft. It has no effect on the ledger.
+
+Document total · BDT
+৳4,000.00
+Linked settlement
+
+Source advance or credit
+
+Edit settlement
+Review settlement
+Posting preview
+
+Saved version 1 · BDT
+
+Debits and credits balance
+
+Planned journal entries
+Account	Description / party	Debit	Credit
+Bank
+1010
+	Synthetic Edge unused supplier advance refund	৳4,000.00	৳0.00
+Supplier advances
+1150
+	Synthetic Edge unused supplier advance refund
+Synthetic vendor
+	৳0.00	৳4,000.00
+Total	৳4,000.00	৳4,000.00
+
+Preview only. Posting rechecks permissions, approval, accounting period and available settlement amounts.
+
+Preview posting
+Submit for approval
+Document details
+Saved supplier
+
+Synthetic vendor
+
+Billing address
+
+No billing address was recorded on this document.
+
+These details belong to the saved document version.
+
+Issue date
+15 Jan 2025
+Accounting date
+15 Jan 2025
+Reference
+Synthetic Edge supplier refund received
+Description
+
+Synthetic Edge unused supplier advance refund
+
+Money received
+Received into
+Synthetic acceptance bank
+Amount · BDT
+৳4,000.00
+Method
+Bank transfer
+Payment reference
+Synthetic Edge supplier refund received
+Cash-flow classification
+Operating
+Accounting
+Document reference information

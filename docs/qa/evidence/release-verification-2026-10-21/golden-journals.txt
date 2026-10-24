@@ -1,0 +1,161 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents
+      - link "Journal register":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals
+      - link "General ledger":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - generic: Journal register
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Accounting · Golden alpha
+  - heading "Journal register" [level=1]
+  - generic "Ledger basis and snapshot · Posted ledger"
+  - paragraph: Posted journal history is immutable. Corrections remain linked to their dated reversal.
+  - paragraph:
+    - link "Create manual journal":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/new
+  - text: Search number or memo
+  - searchbox "Search number or memo"
+  - text: From
+  - textbox "From": 2025-01-01
+  - text: To
+  - textbox "To": 2025-01-31
+  - button "Filter"
+  - heading "Posted journals" [level=2]
+  - table:
+    - rowgroup:
+      - row "Date Number Type Memo Debit (BDT) Credit (BDT) Created by History":
+        - columnheader "Date"
+        - columnheader "Number"
+        - columnheader "Type"
+        - columnheader "Memo"
+        - columnheader "Debit (BDT)"
+        - columnheader "Credit (BDT)"
+        - columnheader "Created by"
+        - columnheader "History"
+    - rowgroup:
+      - row "2025-01-15 RCPT-FY 2025-000001 receipt 6000.00 6000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "RCPT-FY 2025-000001":
+          - link "RCPT-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/a9a92bbf-7f7d-4b53-b7d2-e79944e424db
+        - cell "receipt"
+        - cell
+        - cell "6000.00"
+        - cell "6000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+      - row "2025-01-15 BILL-FY 2025-000001 bill 4000.00 4000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "BILL-FY 2025-000001":
+          - link "BILL-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/9f3d65e2-e249-4bbe-a57a-4a5edcc856dc
+        - cell "bill"
+        - cell
+        - cell "4000.00"
+        - cell "4000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+      - row "2025-01-15 PAY-FY 2025-000001 vendor payment 3000.00 3000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "PAY-FY 2025-000001":
+          - link "PAY-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/6b7d093d-7956-49b8-a037-2bb3ebeb472b
+        - cell "vendor payment"
+        - cell
+        - cell "3000.00"
+        - cell "3000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+      - row "2025-01-15 EXP-FY 2025-000001 paid expense 1000.00 1000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "EXP-FY 2025-000001":
+          - link "EXP-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/622ab834-76ae-4ad5-a4c3-e8c90d58743d
+        - cell "paid expense"
+        - cell
+        - cell "1000.00"
+        - cell "1000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+      - row "2025-01-15 INV-FY 2025-000001 invoice 10000.00 10000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "INV-FY 2025-000001":
+          - link "INV-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/4d12d3da-4a2e-4874-80df-6f10140e7d05
+        - cell "invoice"
+        - cell
+        - cell "10000.00"
+        - cell "10000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+      - row "2025-01-15 JV-FY 2025-000001 manual journal Synthetic acceptance manual_journal 100000.00 100000.00 Synthetic owner Original":
+        - cell "2025-01-15"
+        - cell "JV-FY 2025-000001":
+          - link "JV-FY 2025-000001":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/2d056750-29b2-4d77-87a5-d7f82bde25a0
+        - cell "manual journal"
+        - cell "Synthetic acceptance manual_journal"
+        - cell "100000.00"
+        - cell "100000.00"
+        - cell "Synthetic owner"
+        - cell "Original"
+- contentinfo: BDT books · No financial changes are queued offline.

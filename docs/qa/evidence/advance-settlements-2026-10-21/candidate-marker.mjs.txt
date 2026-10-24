@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {writeFile} from 'node:fs/promises';
+import {Pool} from '@neondatabase/serverless';
+const url=new URL(process.env.DATABASE_URL);
+assert.equal(process.env.AMS_DATABASE_TESTS,'isolated');
+assert.equal(url.hostname,'ep-mute-silence-b402pwbi-pooler.c-6.us-east-2.aws.neon.tech');
+assert.equal(url.pathname,'/ams_clean_launch_20261021');
+const pool=new Pool({connectionString:url.toString(),max:1});
+try{
+ const id=randomUUID();
+ const row=(await pool.query("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,'Synthetic candidate recovery marker','$argon2id$non-login-fixture',now()) RETURNING id,created_at::text",[id,`candidate-recovery-marker-${id}@example.invalid`])).rows[0];
+ await writeFile(new URL('./candidate-marker.private.json',import.meta.url),JSON.stringify(row),{flag:'wx',mode:0o600});
+ console.log(JSON.stringify({marker:'committed after candidate recovery point',...row}));
+}finally{await pool.end();}

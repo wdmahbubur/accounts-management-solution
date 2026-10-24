@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {readFile} from 'node:fs/promises';
+import {Pool,neonConfig} from '@neondatabase/serverless';
+neonConfig.webSocketConstructor=WebSocket;
+const sourceHost='ep-mute-silence-b402pwbi-pooler.c-6.us-east-2.aws.neon.tech',targetHost='ep-empty-mode-b42bm5kw-pooler.c-6.us-east-2.aws.neon.tech';
+const source=new URL(process.env.DATABASE_URL),target=new URL(source),runtimeUrl=new URL(process.env.DATABASE_RUNTIME_URL);
+assert.equal(source.hostname,sourceHost);assert.equal(source.pathname,'/ams_clean_launch_20261021');assert.equal(process.env.AMS_DATABASE_TESTS,'isolated');
+target.hostname=targetHost;runtimeUrl.hostname=targetHost;
+const result=spawnSync(process.execPath,['scripts/recovery-database.mjs','verify','output/advances/2026-10-21/candidate-recovery.private.json'],{env:{...process.env,AMS_RECOVERY_SOURCE_HOST:sourceHost,AMS_RECOVERY_TARGET_HOST:targetHost,RECOVERY_DATABASE_URL:target.toString()},stdio:'inherit'});
+assert.equal(result.status,0,'Restored snapshot must match before any target checks.');
+const owner=new Pool({connectionString:target.toString(),max:1}),runtime=new Pool({connectionString:runtimeUrl.toString(),max:1});
+try{
+ const marker=JSON.parse(await readFile(new URL('./candidate-marker.private.json',import.meta.url),'utf8'));
+ assert.equal((await owner.query('SELECT count(*)::int AS n FROM identity.users WHERE id=$1',[marker.id])).rows[0].n,0,'The later identity marker must be absent.');
+ const role=(await runtime.query("SELECT current_user AS name,NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb AS restricted,has_table_privilege(current_user,'finance.journal_lines','INSERT') AS can_insert,has_table_privilege(current_user,'finance.linked_settlement_details','SELECT') AS can_read_private FROM pg_roles WHERE rolname=current_user")).rows[0];
+ assert.deepEqual(role,{name:'ams_runtime',restricted:true,can_insert:false,can_read_private:false});
+ const fixture=JSON.parse(await readFile(new URL('./browser.private.json',import.meta.url),'utf8')),user=fixture.ownerEmail.slice('acceptance-'.length).split('@')[0];
+ const db=await runtime.connect();let options;
+ try{await db.query('BEGIN READ ONLY');await db.query("SELECT set_config('ams.actor_user_id',$1,true)",[user]);options=(await db.query("SELECT public.read_linked_settlement_options($1,'2025-01-15'::date) AS value",[fixture.org])).rows[0].value;await db.query('COMMIT');}finally{await db.query('ROLLBACK');db.release();}
+ const advances=options.sources.filter(s=>['customer_advance','vendor_advance'].includes(s.control_kind));
+ assert.equal(advances.length,2);
+ for(const a of advances){assert.equal(a.original_amount,'10000.00');assert.equal(a.applied_amount,'6000.00');assert.equal(a.refunded_amount,'4000.00');assert.equal(a.remaining_amount,'0.00');assert.equal(a.history.length,2);}
+ console.log(JSON.stringify({candidateHistoricalRestore:'passed',laterMarkerAbsent:true,restrictedRuntimeRetained:true,privateTableGrantAbsent:true,restoredCustomerAndSupplierLifecycles:2,advanceValues:{original:'10000.00',applied:'6000.00',refunded:'4000.00',remaining:'0.00'}}));
+}finally{await runtime.end();await owner.end();}

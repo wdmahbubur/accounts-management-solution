@@ -1,0 +1,55 @@
+FINANCE REVIEW
+
+Approval inbox
+
+Review the exact submitted source version, evidence, policy snapshot and calculation preview before deciding.
+
+Pending
+Approved
+Rejected
+All
+
+You do not have permission to perform this action.
+
+Type / reference	Maker	Amount (BDT)	Submitted	Policy progress	Status	Action
+advance application
+Synthetic Edge supplier advance application
+	Synthetic owner	6000.00	10/21/2026, 11:36:48 AM	0 / 1 approved	pending	Review
+
+ADVANCE APPLICATION
+
+Synthetic Edge supplier advance application
+
+Maker: Synthetic owner · submitted 10/21/2026, 11:36:48 AM · BDT 6000.00
+
+Open source
+Submitted policy
+Policy
+Browser advance_application
+Policy version
+2
+Threshold
+0.00
+Required approvals
+1
+Eligible role
+Owner
+Maker exception
+Disabled
+Source lines and terms
+Linked settlement · BDT 6000.00
+
+Source: VADV-FY 2025-000001 · Target: BILL-FY 2025-000001
+
+Attachments
+
+No reviewable attachments.
+
+Calculate posting preview
+Previous decisions
+
+No decisions recorded.
+
+Decision note (required for rejection)
+Approve
+Reject

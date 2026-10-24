@@ -1,6 +1,7 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Explicit isolated-only run; each run creates new synthetic organizations.
 // Owner SQL seeds identities/roles/catalog fixtures only. Business save/setup/approval/post/read
-// operations use a separate actual ams_app_login. Never resets or changes prior fixture companies.
+// operations use a separate configured restricted login. Never resets or changes prior fixture companies.
 // AMS_DATABASE_TESTS=isolated node tests/database/supplier-payment-workflow.mjs
 import assert from "node:assert/strict";
 import {createHash,randomUUID} from "node:crypto";
@@ -12,9 +13,10 @@ assert.equal(process.env.AMS_DATABASE_TESTS,"isolated","Explicitly select an iso
 const ownerUrl=process.env.TEST_DATABASE_URL??process.env.MIGRATION_DATABASE_URL??process.env.DATABASE_URL;
 const runtimeUrl=process.env.TEST_DATABASE_RUNTIME_URL??process.env.DATABASE_RUNTIME_URL;
 let sameTarget=false;
-try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)==="ams_app_login";}catch{/* Never echo configuration. */}
-assert.ok(sameTarget,"Select the isolated owner and actual ams_app_login on the same database.");
+try {const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)!==decodeURIComponent(a.username);}catch{/* Never echo configuration. */}
+assert.ok(sameTarget,"Select the isolated owner and configured restricted login on the same database.");
 neonConfig.webSocketConstructor=WebSocket;types.setTypeParser(types.builtins.DATE,value=>value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool=new Pool({connectionString:ownerUrl,max:1,connectionTimeoutMillis:30000});
 const runtimePool=new Pool({connectionString:runtimeUrl,max:2,connectionTimeoutMillis:30000});
 const ids={owner:randomUUID(),writer:randomUUID(),reader:randomUUID(),noDues:randomUUID(),sales:randomUUID(),outsider:randomUUID()};
@@ -72,8 +74,9 @@ async function journal(document){return(await ownerQuery(`SELECT l.line_no,a.cod
   WHERE j.organization_id=$1 AND j.source_document_id=$2 ORDER BY l.line_no`,[org,document.document_id])).rows;}
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role=(await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole,pg_has_role(current_user,'ams_runtime','member') AS runtime_member FROM pg_roles r WHERE r.rolname=current_user")).rows[0];
-  assert.equal(role.current_user,"ams_app_login");assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
+  assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username));assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);assert.equal(role.runtime_member,true);
   stage="isolated fixture setup";
   for(const [name,id] of Object.entries(ids)){
     await ownerQuery("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,$3,$4,now())",[id,`supplier-${id}@example.invalid`,`Supplier QA ${name}`,"$argon2id$synthetic-unusable-test-hash"]);

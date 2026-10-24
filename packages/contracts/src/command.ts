@@ -45,6 +45,7 @@ export const stableErrorCodes = [
   "IDEMPOTENCY_CONFLICT",
   "DUPLICATE_IMPORT",
   "PLAN_READ_ONLY",
+  "BILLING_DISABLED",
   "RATE_LIMITED"
 ] as const;
 
