@@ -1,0 +1,15 @@
+▶ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries
+  ✔ S-01/S-03/S-05 direct report and source APIs enforce live ordinary-user permissions (10588.441ms)
+  ✔ S-04 forged Owner metadata cannot change an authenticated Billing user's authority (4343.4694ms)
+  ✔ cookie-authenticated financial commands reject an untrusted Origin (7290.4983ms)
+{"fixture":"http-security","organizationId":"5ef77d5a-a3a1-435a-b529-1ccb2bac04bf"}
+  ✔ S-07 a still-valid authentication session loses company access immediately after deactivation (8100.8076ms)
+✔ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries (72750.2435ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 73153.3087

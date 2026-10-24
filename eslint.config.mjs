@@ -16,6 +16,7 @@ const eslintConfig = [
     "**/.next/**",
     "**/node_modules/**",
     "docs/**",
+    "output/**",
     ".github/handoff/**"
   ])
 ];

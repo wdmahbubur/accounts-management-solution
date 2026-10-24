@@ -1,0 +1,15 @@
+▶ cash-account money contract and tenant boundaries through a real restricted database login
+  ✔ new cash account returns canonical zero matching its empty cashbook (888.3968ms)
+  ✔ anonymous and cross-company reads remain denied (6257.109ms)
+  ✔ an unposted journal source does not affect the cash-account balance (603.6645ms)
+  ✔ posted debits and credits preserve cents beyond JavaScript's safe integer range (2662.6447ms)
+  ✔ negative and settled bank balances remain canonical exact money (3272.6789ms)
+✔ cash-account money contract and tenant boundaries through a real restricted database login (23515.2116ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23823.3947

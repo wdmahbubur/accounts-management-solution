@@ -6,6 +6,7 @@ import { resolveActorContext } from "../../../server/auth/resolve-actor.ts";
 import { listActiveMemberships } from "../../../server/companies/memberships.ts";
 import { CommandError } from "../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../server/roles/runtime.ts";
+import {readCompanyLocale} from '../../../server/companies/locale.ts';
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export default async function CompanyLayout({ params, children }: { params: Promise<{ organizationId: string }>; children: ReactNode }) {
@@ -28,7 +29,8 @@ export default async function CompanyLayout({ params, children }: { params: Prom
   // Only current-company summary enters the client tree, never the full directory.
   // Remount local UI state when a company-context nonce changes. Child pages and
   // commands must still perform their own current authorization; layouts persist.
-  return <AppFrame key={`${organizationId}:${runtime.current.nonce}`} organizationId={organizationId}
+  const locale=await readCompanyLocale(runtime.client,organizationId);
+  return <AppFrame key={`${organizationId}:${runtime.current.nonce}`} organizationId={organizationId} baseCurrency={locale.baseCurrency} today={locale.today}
     companyName={company.organizationName} companyStatus={company.organizationStatus}
     capabilities={actor.capabilities} email={user.email ?? "Verified account"}>{children}</AppFrame>;
 }

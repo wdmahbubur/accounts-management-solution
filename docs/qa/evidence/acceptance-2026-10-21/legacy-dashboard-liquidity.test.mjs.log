@@ -1,0 +1,14 @@
+▶ dated dashboard cash/bank split reconciles under ordinary report roles
+  ✔ empty balances are canonical zero and use the same snapshot cutoff (1617.575ms)
+  ✔ opening balances, archived banks and other cash equivalents reconcile; drafts and future activity stay excluded (3210.2499ms)
+  ✔ bank overdrafts and large cash cents retain exact decimal values (11105.3785ms)
+  ✔ reports-only readers receive the split; sales-only, anonymous and other-company callers cannot receive it (9455.2333ms)
+✔ dated dashboard cash/bank split reconciles under ordinary report roles (94457.0267ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94785.3593

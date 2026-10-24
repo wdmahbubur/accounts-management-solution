@@ -9,11 +9,16 @@ The repository now separates evidence by layer:
 | Application/service | `npm test` / `npm run test:application` | TypeScript/Node contracts, service boundaries and repository application tests |
 | Reference model | `npm run test:reference` | Retained Python arithmetic/ledger examples only; not application evidence |
 | Static specification | `npm run test:spec` | Source/artifact consistency only |
-| Real database | `npm run test:database` | PostgreSQL/RLS/tenant/schema behavior in the isolated local Supabase stack |
-| Race harness | `npm run test:race` | Two independent PostgreSQL sessions can exercise real lock contention |
-| Browser | `npm run test:browser` | Chromium can boot and exercise the actual Next.js app surface |
+| Real accounting database | `npm run test:database:accounting` | Actual restricted-login Neon accounting, authorization, period/year and race commands |
+| Private files/exports | `npm run test:database:exports` | Real private S3 files, issued snapshots and permission-checked downloads |
+| Worker recovery | `npm run test:database:worker-recovery` | Actual worker crash, lease expiry and loopback SMTP recovery; no external mail |
+| Authenticated HTTP | `npm run test:database:http-security` | Password-authenticated local application API boundaries; requires `AMS_TEST_APP_URL` |
+| Recovery/invitations | `npm run test:database:recovery` / `npm run test:database:invitations` | Restored synthetic file and live invitation/revocation commands |
+| Browser | Connected Edge session | Actual UI flows; not replaced by HTTP/database tests |
 
 Reference/static suites remain useful baselines, but they are never counted as a real application acceptance pass.
+
+Current database tests require an explicitly enabled isolated target (`AMS_DATABASE_TESTS=isolated`, `AMS_TEST_DATABASE_HOST`) with owner fixtures and a separate restricted runtime login. Object/worker tests additionally require private test storage and the restricted worker login. Never load a production profile. See [the 21 October execution report](qa/full-acceptance-2026-10-21.md) for exact environment, commands, results and remaining gates. The older Supabase fixture/browser/race descriptions below are retained historical US-005 context, not current runnable commands.
 
 ## Deterministic fixtures
 
@@ -56,6 +61,8 @@ S-01..S-20. Allowed statuses are:
 - `partial` — meaningful real evidence exists, but the full source case is not yet proven and is not counted as a pass;
 - `fixture_ready` — deterministic fixture/harness exists but the application case is not proven;
 - `pending` — no implementation evidence yet.
+- `blocked` — an identified prerequisite/implementation is absent; not a pass;
+- `failed` — executed acceptance still fails; not a pass.
 
 The matrix validator fails if cases are missing/duplicated or a covered case has
 no evidence. Pending and fixture-ready cases are never counted as passes.
@@ -66,6 +73,8 @@ Current coverage at US-005:
 - partial: S-01;
 - fixture-ready: T-47;
 - pending: all remaining cases.
+
+That is the historical US-005 snapshot. The current 72-case matrix and [execution report](qa/full-acceptance-2026-10-21.md) supersede those initial counts. The validator now checks IDs, evidence paths, result labels and limitation notes instead of hard-coding the old two-pass count. A matrix label is traceability, not a substitute for retained execution output.
 
 ## Browser harness
 

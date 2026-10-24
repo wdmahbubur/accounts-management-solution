@@ -25,6 +25,7 @@ const STATUS_BY_CODE: Readonly<Record<StableErrorCode, number>> = {
   IDEMPOTENCY_CONFLICT: 409,
   DUPLICATE_IMPORT: 409,
   PLAN_READ_ONLY: 409,
+  BILLING_DISABLED: 409,
   RATE_LIMITED: 429
 };
 
@@ -48,6 +49,7 @@ const DEFAULT_MESSAGE: Readonly<Record<PublicErrorCode, string>> = {
   IDEMPOTENCY_CONFLICT: "The idempotency key was already used with a different request.",
   DUPLICATE_IMPORT: "The same import has already been processed.",
   PLAN_READ_ONLY: "The current plan is read-only.",
+  BILLING_DISABLED: "Paid billing is not enabled.",
   RATE_LIMITED: "Too many requests. Try again later.",
   INTERNAL_ERROR: "An unexpected error occurred."
 };

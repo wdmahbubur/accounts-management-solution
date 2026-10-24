@@ -112,7 +112,7 @@ function dateValue(value: unknown): string {
 
 function moneyValue(value: unknown, signed = false): string {
   const text = String(value ?? "").trim().replaceAll(",", "").replace(/^৳\s*/, "");
-  if (!/^-?\d{1,12}(?:\.\d{1,2})?$/.test(text) || (!signed && text.startsWith("-"))) throw new Error("Use an exact BDT amount with up to two decimal places.");
+  if (!/^-?\d{1,12}(?:\.\d{1,2})?$/.test(text) || (!signed && text.startsWith("-"))) throw new Error("Use an exact amount with up to two decimal places.");
   const [whole, fraction = ""] = text.replace(/^-/, "").split(".");
   const amount = `${whole!.replace(/^0+(?=\d)/, "")}.${fraction.padEnd(2, "0")}`;
   return `${text.startsWith("-") && amount !== "0.00" ? "-" : ""}${amount}`;

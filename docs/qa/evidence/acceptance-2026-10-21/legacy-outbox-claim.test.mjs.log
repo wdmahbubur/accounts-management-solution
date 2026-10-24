@@ -1,0 +1,13 @@
+▶ restricted worker claims issued invoice delivery without output-column ambiguity
+  ✔ ordinary request role cannot claim worker leases (306.6064ms)
+  ✔ wrong lease cannot read invoice delivery metadata (942.5718ms)
+  ✔ completion is fenced and no email or financial posting is performed by this test (1253.2405ms)
+✔ restricted worker claims issued invoice delivery without output-column ambiguity (14321.0739ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14629.1791

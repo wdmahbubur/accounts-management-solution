@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Accounts Management Solution",
-  description: "Company accounting workspaces for Bangladesh service businesses, with separate BDT accrual books and controlled team access."
+  description: "Separate company accounting workspaces, with a choice of country and supported accounting currency, accrual books and controlled team access."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

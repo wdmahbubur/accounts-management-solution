@@ -1,0 +1,14 @@
+▶ country and currency selections remain authoritative through company books and private outputs
+  ✔ USD company activates with its selected locale; EUR retries do not create extra companies (23762.3184ms)
+  ✔ USD invoices, cash collections, bills and payments post exact balanced journals (41070.5341ms)
+  ✔ USD advance application, linked refund, write-off and reversal preserve company currency (39730.883ms)
+  ✔ issued USD invoice PDF and CSV/PDF/XLSX report exports retain currency and original totals (61273.9944ms)
+✔ country and currency selections remain authoritative through company books and private outputs (194686.8359ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 202773.2119

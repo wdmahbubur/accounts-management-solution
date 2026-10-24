@@ -1,3 +1,4 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Run after migration 0090, using an explicitly selected isolated test database.
 // Fixture writes use a unique synthetic organization. Reads use the real restricted login.
 import assert from "node:assert/strict";
@@ -8,11 +9,12 @@ const ownerUrl = process.env.TEST_DATABASE_URL;
 const runtimeUrl = process.env.TEST_DATABASE_RUNTIME_URL;
 if (!ownerUrl || !runtimeUrl) throw new Error("Set TEST_DATABASE_URL and TEST_DATABASE_RUNTIME_URL for an isolated database migrated through 0090.");
 const ownerTarget = new URL(ownerUrl), runtimeTarget = new URL(runtimeUrl);
-if (ownerTarget.hostname !== runtimeTarget.hostname || ownerTarget.pathname !== runtimeTarget.pathname || decodeURIComponent(runtimeTarget.username) !== "ams_app_login") {
-  throw new Error("Test owner and actual ams_app_login must target the same isolated database.");
+if (ownerTarget.hostname !== runtimeTarget.hostname || ownerTarget.pathname !== runtimeTarget.pathname || decodeURIComponent(runtimeTarget.username) === decodeURIComponent(ownerTarget.username)) {
+  throw new Error("Test owner and configured restricted login must target the same isolated database.");
 }
 types.setTypeParser(types.builtins.DATE, value => value);
 neonConfig.webSocketConstructor = WebSocket;
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const ownerPool = new Pool({ connectionString: ownerUrl, max: 1, connectionTimeoutMillis: 30_000 });
 const runtimePool = new Pool({ connectionString: runtimeUrl, max: 1, connectionTimeoutMillis: 30_000 });
 const ownerId = randomUUID(), sourceReader = randomUUID(), salesReader = randomUUID(), ledgerReader = randomUUID(), outsider = randomUUID();
@@ -91,8 +93,9 @@ async function assertJournal(documentId, result) {
 }
 
 try {
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
   const role = (await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole,pg_has_role(current_user,'ams_runtime','member') AS runtime_member FROM pg_roles r WHERE r.rolname=current_user")).rows[0];
-  assert.equal(role.current_user, "ams_app_login");
+  assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username));
   assert.equal(role.rolsuper, false); assert.equal(role.rolbypassrls, false); assert.equal(role.rolcreaterole, false); assert.equal(role.runtime_member, true);
   for (const [id, name] of [[ownerId, "Detail QA owner"], [sourceReader, "Source reader"], [salesReader, "Sales reader"], [ledgerReader, "Ledger reader"], [outsider, "Unrelated reader"]]) {
     await ownerQuery("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,$3,$4,now())", [id, `detail-${id}@example.invalid`, name, "$argon2id$synthetic-unusable-test-hash"]);

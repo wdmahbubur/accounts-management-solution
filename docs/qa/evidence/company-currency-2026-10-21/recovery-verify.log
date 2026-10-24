@@ -1,0 +1,2 @@
+{"command":"verify","status":"passed","tableCount":71,"migrationCount":119,"lastMigration":"0120_subscription_summary.sql","journalGroups":56,"pdfs":2,"attachments":3,"snapshotTime":"2026-10-21 15:31:29.179496+00","lsn":"0/8142920"}
+{"candidateHistoricalRestore":"passed","laterMarkerAbsent":true,"restrictedRuntimeRetained":true,"privateTableGrantAbsent":true,"restoredCustomerAndSupplierLifecycles":2,"advanceValues":{"original":"10000.00","applied":"6000.00","refunded":"4000.00","remaining":"0.00"}}

@@ -34,5 +34,5 @@ test("PDF accepts fractional unit prices while keeping posted money at two decim
   for (const invalid of ["0.1234567", "-1.000000", "NaN"]) {
     await assert.rejects(renderIssuedInvoicePdf(issuedInvoice(invalid)), /invalid.*unit price/i);
   }
-  await assert.rejects(renderIssuedInvoicePdf({ ...issuedInvoice(), totalAmount: "100.000000" }), /invalid BDT amount/);
+  await assert.rejects(renderIssuedInvoicePdf({ ...issuedInvoice(), totalAmount: "100.000000" }), /invalid amount/);
 });

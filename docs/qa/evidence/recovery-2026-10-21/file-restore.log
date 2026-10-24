@@ -1,0 +1,17 @@
+▶ private file restore, corruption detection and live access after database recovery
+  ✔ database-only restoration cannot serve a missing private object (6099.3519ms)
+  ✔ restore independently backed-up bytes to private provider storage (7359.8784ms)
+  ✔ the restored provider object cannot be fetched without a signature (1705.8182ms)
+  ✔ actual provider corruption is rejected and original bytes can be recovered (19307.5189ms)
+  ✔ foreign-company, anonymous, nonmember and missing-capability access is denied (3712.4793ms)
+  ✔ membership revocation is enforced with the same authenticated actor (13608.9914ms)
+  ✔ quarantined bytes remain unavailable after recovery (1909.4263ms)
+✔ private file restore, corruption detection and live access after database recovery (62481.0468ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63112.9259

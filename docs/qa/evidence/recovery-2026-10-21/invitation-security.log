@@ -1,0 +1,17 @@
+▶ current identity invitation lifecycle and live membership revocation
+  ✔ normalized recipient, verified identity and hidden token hashes (12007.0612ms)
+  ✔ resend cooldown, superseded-token rejection and immutable delivery payloads (8512.8847ms)
+  ✔ one-time acceptance grants the snapshotted role only (4944.4257ms)
+  ✔ unverified and disabled issuers cannot issue invitations (3996.7619ms)
+  ✔ deactivating an inviter atomically invalidates pending links and queued delivery (6757.1221ms)
+  ✔ cross-company roles, private helpers and self-deactivation remain denied (8519.1644ms)
+  ✔ changing a role after issuance cannot expand an outstanding invitation (4934.9266ms)
+✔ current identity invitation lifecycle and live membership revocation (61089.978ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61527.8815

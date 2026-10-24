@@ -1,0 +1,14 @@
+▶ real restricted-login limiter counts five failures, expires, clears and handles independent connections
+  ✔ first through fourth attempts remain allowed; fifth blocks (7304.4213ms)
+  ✔ expired lockout starts at one and successful-login cleanup removes it (2178.0116ms)
+  ✔ an expired four-failure window resets instead of prematurely blocking (1851.6562ms)
+  ✔ eight independent app processes cannot lose first-insert or threshold races (2633.3114ms)
+✔ real restricted-login limiter counts five failures, expires, clears and handles independent connections (16116.2239ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26438.0581

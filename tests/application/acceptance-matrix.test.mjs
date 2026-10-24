@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("US-005 acceptance matrix tracks every T/S case without treating incomplete work as passes", async () => {
@@ -13,24 +13,15 @@ test("US-005 acceptance matrix tracks every T/S case without treating incomplete
   assert.deepEqual(ids, expected);
   assert.equal(new Set(ids).size, 72);
 
-  const allowed = new Set(["covered", "partial", "fixture_ready", "pending"]);
+  const allowed = new Set(["covered", "partial", "fixture_ready", "pending", "blocked", "deferred", "failed"]);
   for (const entry of matrix) {
     assert.equal(allowed.has(entry.status), true, `unsupported status for ${entry.id}`);
-    if (entry.status === "covered" || entry.status === "partial" || entry.status === "fixture_ready") {
+    if (entry.status !== "pending") {
       assert.equal(entry.evidence.length > 0, true, `${entry.status} ${entry.id} needs evidence`);
+      for (const file of entry.evidence) await access(file);
     }
+    assert.ok(entry.note?.length > 10, `${entry.id} needs a scope/limitation note`);
+    if (entry.status === "covered") assert.equal(entry.last_result, "passed");
+    if (entry.status === "blocked" || entry.status === "partial" || entry.status === "deferred") assert.equal(entry.last_result, entry.status);
   }
-
-  const covered = matrix.filter((entry) => entry.status === "covered");
-  const partial = matrix.filter((entry) => entry.status === "partial");
-  const fixtureReady = matrix.filter((entry) => entry.status === "fixture_ready");
-  const pending = matrix.filter((entry) => entry.status === "pending");
-
-  assert.deepEqual(covered.map((entry) => entry.id), ["S-05", "S-06"]);
-  assert.deepEqual(partial.map((entry) => entry.id), []);
-  assert.deepEqual(fixtureReady.map((entry) => entry.id), []);
-  assert.equal(covered.length, 2);
-  assert.equal(partial.length, 0);
-  assert.equal(fixtureReady.length, 0);
-  assert.equal(pending.length, 70);
 });

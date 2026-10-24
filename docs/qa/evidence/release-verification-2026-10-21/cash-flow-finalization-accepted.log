@@ -1,0 +1,14 @@
+▶ cash-flow finalization preserves reviewed evidence and rejects provisional/stale/unauthorized reports
+  ✔ T-42 finance review creates one immutable snapshot and one audit under replay and different-key races (14242.0949ms)
+  ✔ S-01/S-03 finalization needs live report/close authority and a matching company (9283.4236ms)
+{"fixture":"cash-flow-finalization","organizationId":"745756c0-b493-4b34-b497-ecd9ae523880","finalizationId":"e27a586b-a7c6-4f46-89fb-87292636fc95"}
+  ✔ T-42 stale reviewed totals and unclassified cash cannot receive a finalized label (15030.1952ms)
+✔ cash-flow finalization preserves reviewed evidence and rejects provisional/stale/unauthorized reports (74231.6635ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74622.0593
