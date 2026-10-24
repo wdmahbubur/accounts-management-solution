@@ -1,6 +1,7 @@
 import {companyDate} from '../../../../../../server/companies/today.ts';
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import Link from "next/link";
+import { AttachmentUpload } from "../../../../../../components/finance/attachment-upload.tsx";
 import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../../server/commands/errors.ts";
@@ -147,12 +148,15 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
   const primaryJournal = type !== "opening_balance" && savedRows.length > 0;
   const lifecycle = invoiceLifecycle ?? receiptLifecycle ?? supplierLifecycle;
   const back = <Link className={styles.back} href={list.href}>← {list.label}</Link>;
+  const uploads = document.state === "draft" && has("attachments.write") && canEditFinancialDocument(actor, type)
+    ? <AttachmentUpload organizationId={organizationId} documentId={documentId} nonce={runtime.current.nonce} canRead={has("attachments.read")} /> : null;
 
   if (options && type !== "opening_balance") return <main className={styles.main}>{back}
     <DocumentHeader document={document} invoiceLifecycle={null} receiptLifecycle={null} amountLabel="Last saved total" />
     <DraftEditor organizationId={organizationId} nonce={runtime.current.nonce} documentType={type as SourceType} options={options}
       initial={document} expectedVersion={Number(document.version)} receiptInvoices={receiptInvoices} receiptInvoiceError={receiptInvoiceError}
       supplierBills={supplierBills} supplierBillError={supplierBillError} creditSources={creditSources} creditSourceError={creditSourceError} />
+    {uploads}
   </main>;
 
   return <main className={styles.main}>
@@ -213,6 +217,7 @@ export async function DocumentDetailPage({params}:{params:Promise<{organizationI
       {journal.id ? <JournalTable rows={detailRows(journal.lines)} caption={`Posted journal · ${detailDate(journal.accounting_date)}`} /> : <p className={styles.hint}>No posted journal is linked. Drafts and approvals do not affect the ledger.</p>}
     </Disclosure> : null}
     <DocumentHistory organizationId={organizationId} lifecycle={lifecycle} capabilities={capabilities} />
+    {uploads}
     {canReverse ? <Disclosure title="Correct or reverse this document"><ReverseDocumentAction organizationId={organizationId} documentId={documentId} sourceDate={String(document.accounting_date)} defaultDate={(await companyDate())} /></Disclosure> : null}
     <DocumentTechnicalDetails document={document} showJournal={has("ledger.read")} />
   </main>;

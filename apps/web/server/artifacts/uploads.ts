@@ -1,15 +1,12 @@
 import { createHash } from "node:crypto";
-import { parseOrganizationId, parseUuid } from "@ams/contracts";
+import { parseOrganizationId, parseUuid, MAX_ATTACHMENT_BYTES, attachmentMimeExtensions } from "@ams/contracts";
 import type { RequestClient } from "../request-client.ts";
 import { CommandError } from "../commands/errors.ts";
 import { record } from "../roles/contracts.ts";
 import { readPrivateObject, writeQuarantinedObject } from "../storage/private.ts";
 
-const maxBytes = 10 * 1024 * 1024;
-const mimeExtensions: Record<string, string[]> = {
-  "application/pdf": ["pdf"], "image/jpeg": ["jpg", "jpeg"], "image/png": ["png"],
-  "image/webp": ["webp"], "text/plain": ["txt"], "text/csv": ["csv"]
-};
+const maxBytes = MAX_ATTACHMENT_BYTES;
+const mimeExtensions = attachmentMimeExtensions;
 
 function verifyContent(bytes: Uint8Array, contentType: string, filename: string): void {
   const ext = filename.split(".").at(-1)?.toLowerCase() ?? "";
@@ -33,6 +30,7 @@ function verifyContent(bytes: Uint8Array, contentType: string, filename: string)
 
 function rpcFailure(error: unknown): never {
   const err = error as { code?: string };
+  if (err.code === "28000") throw CommandError.unauthenticated();
   if (err.code === "42501") throw CommandError.forbidden();
   if (err.code === "P0002") throw CommandError.notFound();
   if (err.code === "22023") throw CommandError.validation({ file: "Upload details are invalid." });
@@ -41,7 +39,7 @@ function rpcFailure(error: unknown): never {
 
 export async function createUploadIntent(client: Pick<RequestClient, "rpc">, rawOrg: string, input: unknown) {
   const organizationId = parseOrganizationId(rawOrg);
-  if (!input || typeof input !== "object") throw CommandError.validation({ body: "Upload details are required." });
+  if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !["document_id", "filename", "content_type", "byte_size", "sha256"].includes(key))) throw CommandError.validation({ body: "Upload details are invalid." });
   const body = input as Record<string, unknown>;
   const documentId = parseUuid(body.document_id);
   const filename = typeof body.filename === "string" ? body.filename.normalize("NFC") : "";
@@ -61,23 +59,27 @@ export async function createUploadIntent(client: Pick<RequestClient, "rpc">, raw
   return { intent_id: intent.intent_id, expires_at: intent.expires_at, upload_url: `/api/v1/organizations/${organizationId}/attachments/uploads/${intent.intent_id}/complete` };
 }
 
-export async function completeUpload(client: Pick<RequestClient, "rpc">, rawOrg: string, rawIntent: string, file: File) {
+export async function completeUpload(client: Pick<RequestClient, "rpc">, rawOrg: string, rawIntent: string, file: File,
+  store = { write: writeQuarantinedObject, read: readPrivateObject }) {
   const organizationId = parseOrganizationId(rawOrg); const intentId = parseUuid(rawIntent);
   if (!file || file.size < 1 || file.size > maxBytes || !mimeExtensions[file.type]) throw CommandError.validation({ file: "Unsupported or oversized file." });
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (bytes.byteLength !== file.size) throw CommandError.validation({ file: "File size changed during upload." });
   verifyContent(bytes, file.type, file.name.normalize("NFC"));
   const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const args = { p_organization_id: organizationId, p_intent_id: intentId, p_filename: file.name.normalize("NFC"),
+    p_content_type: file.type, p_byte_size: bytes.byteLength, p_sha256: sha256 };
+  const authorized = await client.rpc("authorize_attachment_upload_completion", args);
+  if (authorized.error) rpcFailure(authorized.error);
+  if (authorized.data !== true) throw CommandError.transient();
   const key = `${organizationId}/attachments/${intentId}`;
-  if (!await writeQuarantinedObject(key, bytes)) {
-    const existing = await readPrivateObject(key);
+  if (!await store.write(key, bytes)) {
+    const existing = await store.read(key);
     if (!existing || createHash("sha256").update(existing).digest("hex") !== sha256) throw CommandError.transient();
   }
-  const result = await client.rpc("complete_attachment_upload", { p_organization_id: organizationId,
-    p_intent_id: intentId, p_filename: file.name.normalize("NFC"), p_content_type: file.type,
-    p_byte_size: bytes.byteLength, p_sha256: sha256 });
+  const result = await client.rpc("complete_attachment_upload", args);
   if (result.error || !Array.isArray(result.data) || result.data.length !== 1) rpcFailure(result.error);
   const completed = record(result.data[0]);
-  if (completed.attachment_id !== intentId || completed.scan_status !== "pending") throw CommandError.transient();
-  return { attachment_id: intentId, scan_status: "pending_scan", downloadable: false } as const;
+  if (completed.attachment_id !== intentId || !["pending", "clean", "rejected"].includes(String(completed.scan_status))) throw CommandError.transient();
+  return { attachment_id: intentId, scan_status: completed.scan_status === "pending" ? "pending_scan" : String(completed.scan_status), downloadable: completed.scan_status === "clean" };
 }

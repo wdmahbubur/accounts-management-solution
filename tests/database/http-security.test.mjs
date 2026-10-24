@@ -4,8 +4,10 @@ import test from "node:test";
 import argon2 from "argon2";
 import { createAccountingFixture } from "./helpers/accounting-fixture.mjs";
 import { bankScenario, creditScenario, reverseArgs, reverseSql } from "./helpers/reversal-dependencies.mjs";
+import { createHash } from "node:crypto";
+import { readPrivateObject } from "../../apps/web/server/storage/private.ts";
 
-test("real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries", { timeout: 360_000 }, async t => {
+test("real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries", { timeout: 600_000 }, async t => {
   const base = process.env.AMS_TEST_APP_URL;
   assert.ok(base && ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001"].includes(base), "Explicitly select the locally started isolated application.");
   const f = await createAccountingFixture();
@@ -19,7 +21,7 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
     cookies.set("ams_current_organization", f.org); cookies.set("ams_company_context", nonce);
     return async (path, options = {}) => {
       const headers = new Headers(options.headers); if (cookies.size) headers.set("cookie", [...cookies].map(([k, v]) => `${k}=${v}`).join("; "));
-      headers.set("x-company-context", nonce);
+      if (!headers.has("x-company-context")) headers.set("x-company-context", nonce);
       const response = await fetch(`${base}${path}`, { ...options, headers, redirect: "manual", signal: AbortSignal.timeout(75_000) });
       for (const cookie of response.headers.getSetCookie()) { const pair = cookie.split(";", 1)[0], i = pair.indexOf("="); cookies.set(pair.slice(0, i), pair.slice(i + 1)); }
       return response;
@@ -126,6 +128,28 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       const early = await owner(path, options("2025-01-19")); assert.equal(early.status, 409);
       const failure = await early.json(); assert.equal(failure.error.code, "REVERSAL_DEPENDENCY"); assert.match(failure.error.fields.reversal_date, /on or after/);
       const response = await owner(path, options("2025-01-20")); assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
+    });
+    await t.test("private upload APIs deny anonymous, foreign and stale-context storage writes, then complete one authorized upload", async () => {
+      const draft = await f.save(f.body("invoice", "1.00")), bytes = new TextEncoder().encode("Synthetic HTTP evidence.");
+      const body = { document_id: draft.document_id, filename: "http-evidence.txt", content_type: "text/plain", byte_size: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex") };
+      const headers = { origin: base, "content-type": "application/json" };
+      const intentPath = api(f.org, "attachments/upload-intents");
+      assert.equal((await session()(intentPath, { method: "POST", headers, body: JSON.stringify(body) })).status, 401);
+      const started = await owner(intentPath, { method: "POST", headers, body: JSON.stringify(body) }); assert.equal(started.status, 201, JSON.stringify(await started.clone().json()));
+      const intent = (await started.json()).data, key = `${f.org}/attachments/${intent.intent_id}`;
+      const upload = () => { const form = new FormData(); form.set("file", new File([bytes], "http-evidence.txt", { type: "text/plain" })); return { method: "POST", headers: { origin: base }, body: form }; };
+      assert.equal(await readPrivateObject(key), null);
+      assert.equal((await session()(intent.upload_url, upload())).status, 401);
+      assert.equal((await foreign(intent.upload_url, upload())).status, 404);
+      assert.ok([403, 404].includes((await billing(intent.upload_url, upload())).status));
+      const stale = upload(); stale.headers["x-company-context"] = randomUUID(); assert.equal((await owner(intent.upload_url, stale)).status, 409);
+      assert.equal(await readPrivateObject(key), null, "Denied HTTP requests cannot create even quarantined object bytes.");
+      const completed = await owner(intent.upload_url, upload()); assert.equal(completed.status, 201, JSON.stringify(await completed.clone().json()));
+      assert.equal((await completed.json()).data.attachment_id, intent.intent_id);
+      assert.equal(createHash("sha256").update(await readPrivateObject(key)).digest("hex"), body.sha256);
+      const replay = await owner(intent.upload_url, upload()); assert.equal(replay.status, 201);
+      assert.equal((await replay.json()).data.attachment_id, intent.intent_id);
+      assert.equal((await f.admin.query("SELECT count(*)::int AS n FROM finance.attachment_links WHERE organization_id=$1 AND attachment_id=$2", [f.org, intent.intent_id])).rows[0].n, 1);
     });
     await t.test("S-07 a still-valid authentication session loses company access immediately after deactivation", async () => {
       const member = (await f.admin.query("SELECT id FROM finance.organization_members WHERE organization_id=$1 AND user_id=$2", [f.org, f.ids.owner])).rows[0].id;
