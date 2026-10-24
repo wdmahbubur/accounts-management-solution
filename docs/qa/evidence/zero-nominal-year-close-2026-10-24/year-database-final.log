@@ -1,0 +1,24 @@
+▶ dormant years close and reopen with immutable snapshots, actual races and no artificial journal
+  ✔ missing prerequisites, capability, tenant and recent authentication cannot close a dormant year (9855.2205ms)
+  ✔ same-key independent close connections replay one zero-nominal snapshot and leave reports/facts unchanged (40169.9805ms)
+  ✔ same-key reopen connections record one dated actor/reason event and no reversal journal (9942.3342ms)
+  ✔ different-key close race records one new active snapshot and preserves the reopened prior run (31070.6244ms)
+{"fixture":"zero-nominal-years","organizationId":"cf299bde-07a1-40ea-8076-0652ee8f41a5","financialFactsUnchanged":true,"actualConnections":true}
+  ✔ consecutive years and close/reopen races preserve chronological order (89481.0197ms)
+✔ dormant years close and reopen with immutable snapshots, actual races and no artificial journal (213026.6767ms)
+{"fixture":"year-close-balance_sheet_only","organizationId":"6a394dd2-0142-45d9-ad1c-fb5b4a5eac49","kind":"zero_nominal","profit":"0"}
+✔ year close retains correct journal behavior for balance_sheet_only (79805.4932ms)
+{"fixture":"year-close-fully_reversed","organizationId":"b5405fb2-3ed1-4ee5-9f17-b7fc609f1d79","kind":"zero_nominal","profit":"0"}
+✔ year close retains correct journal behavior for fully_reversed (82686.715ms)
+{"fixture":"year-close-zero_net","organizationId":"b43e51ae-e0e0-4398-b3f3-08b19b642a8f","kind":"journal","profit":"0.00"}
+✔ year close retains correct journal behavior for zero_net (87435.6833ms)
+{"fixture":"year-close-loss","organizationId":"da44b250-0d70-41bf-8342-c4de20c4094b","kind":"journal","profit":"-100.00"}
+✔ year close retains correct journal behavior for loss (84993.0489ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 548370.6256
