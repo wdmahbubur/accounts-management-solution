@@ -1,3 +1,4 @@
+import {parseBaseCurrency} from '@ams/contracts';
 import "server-only";
 
 import { createHash } from "node:crypto";
@@ -22,7 +23,7 @@ type ExportJob = {
   attempt_count: number;
 };
 type ReportSnapshot = {
-  report_type: string; company: { name: string; timezone?: string }; filters: Record<string, unknown>;
+  report_type: string; company: { name: string; timezone?: string; base_currency?: string }; filters: Record<string, unknown>;
   generated_at: string; ledger_cutoff_at: string; provisional?: boolean; status?: string; data: unknown; export_format: "csv" | "pdf" | "xlsx";
 };
 type ExportRow = {
@@ -79,7 +80,7 @@ function renderReportCsv(snapshot: ReportSnapshot): Uint8Array {
   }
   const metadata: Array<[string, string]> = [
     ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name],
-    ["Currency", "BDT"], ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
+    ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')], ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
     ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).map(([key, value]): [string, string] => [`Filter: ${key}`, String(value ?? "")])
   ];
@@ -95,7 +96,7 @@ function renderReportXlsx(snapshot: ReportSnapshot): Promise<Uint8Array> {
   workbook.created = new Date(snapshot.generated_at);
   const sheet = workbook.addWorksheet(snapshot.report_type.replaceAll("_", " ").slice(0, 31));
   const metadata: Array<[string, string]> = [
-    ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name], ["Currency", "BDT"],
+    ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name], ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')],
     ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
     ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).map(([key, value]): [string, string] => [`Filter: ${key}`, String(value ?? "")])
@@ -178,14 +179,14 @@ export async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Ar
   const reportTitles: Record<string, string> = { profit_loss: 'Profit and Loss', profit_and_loss: 'Profit and Loss', balance_sheet: 'Balance Sheet', customer_statement: 'Customer Statement', vendor_statement: 'Supplier Statement', trial_balance: 'Trial Balance' };
   doc.fontSize(16); reportPdfText(doc, reportTitles[snapshot.report_type] ?? snapshot.report_type.replaceAll("_", " "), true, 16);
   doc.moveDown(0.5); doc.fontSize(9);
-  for (const [key, value] of [["Company", snapshot.company.name], ["Currency", "BDT"], ["Generated at", snapshot.generated_at],
+  for (const [key, value] of [["Company", snapshot.company.name], ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')], ["Generated at", snapshot.generated_at],
     ["Ledger cutoff at", snapshot.ledger_cutoff_at], ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).filter(([key,value]) => !key.endsWith('_id') && key !== 'party_id' && key !== 'cost_center' && value !== null && value !== '').map(([key, value]) => [key.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase()), String(value)])]) {
     reportPdfText(doc, `${key}: ${value}`, false, 9); doc.moveDown(0.2);
   }
   if (snapshot.filters?.cost_center) reportPdfText(doc, 'Scope: selected cost center (see the captured report in the app)', false, 9);
   doc.moveDown(0.5);
-  for (const line of reportPresentation(snapshot.report_type, snapshot.data)) {
+  for (const line of reportPresentation(snapshot.report_type, snapshot.data, parseBaseCurrency(snapshot.company.base_currency ?? 'BDT'))) {
     if (line.heading) doc.moveDown(0.3);
     reportPdfText(doc, line.text, !!line.heading, line.heading ? 11 : 9); doc.moveDown(0.15);
   }

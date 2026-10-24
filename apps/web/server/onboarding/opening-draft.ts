@@ -37,7 +37,7 @@ export function validateOpeningDraft(raw: unknown): OpeningDraftInput {
 }
 export function openingDraftPayload(draft: DraftDocument): Record<string, unknown> {
   return { document_type: "opening_balance", party_id: null, issue_date: draft.issueDate, accounting_date: draft.accountingDate,
-    due_date: null, external_reference: draft.externalReference, description: draft.description, currency: "BDT",
+    due_date: null, external_reference: draft.externalReference, description: draft.description, currency: draft.currency,
     rounding_adjustment: "0.00", rounding_reason: null, rounding_account_id: null, trade: null, movement: null, transfer: null,
     lines: [], journal_rows: draft.journalRows, allocation_plan: [] };
 }

@@ -1,7 +1,9 @@
+import {companyDate} from '../../../../server/companies/today.ts';
+import {CompanyCurrency} from '../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { bangladeshDate } from "../../../../lib/date.ts";
+
 import { resolveActorContext } from "../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../server/commands/errors.ts";
 import { roleRuntime } from "../../../../server/roles/runtime.ts";
@@ -52,7 +54,7 @@ function eventTime(value: string, timeZone: string): string {
 }
 
 function Metric({ title, value, detail, href }: { title: string; value: string; detail?: string; href?: string }) {
-  const content = <><span>{title}</span><strong><span>BDT</span> {money(value)}</strong>{detail && <small>{detail}</small>}</>;
+  const content = <><span>{title}</span><strong><span><CompanyCurrency /></span> {money(value)}</strong>{detail && <small>{detail}</small>}</>;
   return <article className={styles.metric}>{href ? <Link href={href}>{content}</Link> : content}</article>;
 }
 
@@ -84,7 +86,7 @@ export default async function OrganizationDashboardPage({
     return <main className="content"><h1>Dashboard unavailable</h1><p>You do not have permission to view financial dashboard information.</p></main>;
   }
 
-  const today = bangladeshDate();
+  const today = (await companyDate());
   const from = query.from ?? `${today.slice(0, 4)}-01-01`;
   const to = query.to ?? today;
   const asOf = query.as_of ?? today;
@@ -112,7 +114,7 @@ export default async function OrganizationDashboardPage({
 
   return <main className={`content ${styles.dashboard}`}>
     <header className={styles.header}>
-      <div><p className={styles.eyebrow}>{snapshot.company.name}</p><h1>Financial overview</h1><p className={styles.subtitle}>BDT accrual books · {snapshot.company.timezone}</p></div>
+      <div><p className={styles.eyebrow}>{snapshot.company.name}</p><h1>Financial overview</h1><p className={styles.subtitle}><CompanyCurrency /> accrual books · {snapshot.company.timezone}</p></div>
       {actor.capabilities.includes("company.update") && <Link className={styles.setupLink} href={`/o/${organizationId}/settings/setup`}>Company setup</Link>}
     </header>
     <form method="get" className={styles.filters} aria-label="Dashboard dates">
@@ -148,13 +150,13 @@ export default async function OrganizationDashboardPage({
           <div className={styles.chart} role="img" aria-label="Monthly revenue and net profit chart; table below contains exact amounts">
             {months.map(item => <div className={styles.month} key={item.month}>
               <div className={styles.bars}>
-                <span className={styles.revenue} style={{ height: `${Math.max(2, (Number(item.revenue) || 0) / peak * 100)}%` }} title={`Revenue BDT ${money(item.revenue)}`} />
-                <span className={styles.profit} style={{ height: `${Math.max(2, Math.abs(Number(item.profit) || 0) / peak * 100)}%` }} title={`Net profit BDT ${money(item.profit)}`} />
+                <span className={styles.revenue} style={{ height: `${Math.max(2, (Number(item.revenue) || 0) / peak * 100)}%` }} title={`Revenue ${money(item.revenue)}`} />
+                <span className={styles.profit} style={{ height: `${Math.max(2, Math.abs(Number(item.profit) || 0) / peak * 100)}%` }} title={`Net profit ${money(item.profit)}`} />
               </div><span>{item.month.slice(0, 7)}</span>
             </div>)}
           </div>
           <p className={styles.legend}><span><span className={styles.legendRevenue} /> Revenue</span><span><span className={styles.legendProfit} /> Net profit</span></p>
-          <details className={styles.disclosure}><summary>View exact monthly amounts</summary><div className="table-scroll"><table><thead><tr><th scope="col">Month</th><th scope="col" className={styles.amount}>Revenue (BDT)</th><th scope="col" className={styles.amount}>Net profit (BDT)</th></tr></thead><tbody>{months.map(item => <tr key={item.month}><th scope="row">{item.month.slice(0, 7)}</th><td className={styles.amount}>{money(item.revenue)}</td><td className={styles.amount}>{money(item.profit)}</td></tr>)}</tbody></table></div></details>
+          <details className={styles.disclosure}><summary>View exact monthly amounts</summary><div className="table-scroll"><table><thead><tr><th scope="col">Month</th><th scope="col" className={styles.amount}>Revenue (<CompanyCurrency />)</th><th scope="col" className={styles.amount}>Net profit (<CompanyCurrency />)</th></tr></thead><tbody>{months.map(item => <tr key={item.month}><th scope="row">{item.month.slice(0, 7)}</th><td className={styles.amount}>{money(item.revenue)}</td><td className={styles.amount}>{money(item.profit)}</td></tr>)}</tbody></table></div></details>
         </>}
         <p className={styles.note}>Approved pre-cutover year-to-date opening summaries are included in headline totals, but are not distributed across these months.</p>
       </section>
@@ -163,11 +165,11 @@ export default async function OrganizationDashboardPage({
     {(data.receivables || data.payables) && <section className={styles.metricSection} aria-labelledby="dues-heading"><div className={styles.sectionHeading}><h2 id="dues-heading">Customer and supplier balances</h2><p>As of {snapshot.filters.as_of}</p></div><div className={styles.metrics}>
       {data.receivables && <>
         <Metric title="Receivables" value={data.receivables.net_trade} detail={`Open customer balances · as of ${data.receivables.as_of}${data.receivables.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/receivables?as_of=${asOf}`} />
-        <Metric title="Overdue receivables" value={data.receivables.overdue} detail={`Unapplied customer credits: BDT ${money(data.receivables.credits)}`} href={`/o/${organizationId}/reports/receivables?as_of=${asOf}`} />
+        <Metric title="Overdue receivables" value={data.receivables.overdue} detail={`Unapplied customer credits: ${money(data.receivables.credits)}`} href={`/o/${organizationId}/reports/receivables?as_of=${asOf}`} />
       </>}
       {data.payables && <>
         <Metric title="Payables" value={data.payables.net_trade} detail={`Open supplier balances · as of ${data.payables.as_of}${data.payables.provisional ? " · provisional" : ""}`} href={`/o/${organizationId}/reports/payables?as_of=${asOf}`} />
-        <Metric title="Overdue payables" value={data.payables.overdue} detail={`Due within 30 days: BDT ${money(data.payables.due_in_30_days)}`} href={`/o/${organizationId}/reports/payables?as_of=${asOf}`} />
+        <Metric title="Overdue payables" value={data.payables.overdue} detail={`Due within 30 days: ${money(data.payables.due_in_30_days)}`} href={`/o/${organizationId}/reports/payables?as_of=${asOf}`} />
       </>}
     </div></section>}
 

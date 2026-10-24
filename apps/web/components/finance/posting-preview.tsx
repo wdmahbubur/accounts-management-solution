@@ -1,3 +1,4 @@
+import {CompanyCurrency} from './company-currency.tsx';
 import type { PostingPreviewResult } from "../../lib/posting-preview.ts";
 import { displayMoney } from "./contracts.ts";
 import styles from "./posting-preview.module.css";
@@ -6,7 +7,7 @@ export function PostingPreview({ result }: { result: PostingPreviewResult }) {
   const { preview } = result;
   return <section className={styles.preview} aria-label="Posting preview">
     <header className={styles.heading}>
-      <div><h2>Posting preview</h2><p>Saved version {result.documentVersion} · BDT</p></div>
+      <div><h2>Posting preview</h2><p>Saved version {result.documentVersion} · <CompanyCurrency /></p></div>
       {preview.kind !== "trade" && <p className={preview.balanced ? styles.balanced : styles.warning} role="status">
         {preview.balanced ? "Debits and credits balance" : "Journal needs attention"}
       </p>}

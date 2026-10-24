@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { displayMoney } from "../../../../../components/finance/contracts.ts";
 import type { SupplierBillTarget } from "../../../../../server/documents/supplier-payments.ts";
 import { suggestedBillAmount, type SettlementPlanLine, type SupplierAllocationDisplay } from "./supplier-payment-selection.ts";
@@ -31,7 +32,7 @@ export function SupplierPaymentAllocation({ partyId, accountingDate, targets, pl
         {target.supplierReference && target.supplierReference !== label && <p className={styles.hint}>Supplier reference: {target.supplierReference}</p>}
         <dl className={styles.selectionFacts}><div><dt>Issued</dt><dd>{target.issueDate}</dd></div><div><dt>Due</dt><dd>{target.dueDate ?? "No due date"}</dd></div>
           <div><dt>Bill total</dt><dd>{displayMoney(target.totalAmount)}</dd></div><div><dt>Available to apply</dt><dd>{displayMoney(target.availableAmount)}</dd></div></dl>
-        {selected && <label>Apply to {label} (BDT)<input name={field} inputMode="decimal" required value={selected.amount} disabled={loading}
+        {selected && <label>Apply to {label} (<CompanyCurrency />)<input name={field} inputMode="decimal" required value={selected.amount} disabled={loading}
           aria-invalid={Boolean(issue)} aria-describedby={issue ? `${target.openItemId}-amount-error` : undefined}
           onChange={event => onChange(plan.map(row => row.target_open_item_id === target.openItemId ? { ...row, amount: event.target.value } : row))} />
           {issue && <small id={`${target.openItemId}-amount-error`} className={styles.fieldError}>{issue.message}</small>}</label>}
@@ -42,7 +43,7 @@ export function SupplierPaymentAllocation({ partyId, accountingDate, targets, pl
       return <article className={`${styles.selectionCard} ${loading ? "" : styles.selectionUnavailable}`} key={row.target_open_item_id}>
         <h3>{loading ? "Checking selected bill…" : "Selected bill needs review"}</h3>
         <p>{loading ? "Checking this bill for the selected supplier and date. Its entered amount is preserved." : "This selection is unavailable in the current supplier and date’s list. Its entered amount is preserved. Refresh the list or remove it before saving."}</p>
-        <label>Previously selected amount (BDT)<input name={`allocation_plan.${index + 1}.amount`} inputMode="decimal" value={row.amount} disabled={loading}
+        <label>Previously selected amount (<CompanyCurrency />)<input name={`allocation_plan.${index + 1}.amount`} inputMode="decimal" value={row.amount} disabled={loading}
           onChange={event => onChange(plan.map(item => item.target_open_item_id === row.target_open_item_id ? { ...item, amount: event.target.value } : item))} /></label>
         <button type="button" className="secondary" data-draft-edit="true" disabled={loading} onClick={() => onChange(plan.filter(item => item.target_open_item_id !== row.target_open_item_id))}>Remove this selection</button>
       </article>;

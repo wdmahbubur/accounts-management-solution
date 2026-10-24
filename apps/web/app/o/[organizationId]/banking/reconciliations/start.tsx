@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -55,8 +57,8 @@ export function ReconciliationStart({ organizationId, accounts, defaultAccountId
           <label>Statement end<input name="ends_on" type="date" required min={startDate || undefined} defaultValue={endsOn} {...attributes("ends_on")}/>{fieldError("ends_on")}</label>
         </div>
         <div className={styles.grid}>
-          <label>Opening balance · BDT<input name="opening" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_opening")}/>{fieldError("statement_opening")}</label>
-          <label>Closing balance · BDT<input name="closing" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_closing")}/>{fieldError("statement_closing")}</label>
+          <label>Opening balance · <CompanyCurrency /><input name="opening" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_opening")}/>{fieldError("statement_opening")}</label>
+          <label>Closing balance · <CompanyCurrency /><input name="closing" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_closing")}/>{fieldError("statement_closing")}</label>
         </div>
         <div className={styles.formFooter}>
           <p className={styles.muted}>If a draft already exists for the same account and dates, it will resume with its saved balances.</p>

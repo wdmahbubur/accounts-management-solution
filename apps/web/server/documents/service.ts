@@ -1,4 +1,5 @@
 import type { RequestClient } from "../request-client.ts";
+import {parseBaseCurrency} from '@ams/contracts';
 import { capability } from "@ams/permissions";
 import { calculateDocument, moneyUnits, formatMoney } from "@ams/accounting";
 import { cashPreviewTypes, parseCashPreviewDatabaseResult, type PostingPreviewResult } from "../../lib/posting-preview.ts";
@@ -70,12 +71,13 @@ function previewDatabaseError(error:{code?:string;message?:string},approval=fals
   return documentDatabaseError(error);
 }
 function sourceCalculationPreview(source:Record<string,unknown>,documentId:string,expectedVersion:number):PostingPreviewResult{
+  const currency=parseBaseCurrency(source.currency);
   const type=String(source.document_type);
   const rows=Array.isArray(source.lines)?source.lines.map(raw=>record(raw,"line")):[];
   const warnings=["Preview only. No journal, settlement or cash movement is created."];
   if(["invoice","customer_credit","bill","vendor_credit","paid_expense"].includes(type)&&rows.length){
     const rounding=String(source.rounding_adjustment??"0.00");
-    const preview=calculateDocument({currency:"BDT",lines:rows.map(line=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
+    const preview=calculateDocument({currency,lines:rows.map(line=>({quantity:String(line.quantity),unit_price:String(line.unit_price),
       discount_amount:String(line.discount_amount),tax_rate:String(line.tax_rate_snapshot),tax_mode:String(line.tax_mode)})),
       ...(rounding==="0.00"?{}:{rounding:{amount:rounding,reason:String(source.rounding_reason),account_id:String(source.rounding_account_id)}})});
     return{documentId,documentVersion:expectedVersion,preview:{kind:"trade",...preview,descriptions:rows.map(row=>String(row.description??""))},warnings};
@@ -92,7 +94,7 @@ function sourceCalculationPreview(source:Record<string,unknown>,documentId:strin
   });
   const balanced=journal.length>=2&&debits>0n&&debits===credits;
   if(!balanced)warnings.unshift("The journal needs at least two lines with equal, positive debit and credit totals.");
-  return{documentId,documentVersion:expectedVersion,preview:{kind:"journal",currency:"BDT",debit:formatMoney(debits),credit:formatMoney(credits),balanced,lines},warnings};
+  return{documentId,documentVersion:expectedVersion,preview:{kind:"journal",currency,debit:formatMoney(debits),credit:formatMoney(credits),balanced,lines},warnings};
 }
 export async function previewFinancialDocument(client:RpcClient,actor:ActorContext,documentId:string,expectedVersion:number):Promise<PostingPreviewResult>{
   const source=await readFinancialDocument(client,actor,documentId);const type=String(source.document_type);const required=typeCapability[type]??"journal.write";

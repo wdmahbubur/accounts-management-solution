@@ -1,3 +1,4 @@
+import {CompanyCurrency} from './company-currency.tsx';
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { displayMoney } from "./contracts.ts";
@@ -19,25 +20,25 @@ export function DocumentHeader({ document, invoiceLifecycle, receiptLifecycle, s
           {document.reversed_by_document_id ? <span className={styles.badge} data-state="void">Reversed</span> : null}</div>
         <p className={styles.hint}>{sourceStateExplanation(document)}</p>
       </div>
-      <div className={styles.headAmount}><span>{amountLabel ?? (document.document_type === "transfer" ? "Total sent, including fee" : "Document total")} · BDT</span><strong>{displayMoney(document.total_amount)}</strong></div>
+      <div className={styles.headAmount}><span>{amountLabel ?? (document.document_type === "transfer" ? "Total sent, including fee" : "Document total")} · <CompanyCurrency /></span><strong>{displayMoney(document.total_amount)}</strong></div>
     </div>
     {invoiceLifecycle ? <dl className={styles.statusStrip}>
       <div><dt>Settlement</dt><dd>{humanLabel(invoiceLifecycle.settlement_status)}{invoiceLifecycle.overdue === true ? <span className={styles.overdue}>Overdue</span> : null}</dd></div>
-      <div><dt>Outstanding · BDT</dt><dd>{invoiceLifecycle.residual_amount === null ? "Available after posting" : displayMoney(invoiceLifecycle.residual_amount)}</dd></div>
+      <div><dt>Outstanding · <CompanyCurrency /></dt><dd>{invoiceLifecycle.residual_amount === null ? "Available after posting" : displayMoney(invoiceLifecycle.residual_amount)}</dd></div>
       <div><dt>Delivery</dt><dd>{deliveries.length ? humanLabel(deliveries.at(-1)?.status) : "Not sent"}</dd></div>
     </dl> : null}
     {receiptLifecycle && document.state === "posted" ? <dl className={styles.statusStrip}>
-      <div><dt>Applied to invoices · BDT</dt><dd>{displayMoney(receiptLifecycle.applied_amount)}</dd></div>
-      <div><dt>Unused customer credit · BDT</dt><dd>{receiptLifecycle.residual_amount === null ? "Unavailable" : displayMoney(receiptLifecycle.residual_amount)}</dd></div>
+      <div><dt>Applied to invoices · <CompanyCurrency /></dt><dd>{displayMoney(receiptLifecycle.applied_amount)}</dd></div>
+      <div><dt>Unused customer credit · <CompanyCurrency /></dt><dd>{receiptLifecycle.residual_amount === null ? "Unavailable" : displayMoney(receiptLifecycle.residual_amount)}</dd></div>
     </dl> : null}
     {supplierLifecycle && document.document_type === "bill" ? <dl className={styles.statusStrip}>
       <div><dt>Settlement</dt><dd>{humanLabel(supplierLifecycle.settlement_status)}{supplierLifecycle.overdue === true ? <span className={styles.overdue}>Overdue</span> : null}</dd></div>
-      <div><dt>Outstanding · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date after posting" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
+      <div><dt>Outstanding · <CompanyCurrency /></dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date after posting" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
       <div><dt>Balance as of</dt><dd>{detailDate(supplierLifecycle.as_of_date)}</dd></div>
     </dl> : null}
     {supplierLifecycle && supplierLifecycle.settlement_status !== "reversed" && document.document_type === "vendor_payment" && document.state === "posted" ? <dl className={styles.statusStrip}>
-      <div><dt>Applied to bills · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.applied_amount)}</dd></div>
-      <div><dt>Unused supplier trade debit · BDT</dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
+      <div><dt>Applied to bills · <CompanyCurrency /></dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.applied_amount)}</dd></div>
+      <div><dt>Unused supplier trade debit · <CompanyCurrency /></dt><dd>{supplierLifecycle.residual_amount === null ? "Available on the accounting date" : displayMoney(supplierLifecycle.residual_amount)}</dd></div>
       <div><dt>Balance as of</dt><dd>{detailDate(supplierLifecycle.as_of_date)}</dd></div>
     </dl> : null}
     {actions ? <div className={styles.actions}>{actions}</div> : null}
@@ -87,7 +88,7 @@ export function DocumentItems({ document }: { document: DetailRecord }) {
   return <section className={styles.section} aria-labelledby="document-items-title">
     <h2 id="document-items-title">Items and services</h2>
     <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Document items"><table className={styles.itemsTable}>
-      <caption>Saved line amounts · BDT</caption><thead><tr><th scope="col">Item / description</th><th scope="col" className={styles.amount}>Quantity</th><th scope="col" className={styles.amount}>Unit rate</th><th scope="col" className={styles.amount}>Discount</th><th scope="col" className={styles.amount}>Net</th><th scope="col" className={styles.amount}>Tax</th><th scope="col" className={styles.amount}>Total</th></tr></thead>
+      <caption>Saved line amounts · <CompanyCurrency /></caption><thead><tr><th scope="col">Item / description</th><th scope="col" className={styles.amount}>Quantity</th><th scope="col" className={styles.amount}>Unit rate</th><th scope="col" className={styles.amount}>Discount</th><th scope="col" className={styles.amount}>Net</th><th scope="col" className={styles.amount}>Tax</th><th scope="col" className={styles.amount}>Total</th></tr></thead>
       <tbody>{rows.map((row, index) => {
         const item = detailRecord(row.item_snapshot), center = detailRecord(row.cost_center_snapshot);
         return <tr key={detailText(row.id, String(index))}>
@@ -107,7 +108,7 @@ export function DocumentItems({ document }: { document: DetailRecord }) {
     </table></div>
     <dl className={styles.totals}><div><dt>Net</dt><dd>{displayMoney(document.net_amount)}</dd></div><div><dt>Tax</dt><dd>{displayMoney(document.tax_amount)}</dd></div>
       {document.rounding_adjustment !== "0.00" ? <div><dt>Rounding adjustment</dt><dd>{displayMoney(document.rounding_adjustment)}</dd></div> : null}
-      <div className={styles.total}><dt>Total · BDT</dt><dd>{displayMoney(document.total_amount)}</dd></div></dl>
+      <div className={styles.total}><dt>Total · <CompanyCurrency /></dt><dd>{displayMoney(document.total_amount)}</dd></div></dl>
     {document.rounding_adjustment !== "0.00" ? <p className={styles.hint}>Rounding: {detailText(document.rounding_reason)} · {accountLabel(document, "rounding_account")}</p> : null}
   </section>;
 }
@@ -117,24 +118,24 @@ export function CashMovementDetails({ document }: { document: DetailRecord }) {
   if (Object.keys(transfer).length) return <section className={styles.section} aria-labelledby="transfer-details-title">
     <h2 id="transfer-details-title">Transfer details</h2>
     <div className={styles.transfer}><div><span>From</span><strong>{detailText(transfer.from_cash_account_name, "Source account name unavailable")}</strong></div><span className={styles.transferTo}>to</span><div><span>To</span><strong>{detailText(transfer.to_cash_account_name, "Destination account name unavailable")}</strong></div></div>
-    <dl className={styles.facts}><div><dt>Transfer principal · BDT</dt><dd>{displayMoney(transfer.amount)}</dd></div><div><dt>Transfer fee · BDT</dt><dd>{displayMoney(transfer.fee_amount)}</dd></div>
+    <dl className={styles.facts}><div><dt>Transfer principal · <CompanyCurrency /></dt><dd>{displayMoney(transfer.amount)}</dd></div><div><dt>Transfer fee · <CompanyCurrency /></dt><dd>{displayMoney(transfer.fee_amount)}</dd></div>
       {transfer.fee_account_id ? <div><dt>Fee account</dt><dd>{accountLabel(transfer, "fee_account")}</dd></div> : null}</dl>
   </section>;
   if (Object.keys(movement).length) return <section className={styles.section} aria-labelledby="movement-details-title">
     <h2 id="movement-details-title">{movement.direction === "in" ? "Money received" : "Money paid"}</h2>
     <dl className={styles.facts}><div><dt>{movement.direction === "in" ? "Received into" : "Paid from"}</dt><dd>{detailText(movement.cash_account_name, "Cash account name unavailable")}</dd></div>
-      <div><dt>Amount · BDT</dt><dd>{displayMoney(movement.amount)}</dd></div><div><dt>Method</dt><dd>{humanLabel(movement.method, "Not recorded")}</dd></div>
+      <div><dt>Amount · <CompanyCurrency /></dt><dd>{displayMoney(movement.amount)}</dd></div><div><dt>Method</dt><dd>{humanLabel(movement.method, "Not recorded")}</dd></div>
       <div><dt>Payment reference</dt><dd>{detailText(movement.reference, "Not recorded")}</dd></div><div><dt>Cash-flow classification</dt><dd>{humanLabel(movement.cash_flow_class, "Not recorded")}</dd></div></dl>
   </section>;
   if (Object.keys(writeOff).length) return <section className={styles.section} aria-labelledby="write-off-details-title"><h2 id="write-off-details-title">Write-off details</h2>
-    <dl className={styles.facts}><div><dt>Expense account</dt><dd>{accountLabel(writeOff, "expense_account")}</dd></div><div><dt>Amount · BDT</dt><dd>{displayMoney(writeOff.amount)}</dd></div><div><dt>Reason</dt><dd>{detailText(writeOff.reason)}</dd></div></dl></section>;
+    <dl className={styles.facts}><div><dt>Expense account</dt><dd>{accountLabel(writeOff, "expense_account")}</dd></div><div><dt>Amount · <CompanyCurrency /></dt><dd>{displayMoney(writeOff.amount)}</dd></div><div><dt>Reason</dt><dd>{detailText(writeOff.reason)}</dd></div></dl></section>;
   return null;
 }
 
 export function JournalTable({ rows, caption }: { rows: DetailRecord[]; caption: string }) {
   const totals = exactJournalTotals(rows);
   if (!rows.length) return <p className={styles.hint}>No journal lines are available.</p>;
-  return <><div className={styles.tableScroll} tabIndex={0} role="region" aria-label={caption}><table className={styles.journalTable}><caption>{caption} · All {rows.length} lines · BDT</caption>
+  return <><div className={styles.tableScroll} tabIndex={0} role="region" aria-label={caption}><table className={styles.journalTable}><caption>{caption} · All {rows.length} lines · <CompanyCurrency /></caption>
     <thead><tr><th scope="col">Account</th><th scope="col">Line details</th><th scope="col" className={styles.amount}>Debit</th><th scope="col" className={styles.amount}>Credit</th></tr></thead>
     <tbody>{rows.map((row, index) => <tr key={detailText(row.line_id, String(row.line_no ?? index))}>
       <th scope="row"><span>{accountLabel(row)}</span>{row.party_id ? <small>Party: {detailText(row.party_name, "Name not recorded")}</small> : null}</th>
@@ -153,7 +154,7 @@ export function PlannedSettlements({ organizationId, document }: { organizationI
   if (!rows.length) return null;
   return <section className={styles.section} aria-labelledby="planned-settlements-title"><h2 id="planned-settlements-title">Saved allocation plan</h2>
     <p className={styles.hint}>{document.state === "posted" ? "The plan recorded with this source. Later settlement changes are separate dated events." : "These amounts are planned only. Settlement takes effect when the document is posted."}</p>
-    <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Saved allocation plan"><table><caption>Planned invoice or bill allocations · BDT</caption><thead><tr><th scope="col">Target document</th><th scope="col" className={styles.amount}>Amount</th></tr></thead><tbody>{rows.map((row, index) => <tr key={detailText(row.target_open_item_id, String(index))}>
+    <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Saved allocation plan"><table><caption>Planned invoice or bill allocations · <CompanyCurrency /></caption><thead><tr><th scope="col">Target document</th><th scope="col" className={styles.amount}>Amount</th></tr></thead><tbody>{rows.map((row, index) => <tr key={detailText(row.target_open_item_id, String(index))}>
       <td>{row.target_document_id ? <Link href={`/o/${organizationId}/accounting/documents/${String(row.target_document_id)}`}>{detailText(row.target_document_number, "Unnumbered source")}</Link> : "Target document is outside this view"}</td><td className={styles.amount}>{displayMoney(row.amount)}</td>
     </tr>)}</tbody></table></div></section>;
 }
