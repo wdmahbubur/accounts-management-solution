@@ -58,7 +58,7 @@ export function AttachmentUpload({ organizationId, documentId, nonce, canRead }:
       <button type="submit" disabled={busy || !online || (!file && !uncertain)}>{busy ? "Uploading…" : uncertain ? "Retry this upload" : "Upload file"}</button>
       {!online && <p role="status">Reconnect to upload a file.</p>}
       {result && <p role="status">{result.status === "pending_scan" ? "Uploaded · Waiting for the security scan." : result.status === "rejected" ? "Rejected by security scan · Download unavailable." : "Security scan passed."}</p>}
-      {result?.downloadable && canRead && <Link href={`/api/v1/organizations/${organizationId}/attachments/${result.id}/download`}>Download file</Link>}
+      {result?.downloadable && canRead && <a href={`/api/v1/organizations/${organizationId}/attachments/${result.id}/download`} download>Download file</a>}
       {canRead && <Link href={`/o/${organizationId}/documents`}>Open evidence library</Link>}
     </form>
   </section>;
