@@ -1,0 +1,185 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking" [expanded]:
+          - generic: Banking
+      - link "Cash and bank accounts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/accounts
+      - link "Transfers":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/transfers
+      - link "Import bank statement":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/import
+      - link "Reconciliation":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/reconciliations
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Reconciliation":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/reconciliations
+    - generic: /
+    - generic: Reconciliation details
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Banking
+  - heading "Bank reconciliation" [level=1]
+  - generic: Reopened
+  - paragraph:
+    - strong: Synthetic acceptance bank
+    - generic: 15 Jan 2025 – 15 Jan 2025
+    - generic: USD
+  - link "All reconciliations":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/banking/reconciliations
+  - button "Refresh saved state"
+  - status: Match reversed. The original match stays in history.
+  - region "Statement overview":
+    - term: Opening balance
+    - definition: "0.00"
+    - term: Statement movement
+    - definition: "100.00"
+    - term: Closing balance
+    - definition: "100.00"
+    - term: Statement rows matched
+    - definition:
+      - text: "0"
+      - generic: / 2
+  - region "Bank statement":
+    - heading "Bank statement" [level=2]
+    - generic: 2 rows
+    - region "Statement rows":
+      - table "Statement rows. Select a row, then a cashbook entry with the same direction. Amounts in USD.":
+        - caption: Statement rows. Select a row, then a cashbook entry with the same direction. Amounts in USD.
+        - rowgroup:
+          - row "Entry Amount Remaining Match":
+            - columnheader "Entry"
+            - columnheader "Amount"
+            - columnheader "Remaining"
+            - columnheader "Match":
+              - generic: Match
+        - rowgroup:
+          - 'row "Synthetic receipt one 15 Jan 2025 · Row 2 982758e0-b321-4d04-8d66-eb79f38746b7 60.00 Money in 60.00 Select statement row 2: Synthetic receipt one"':
+            - cell "Synthetic receipt one 15 Jan 2025 · Row 2 982758e0-b321-4d04-8d66-eb79f38746b7":
+              - strong: Synthetic receipt one
+              - generic: 15 Jan 2025 · Row 2
+              - generic: 982758e0-b321-4d04-8d66-eb79f38746b7
+            - cell "60.00 Money in":
+              - strong: "60.00"
+              - generic: Money in
+            - cell "60.00"
+            - 'cell "Select statement row 2: Synthetic receipt one"':
+              - 'button "Select statement row 2: Synthetic receipt one"': Select
+          - 'row "Synthetic receipt two 15 Jan 2025 · Row 3 bc56271a-f5d6-48f2-97c8-bd9879730996 40.00 Money in 40.00 Select statement row 3: Synthetic receipt two"':
+            - cell "Synthetic receipt two 15 Jan 2025 · Row 3 bc56271a-f5d6-48f2-97c8-bd9879730996":
+              - strong: Synthetic receipt two
+              - generic: 15 Jan 2025 · Row 3
+              - generic: bc56271a-f5d6-48f2-97c8-bd9879730996
+            - cell "40.00 Money in":
+              - strong: "40.00"
+              - generic: Money in
+            - cell "40.00"
+            - 'cell "Select statement row 3: Synthetic receipt two"':
+              - 'button "Select statement row 3: Synthetic receipt two"': Select
+  - region "Cashbook":
+    - heading "Cashbook" [level=2]
+    - generic: 1 entries
+    - region "Posted cashbook entries":
+      - table "Posted cashbook entries for Synthetic acceptance bank. Amounts in USD; matched amounts remain in history.":
+        - caption: Posted cashbook entries for Synthetic acceptance bank. Amounts in USD; matched amounts remain in history.
+        - rowgroup:
+          - row "Entry Amount Remaining Match":
+            - columnheader "Entry"
+            - columnheader "Amount"
+            - columnheader "Remaining"
+            - columnheader "Match":
+              - generic: Match
+        - rowgroup:
+          - 'row "RCPT-FY 2025-000001 15 Jan 2025 Synthetic acceptance receipt 100.00 Money in 100.00 Select cashbook entry: RCPT-FY 2025-000001"':
+            - cell "RCPT-FY 2025-000001 15 Jan 2025 Synthetic acceptance receipt":
+              - strong: RCPT-FY 2025-000001
+              - generic: 15 Jan 2025
+              - generic: Synthetic acceptance receipt
+            - cell "100.00 Money in":
+              - strong: "100.00"
+              - generic: Money in
+            - cell "100.00"
+            - 'cell "Select cashbook entry: RCPT-FY 2025-000001"':
+              - 'button "Select cashbook entry: RCPT-FY 2025-000001"': Select
+  - region "Match selected entries":
+    - heading "Match selected entries" [level=2]
+    - button "Clear selection" [disabled]
+    - generic: Statement row
+    - strong: Select a statement row
+    - generic: Cashbook entry
+    - strong: Select a cashbook entry
+    - text: Amount to match · USD
+    - textbox "Amount to match · USD":
+      - /placeholder: "0.00"
+    - button "Save match" [disabled]
+    - paragraph: Partial amounts are allowed. The remaining balance stays available.
+  - generic "Match history 2 0 active · 2 reversed":
+    - text: Match history
+    - generic: "2"
+    - generic: 0 active · 2 reversed
+  - strong: Row 2 · Synthetic receipt one
+  - generic: RCPT-FY 2025-000001
+  - strong:
+    - text: "60.00"
+    - generic: USD
+  - generic: Reversed
+  - strong: Row 3 · Synthetic receipt two
+  - generic: RCPT-FY 2025-000001
+  - strong:
+    - text: "40.00"
+    - generic: USD
+  - generic: Reversed
+  - generic "Previous finalized evidence Difference 0.00 USD":
+    - generic: Previous finalized evidence
+    - generic: Difference 0.00 USD
+  - region "Finalize reconciliation":
+    - heading "Finalize reconciliation" [level=2]
+    - paragraph: 2 statement row(s) still need matching.
+    - button "Review finalization" [disabled]
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: Accounts Management Solution

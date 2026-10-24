@@ -1,0 +1,80 @@
+▶ tax, rounding, asset treatment, immutable books and invalid monetary inputs
+  ✔ T-15 paid equipment is an asset, with no forced expense or payable (10576.9086ms)
+  ✔ T-16 recoverable and nonrecoverable illustrative tax use the correct accounts (22653.959ms)
+  ✔ T-17 inclusive and exclusive illustrative rates yield the same net/tax/gross (12642.5358ms)
+  ✔ T-18 fractional quantities and half-up ties use exact decimal amounts (6126.2555ms)
+  ✔ T-19/T-50 malformed amounts, zero-value posting, excess scale and foreign currency cannot post (21396.8724ms)
+  ✔ T-20/T-21 malformed journals and direct controls without party/items cannot commit (27303.5153ms)
+  ✔ T-22 the ordinary runtime cannot update or delete posted facts (6443.1114ms)
+  ✔ T-27 a dual-role contact retains separate AR and AP without automatic netting (15568.8096ms)
+{"fixture":"accounting-guards","organizationId":"f7a2dc71-4a00-46c1-9923-d259fc0cd99a"}
+  ✔ T-48 classification changes after use are denied and archived accounts keep history (12661.9247ms)
+✔ tax, rounding, asset treatment, immutable books and invalid monetary inputs (170363.4802ms)
+▶ live maker-checker decisions bind material source versions
+  ✔ T-37 self approval is denied while a separate active approver can approve (13295.8208ms)
+  ✔ T-36 amount and accounting date edits invalidate prior approval and require a new decision (37591.8147ms)
+  ✔ T-37 enabling self approval still requires the documented sole-operator exception (1859.7838ms)
+{"fixture":"approval-controls","organizationId":"c907e731-5048-4ee6-b984-456c766af7ae"}
+  ✔ T-36 changing bank or allocation target invalidates a genuine checker decision (52363.3418ms)
+✔ live maker-checker decisions bind material source versions (135647.8921ms)
+{"fixture":"bank-capacity-race","organizationId":"286bf7c5-9b84-4d83-8cd9-b8844b88d6c2","independentConnections":2}
+✔ S-12 two sessions competing for one statement row cannot over-match it (59516.2221ms)
+▶ real connection races preserve posting, capacity, physical cash and owner invariants
+  ✔ S-09 concurrent different-key posts create exactly one journal (9411.325ms)
+  ✔ S-08 two 6000 allocations cannot consume one 10000 debit residual (17164.8002ms)
+  ✔ S-11 two physical-cash spends cannot overdraw a 10000 balance (21314.7235ms)
+  ✔ S-17 real deadlock retries the whole posting transaction with the same command envelope (19961.5276ms)
+  ✔ S-10 posting and period lock serialize in both commit orders (18775.1232ms)
+{"fixture":"concurrency-acceptance","organizationId":"d17d9719-f11c-497b-9288-2bb778e3adaf"}
+  ✔ S-13 concurrent mutual owner removal leaves an active owner (3180.6656ms)
+✔ real connection races preserve posting, capacity, physical cash and owner invariants (117989.1158ms)
+▶ opening AR/AP cutover, YTD summary and unclassified cash reporting
+  ✔ T-38 activate a balanced AR/AP opening with detailed parties and zero suspense (19890.1693ms)
+  ✔ T-39 annual P&L includes imported YTD once with visible summary provenance (3773.3757ms)
+{"fixture":"cutover-classification","organizationId":"f25f214e-5c87-4cdc-b7be-8ab837be2d28","classificationOrganizationId":"be45cf10-e4a1-4388-b750-c5ada9a3f29c"}
+  ✔ T-42 unclassified cash is provisional and prevents period locking (13309.553ms)
+✔ opening AR/AP cutover, YTD summary and unclassified cash reporting (65261.3967ms)
+▶ golden books reconcile invoice, collection, purchases, paid expense and statements
+  ✔ T-01 drafts have no ledger effect; capital contributes cash without revenue (12414.7058ms)
+  ✔ T-02..T-05 an invoice posts once under same-key and different-key retries (9750.1718ms)
+  ✔ T-06 a partial collection leaves AR 4000 and does not recognize revenue twice (6711.4019ms)
+  ✔ T-14 a vendor payment reduces AP without a second expense (10315.2251ms)
+  ✔ paid rent recognizes one expense and cash movement (6044.185ms)
+  ✔ T-26 historical AR/AP aging follows settlement dates and reconciles control accounts (7392.2166ms)
+  ✔ T-47 GL, trial balance, profit/loss, balance sheet and cash flow tie to golden books (20045.1521ms)
+  ✔ statement unapply evidence retains both distinct source documents without another journal (5188.798ms)
+{"fixture":"golden-books","organizationId":"97facb43-4e55-4e83-ae11-c969182fa262","invoice":"df84b57d-4f8d-40a9-beb3-7719e716ee3a"}
+  ✔ S-03 reports deny Billing and foreign identities while Auditor succeeds (20988.4257ms)
+✔ golden books reconcile invoice, collection, purchases, paid expense and statements (127789.3012ms)
+▶ period locks, dated unapply, reopen and fiscal-year close preserve books
+  ✔ T-07 receipt allocated across three invoices preserves every residual (28714.7322ms)
+  ✔ T-26 prepare an allocation whose later reversal must retain historical aging (17967.5431ms)
+  ✔ T-34 lock rejects posting, allocation, unapply and source reversal (10376.8904ms)
+  ✔ T-35 reopen checks capability, reason, recent auth and retains close evidence (18671.7721ms)
+  ✔ T-40 close transfers profit once and keeps historical P&L (36385.9951ms)
+{"fixture":"period-year-controls","organizationId":"3b0aa746-83f0-4118-aa97-91dbe021e01a"}
+  ✔ T-41 reopen and reclose preserve old run and one active transfer (34247.7741ms)
+✔ period locks, dated unapply, reopen and fiscal-year close preserve books (177300.0147ms)
+{"fixture":"refund-safety","organizationId":"4ac3adaa-a29f-4200-b27b-b6ef0bd0076d"}
+✔ T-13 refund cannot post without explicitly selected eligible credit settlement (53895.5443ms)
+▶ append-only source reversal and dual-company composite identity checks
+  ✔ T-23/T-24 reversal appends exact opposite dated rows, replay succeeds and a second reversal fails (16898.6508ms)
+  ✔ S-01/S-02 one user with membership in two companies cannot mix accounts or source UUIDs (10910.8036ms)
+{"fixture":"reversal-tenant-controls","organizationId":"0e03c600-b39f-4521-99cb-77c52a68e8df"}
+  ✔ S-06 anonymous and ordinary callers cannot invoke private posting helpers (5314.4979ms)
+✔ append-only source reversal and dual-company composite identity checks (61770.0918ms)
+▶ whole-transaction retry bounds and process death after commit
+  ✔ S-17 serialization aborts after posting roll back all facts and retry at most three times (14498.0243ms)
+  ✔ S-17 exhausted serialization retries return 503 with no partial ledger or outbox (15114.7968ms)
+  ✔ S-17 stale approval/version conflicts are not retried as serialization failures (8158.319ms)
+{"fixture":"transaction-recovery","organizationId":"f59839b0-f7a6-4113-ad00-c87616bcab63"}
+  ✔ S-18 kill a posting process after COMMIT before response; replay returns the existing journal (9460.2643ms)
+✔ whole-transaction retry bounds and process death after commit (76107.1436ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 545435.9832

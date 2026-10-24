@@ -1,0 +1,102 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+      - link "Journal register":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/journals
+      - link "General ledger":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Financial documents":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+    - generic: /
+    - generic: Document details
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - link "← Journals":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/journals
+  - paragraph: Reversal
+  - heading "REV-FY 2025-000004" [level=1]
+  - generic: Posted
+  - paragraph: Posted to the ledger. Financial details are preserved as issued.
+  - generic: Document total · USD
+  - strong: "100.00"
+  - paragraph:
+    - text: Reversal of
+    - link "INV-FY 2025-000002":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/d3ddd1af-dc03-44bd-9bcf-745266937540
+    - text: . Both events remain in the ledger.
+  - region "Document details":
+    - heading "Document details" [level=2]
+    - region "Issued customer":
+      - heading "Issued customer" [level=3]
+      - paragraph: Synthetic customer
+      - heading "Billing address" [level=4]
+      - paragraph: No billing address was recorded on this document.
+      - paragraph: These are the original issued details. Later contact edits do not change this document.
+    - term: Issue date
+    - definition: 20 Jan 2025
+    - term: Accounting date
+    - definition: 20 Jan 2025
+    - heading "Description" [level=3]
+    - paragraph: Reversal of INV-FY 2025-000002
+  - generic "Accounting2"
+  - generic "Document reference information"
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: REV-FY 2025-000004

@@ -1,0 +1,1 @@
+{"isolated":true,"database":"/ams_launch_corrections_20261024","previousReceipts":123,"applied":[{"name":"0125_dated_linked_settlement_reversal_dependencies.sql","sha256":"33867a4af88c2c18a695ab76f048a15b326ec9749d2a34c1e9cbd62d748e0591"}],"unchangedFinancialFacts":true}

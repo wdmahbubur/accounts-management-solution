@@ -1,0 +1,150 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+      - link "Journal register":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/journals
+      - link "General ledger":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Financial documents":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+    - generic: /
+    - generic: Document details
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - link "← Receipts":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/receipts
+  - paragraph: Customer receipt
+  - heading "RCPT-FY 2025-000001" [level=1]
+  - generic: Posted
+  - paragraph: Posted to the ledger. Financial details are preserved as issued.
+  - generic: Document total · USD
+  - strong: "100.00"
+  - term: Applied to invoices · USD
+  - definition: "100.00"
+  - term: Unused customer credit · USD
+  - definition: "0.00"
+  - region "Document details":
+    - heading "Document details" [level=2]
+    - region "Issued customer":
+      - heading "Issued customer" [level=3]
+      - paragraph: Synthetic customer
+      - heading "Billing address" [level=4]
+      - paragraph: No billing address was recorded on this document.
+      - paragraph: These are the original issued details. Later contact edits do not change this document.
+    - term: Issue date
+    - definition: 15 Jan 2025
+    - term: Accounting date
+    - definition: 15 Jan 2025
+    - heading "Description" [level=3]
+    - paragraph: Synthetic acceptance receipt
+  - region "Money received":
+    - heading "Money received" [level=2]
+    - term: Received into
+    - definition: Synthetic acceptance bank
+    - term: Amount · USD
+    - definition: "100.00"
+    - term: Method
+    - definition: Bank transfer
+    - term: Payment reference
+    - definition: Synthetic acceptance
+    - term: Cash-flow classification
+    - definition: Operating
+  - region "Receipt settlement":
+    - heading "Receipt settlement" [level=2]
+    - table "Linked settlement history · company currency":
+      - caption: Linked settlement history · company currency
+      - rowgroup:
+        - row "Effective date Source Amount Allocation state Correction":
+          - columnheader "Effective date"
+          - columnheader "Source"
+          - columnheader "Amount"
+          - columnheader "Allocation state"
+          - columnheader "Correction"
+      - rowgroup:
+        - row "15 Jan 2025 INV-FY 2025-000001 100.00 Active Unapply":
+          - cell "15 Jan 2025"
+          - cell "INV-FY 2025-000001":
+            - link "INV-FY 2025-000001":
+              - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/e85437c1-7e08-4590-b1fc-53196f898aaf
+          - cell "100.00"
+          - cell "Active"
+          - cell "Unapply":
+            - button "Unapply"
+  - generic "Accounting2"
+  - generic "Correct or reverse this document"
+  - region "Reverse this document":
+    - heading "Reverse this document" [level=2]
+    - paragraph: Use a reversal to cancel the accounting effect of this posted document. The original stays in the history, with a linked reversal and dated settlement corrections.
+    - paragraph: The reversal date must be in an open period. If a related bank reconciliation is finalized, reopen it first.
+    - alert [active]:
+      - strong: The reconciliation is locked.
+      - list:
+        - listitem: Reopen any finalized reconciliation and remove its active matches before retrying.
+    - text: Reversal date
+    - textbox "Reversal date Choose 2025-01-15 or a later date. The default follows your company timezone.": 2025-01-20
+    - generic: Choose 2025-01-15 or a later date. The default follows your company timezone.
+    - text: Why are you reversing it?
+    - textbox "Why are you reversing it? Explain the correction in 10–800 characters. This reason stays in the document history.": Synthetic Edge correction after resolving bank match history
+    - text: Explain the correction in 10–800 characters. This reason stays in the document history.
+    - button "Post reversal"
+  - generic "Document reference information"
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert

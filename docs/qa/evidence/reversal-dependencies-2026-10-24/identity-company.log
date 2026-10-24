@@ -1,0 +1,40 @@
+▶ country and currency selections remain authoritative through company books and private outputs
+  ✔ USD company activates with its selected locale; EUR retries do not create extra companies (24468.1415ms)
+  ✔ USD invoices, cash collections, bills and payments post exact balanced journals (42742.785ms)
+  ✔ USD advance application, linked refund, write-off and reversal preserve company currency (41216.1518ms)
+  ✔ issued USD invoice PDF and CSV/PDF/XLSX report exports retain currency and original totals (67205.3018ms)
+✔ country and currency selections remain authoritative through company books and private outputs (203835.6443ms)
+▶ dated dashboard cash/bank split reconciles under ordinary report roles
+  ✔ empty balances are canonical zero and use the same snapshot cutoff (1543.2897ms)
+  ✔ opening balances, archived banks and other cash equivalents reconcile; drafts and future activity stay excluded (3093.9453ms)
+  ✔ bank overdrafts and large cash cents retain exact decimal values (10831.9159ms)
+  ✔ reports-only readers receive the split; sales-only, anonymous and other-company callers cannot receive it (9290.1153ms)
+✔ dated dashboard cash/bank split reconciles under ordinary report roles (92756.628ms)
+▶ verification tokens enforce cooldown, single use, expiry and independent issuance races
+  ✔ cooldown preserves the first link; consumption and replay are atomic (5830.1194ms)
+  ✔ expired tokens fail and different purposes have independent limits (3067.6486ms)
+  ✔ four independent app processes issue one live verification link (20766.8542ms)
+✔ verification tokens enforce cooldown, single use, expiry and independent issuance races (34310.0561ms)
+▶ current identity invitation lifecycle and live membership revocation
+  ✔ normalized recipient, verified identity and hidden token hashes (11551.8104ms)
+  ✔ resend cooldown, superseded-token rejection and immutable delivery payloads (7303.1233ms)
+  ✔ one-time acceptance grants the snapshotted role only (5109.6289ms)
+  ✔ unverified and disabled issuers cannot issue invitations (4115.5373ms)
+  ✔ deactivating an inviter atomically invalidates pending links and queued delivery (6994.0075ms)
+  ✔ cross-company roles, private helpers and self-deactivation remain denied (8235.1141ms)
+  ✔ changing a role after issuance cannot expand an outstanding invitation (5065.5957ms)
+✔ current identity invitation lifecycle and live membership revocation (58172.8437ms)
+▶ real restricted-login limiter counts five failures, expires, clears and handles independent connections
+  ✔ first through fourth attempts remain allowed; fifth blocks (7551.5729ms)
+  ✔ expired lockout starts at one and successful-login cleanup removes it (2208.6272ms)
+  ✔ an expired four-failure window resets instead of prematurely blocking (1935.1256ms)
+  ✔ eight independent app processes cannot lose first-insert or threshold races (3926.2702ms)
+✔ real restricted-login limiter counts five failures, expires, clears and handles independent connections (18701.4534ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226101.8087

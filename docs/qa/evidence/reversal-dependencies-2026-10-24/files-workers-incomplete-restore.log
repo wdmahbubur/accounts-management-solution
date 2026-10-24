@@ -1,0 +1,49 @@
+▶ cash-flow finalization preserves reviewed evidence and rejects provisional/stale/unauthorized reports
+  ✔ T-42 finance review creates one immutable snapshot and one audit under replay and different-key races (14880.5647ms)
+  ✔ S-01/S-03 finalization needs live report/close authority and a matching company (8802.1954ms)
+{"fixture":"cash-flow-finalization","organizationId":"0eb67299-6871-45f6-9237-5f2d6931d665","finalizationId":"a5800492-4401-4277-b54f-13ad84b3fc73"}
+  ✔ T-42 stale reviewed totals and unclassified cash cannot receive a finalized label (14102.1286ms)
+✔ cash-flow finalization preserves reviewed evidence and rejects provisional/stale/unauthorized reports (75176.9615ms)
+▶ report exports retain screen filters/cutoff and private download authorization
+  ✔ T-44 queue CSV/PDF/XLSX exports bound to the same immutable report snapshot (69249.7851ms)
+  ✔ T-44 CSV rows equal the original screen snapshot despite later postings (23563.4115ms)
+  ✔ T-44 PDF and XLSX are real private files; XLSX retains the exact original profit (20158.3131ms)
+{"fixture":"export-acceptance","organizationId":"8323bea8-f99e-499a-87a3-ad25b59584ea","jobs":["743b609b-0d6f-4693-831e-b248dd85e1d9","a251c991-2366-4d53-89e0-145478ccc2d9","791b4c2f-2ca0-46a6-a08e-5d44b30d0c31","c1a54d24-291d-4f12-b340-4f4a72ff322b"]}
+  ✔ S-01/S-03/S-14 guessed IDs, another tenant, Billing and revoked requesters cannot download (14480.3829ms)
+  ✔ S-16 malformed export paths cannot write or read storage (0.2789ms)
+✔ report exports retain screen filters/cutoff and private download authorization (167624.4908ms)
+{"fixture":"issued-snapshot","organizationId":"041d9106-5d4e-496f-91b3-b92a0dc975ae","pdfId":"6826f714-df1a-43b4-a1f8-f59d2f104e25","checksumVerified":true}
+✔ T-49 issued invoice and PDF retain original customer and tax snapshots (77818.6304ms)
+✖ private file restore, corruption detection and live access after database recovery (1959.9924ms)
+▶ renderer/delivery faults and crashed worker leases never repost financial activity
+  ✔ T-43 injected PDF renderer failure preserves the posted journal and creates no issued version (29884.1705ms)
+  ✔ T-43 missing issued file causes delivery-only retry; restored bytes deliver through loopback SMTP (55954.2155ms)
+{"stage":"worker killed during SMTP; waiting for actual lease expiry","eventId":"207c30f8-cdca-4db6-b444-ecd26cb59c59","leaseUntil":"2026-10-24T05:40:07.421Z"}
+{"fixture":"worker-recovery","organizationId":"249115ce-ae93-46b2-840d-a1e6ab1cdc85","localSmtpMessages":4}
+  ✔ S-19 kill a real worker during SMTP delivery; expired lease is reclaimed and old token is fenced (135458.1813ms)
+✔ renderer/delivery faults and crashed worker leases never repost financial activity (255932.9016ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 15
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 425271.2434
+
+✖ failing tests:
+
+test at tests\database\recovery-files.test.mjs:14:1
+✖ private file restore, corruption detection and live access after database recovery (1959.9924ms)
+  AssertionError [ERR_ASSERTION]: A synthetic owner of the restored PDF company is required.
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/recovery-files.test.mjs:84:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
