@@ -1,0 +1,34 @@
+▶ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker
+  ✔ clean: private upload, quarantine, durable scan and authorized result (73260.5609ms)
+  ✔ eicar: private upload, quarantine, durable scan and authorized result (53765.3253ms)
+  ✖ 10-mib: private upload, quarantine, durable scan and authorized result (158503.4199ms)
+{"fixture":"real-bouncer-docker","organizationId":"170dec96-3b49-45c9-ba4f-8bd2a44226dc","image":"ams-jobs:bouncer-candidate","freeTier":true,"scansConsumed":3,"receipts":[{"label":"clean","byteSize":52,"decision":"clean","cycles":2,"resumedSameReference":true},{"label":"eicar","byteSize":68,"decision":"rejected","cycles":2,"resumedSameReference":true}],"memoryLimitBytes":201326592,"peakBytes":178102272,"restrictedWorkerOnly":true,"financialFactsUnchanged":true}
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (357147.5794ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 357393.2782
+
+✖ failing tests:
+
+test at tests\database\bouncer-scanner.test.mjs:52:12
+✖ 10-mib: private upload, quarantine, durable scan and authorized result (158503.4199ms)
+  Error: Command failed: docker run --name ams-bouncer-worker-b09c2992-a0a5-440c-ac5b-40d4caa06d6f-5 --network ams-bouncer-b09c2992-a0a5-440c-ac5b-40d4caa06d6f --memory 192m --cpus 0.25 --pids-limit 64 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=16m,mode=1777 -e NODE_OPTIONS=--max-old-space-size=80 --mount type=bind,source=F:\accounts-management-solution\output\worker-tests\b09c2992-a0a5-440c-ac5b-40d4caa06d6f\scanner.env,target=/run/secrets/worker_env,readonly --mount type=bind,source=F:\accounts-management-solution\tests\database\helpers\measure-scanner.mjs,target=/probe.mjs,readonly --entrypoint node ams-jobs:bouncer-candidate --conditions=react-server --env-file=/run/secrets/worker_env /probe.mjs
+
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:508:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'docker run --name ams-bouncer-worker-b09c2992-a0a5-440c-ac5b-40d4caa06d6f-5 --network ams-bouncer-b09c2992-a0a5-440c-ac5b-40d4caa06d6f --memory 192m --cpus 0.25 --pids-limit 64 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=16m,mode=1777 -e NODE_OPTIONS=--max-old-space-size=80 --mount type=bind,source=F:\\accounts-management-solution\\output\\worker-tests\\b09c2992-a0a5-440c-ac5b-40d4caa06d6f\\scanner.env,target=/run/secrets/worker_env,readonly --mount type=bind,source=F:\\accounts-management-solution\\tests\\database\\helpers\\measure-scanner.mjs,target=/probe.mjs,readonly --entrypoint node ams-jobs:bouncer-candidate --conditions=react-server --env-file=/run/secrets/worker_env /probe.mjs',
+    stdout: '{"at":"2026-10-24T16:48:02.999Z","event":"worker.batch_deadline","kind":"scanner"}\n',
+    stderr: ''
+  }

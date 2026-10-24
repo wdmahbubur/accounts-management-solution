@@ -4,6 +4,7 @@ import { lstat, mkdir, open, readFile, realpath, rm } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { readBoundedObject } from "./read-bounded.ts";
 
 const maxArtifactBytes = 10 * 1024 * 1024;
 
@@ -54,18 +55,20 @@ export async function readPrivateObject(key: string): Promise<Uint8Array | null>
     return readLocalObject(key);
   }
 
-  const client = objectStoreClient();
-  if (!client) return null;
-  try {
-    const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
-    if (!result.Body || !result.ContentLength || result.ContentLength < 1 || result.ContentLength > maxArtifactBytes) return null;
-    const bytes = await result.Body.transformToByteArray();
-    return bytes.byteLength <= maxArtifactBytes ? bytes : null;
-  } catch {
-    return null;
-  } finally {
-    client.destroy();
+  // GET is idempotent. A stalled connection must end before a worker lease or
+  // HTTP request is held indefinitely; allow two fresh-connection retries.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const client = objectStoreClient(); if (!client) return null;
+    try {
+      const signal = AbortSignal.timeout(15_000);
+      const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }), { abortSignal: signal });
+      if (!result.Body || !result.ContentLength || result.ContentLength < 1 || result.ContentLength > maxArtifactBytes) return null;
+      const bytes = await readBoundedObject(result.Body.transformToWebStream(), result.ContentLength, signal);
+      if (bytes) return bytes;
+    } catch { /* Retries only fetch the same private, immutable object. */ }
+    finally { client.destroy(); }
   }
+  return null;
 }
 
 /** Store upload bytes under an opaque generated key. This does not mark them clean. */
@@ -77,7 +80,7 @@ export async function writeQuarantinedObject(key: string, bytes: Uint8Array): Pr
     if (!client) return false;
     try {
       await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: bytes, ContentLength: bytes.byteLength,
-        ContentType: "application/octet-stream", IfNoneMatch: "*", Metadata: { quarantine: "pending-scan" } }));
+        ContentType: "application/octet-stream", IfNoneMatch: "*", Metadata: { quarantine: "pending-scan" } }), { abortSignal: AbortSignal.timeout(30_000) });
       return true;
     } catch { return false; }
     finally { client.destroy(); }

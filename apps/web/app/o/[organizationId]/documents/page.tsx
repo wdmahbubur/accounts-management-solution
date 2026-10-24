@@ -65,7 +65,7 @@ export default async function EvidenceLibraryPage({ params, searchParams }: { pa
       {rows.length === 0 ? <div className="panel"><h2>No evidence found</h2><p>Clear a filter or attach a file to an eligible draft.</p></div> : rows.map((row) => <article className="panel" key={`${row.attachment_id}:${row.source_id}`}>
         <div className={styles.heading}>
           <div><h2>{row.filename}</h2><p className={styles.metadata}>{row.content_type} · {sizeLabel(row.byte_size)} · Uploaded {evidenceUploadDate(row.uploaded_at, timezone)}</p></div>
-          {row.scan_status === "clean" ? <Link className="button secondary" href={`/api/v1/organizations/${organizationId}/attachments/${row.attachment_id}/download`}>Download</Link>
+          {row.scan_status === "clean" ? <a className="button secondary" href={`/api/v1/organizations/${organizationId}/attachments/${row.attachment_id}/download`} download>Download</a>
             : <span className={styles.badge}>{row.scan_status === "pending" ? "Pending security scan · Download unavailable" : "Rejected by security scan · Download unavailable"}</span>}
         </div>
         <p><strong>Source:</strong> <Link href={`/o/${organizationId}/accounting/documents/${row.source_id}`}>{row.source_number ?? "Saved draft"} · {row.source_type.replaceAll("_", " ")}</Link> · {evidenceSourceDate(row.source_date)}</p>

@@ -1,0 +1,64 @@
+{"stage":"upload-start","label":"clean","byteSize":52}
+{"stage":"quarantined","label":"clean"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":165068800}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":65265664}
+{"stage":"decision","label":"clean","status":"clean"}
+{"stage":"download-verified","label":"clean"}
+{"stage":"upload-start","label":"eicar","byteSize":68}
+▶ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker
+  ✔ clean: private upload, quarantine, durable scan and authorized result (49096.8027ms)
+{"stage":"quarantined","label":"eicar"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":66248704}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":64184320}
+{"stage":"decision","label":"eicar","status":"rejected"}
+{"stage":"upload-start","label":"10-mib","byteSize":10485760}
+  ✔ eicar: private upload, quarantine, durable scan and authorized result (39748.2945ms)
+{"stage":"quarantined","label":"10-mib"}
+  ✖ 10-mib: private upload, quarantine, durable scan and authorized result (108746.2543ms)
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (237557.2243ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 238120.7013
+
+✖ failing tests:
+
+test at tests\database\bouncer-scanner.test.mjs:53:12
+✖ 10-mib: private upload, quarantine, durable scan and authorized result (108746.2543ms)
+  Error: Command failed: docker run --name ams-bouncer-worker-985da1c3-f015-43ff-82bc-1803b78c19cf-4 --network ams-bouncer-985da1c3-f015-43ff-82bc-1803b78c19cf --memory 192m --cpus 0.25 --pids-limit 64 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=16m,mode=1777 -e NODE_OPTIONS=--max-old-space-size=80 --mount type=bind,source=F:\accounts-management-solution\output\worker-tests\985da1c3-f015-43ff-82bc-1803b78c19cf\scanner.env,target=/run/secrets/worker_env,readonly --mount type=bind,source=F:\accounts-management-solution\tests\database\helpers\measure-scanner.mjs,target=/probe.mjs,readonly --entrypoint node ams-jobs:bouncer-reviewed --conditions=react-server --env-file=/run/secrets/worker_env /probe.mjs
+
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:508:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'docker run --name ams-bouncer-worker-985da1c3-f015-43ff-82bc-1803b78c19cf-4 --network ams-bouncer-985da1c3-f015-43ff-82bc-1803b78c19cf --memory 192m --cpus 0.25 --pids-limit 64 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=16m,mode=1777 -e NODE_OPTIONS=--max-old-space-size=80 --mount type=bind,source=F:\\accounts-management-solution\\output\\worker-tests\\985da1c3-f015-43ff-82bc-1803b78c19cf\\scanner.env,target=/run/secrets/worker_env,readonly --mount type=bind,source=F:\\accounts-management-solution\\tests\\database\\helpers\\measure-scanner.mjs,target=/probe.mjs,readonly --entrypoint node ams-jobs:bouncer-reviewed --conditions=react-server --env-file=/run/secrets/worker_env /probe.mjs',
+    stdout: '{"at":"2026-10-24T17:11:16.224Z","event":"worker.batch_deadline","kind":"scanner"}\n',
+    stderr: ''
+  }
+
+test at tests\database\bouncer-scanner.test.mjs:15:1
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (237557.2243ms)
+  AssertionError [ERR_ASSERTION]: Every synthetic case must pass before emitting acceptance.
+
+  2 !== 3
+
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/bouncer-scanner.test.mjs:78:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,31 @@
+{"stage":"upload-start","label":"clean","byteSize":52}
+{"stage":"quarantined","label":"clean"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":179458048}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":64487424}
+{"stage":"decision","label":"clean","status":"clean"}
+{"stage":"download-verified","label":"clean"}
+{"stage":"upload-start","label":"eicar","byteSize":68}
+▶ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker
+  ✔ clean: private upload, quarantine, durable scan and authorized result (48289.3015ms)
+{"stage":"quarantined","label":"eicar"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":65609728}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":67186688}
+{"stage":"decision","label":"eicar","status":"rejected"}
+{"stage":"upload-start","label":"10-mib","byteSize":10485760}
+  ✔ eicar: private upload, quarantine, durable scan and authorized result (51411.8987ms)
+{"stage":"quarantined","label":"10-mib"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":114016256}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":64065536}
+{"stage":"decision","label":"10-mib","status":"clean"}
+{"stage":"download-verified","label":"10-mib"}
+  ✔ 10-mib: private upload, quarantine, durable scan and authorized result (90874.0813ms)
+{"fixture":"real-bouncer-docker","organizationId":"95fb11b8-0a87-459a-83ae-d9398ec4d8af","image":"ams-jobs:bouncer-durable","freeTier":true,"scansConsumed":3,"receipts":[{"label":"clean","byteSize":52,"decision":"clean","cycles":2,"resumedSameReference":true},{"label":"eicar","byteSize":68,"decision":"rejected","cycles":2,"resumedSameReference":true},{"label":"10-mib","byteSize":10485760,"decision":"clean","cycles":2,"resumedSameReference":true}],"memoryLimitBytes":201326592,"peakBytes":179458048,"restrictedWorkerOnly":true,"financialFactsUnchanged":true}
+✔ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (231019.51ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231578.5058

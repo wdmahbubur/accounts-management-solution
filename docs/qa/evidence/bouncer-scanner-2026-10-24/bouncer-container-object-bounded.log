@@ -1,0 +1,41 @@
+{
+  stage: 'object-read-start',
+  memory: {
+    rss: 94920704,
+    heapTotal: 18243584,
+    heapUsed: 14605072,
+    external: 10132255,
+    arrayBuffers: 432495
+  }
+}
+{
+  stage: 'object-read-complete',
+  size: 10485760,
+  elapsedMs: 28543,
+  usage: {
+    userCPUTime: 491833,
+    systemCPUTime: 162555,
+    maxRSS: 114660,
+    sharedMemorySize: 0,
+    unsharedDataSize: 0,
+    unsharedStackSize: 0,
+    minorPageFault: 21541,
+    majorPageFault: 0,
+    swappedOut: 0,
+    fsRead: 0,
+    fsWrite: 0,
+    ipcSent: 0,
+    ipcReceived: 0,
+    signalsCount: 0,
+    voluntaryContextSwitches: 4119,
+    involuntaryContextSwitches: 24
+  },
+  memory: {
+    rss: 117411840,
+    heapTotal: 14888960,
+    heapUsed: 10928640,
+    external: 33147418,
+    arrayBuffers: 23386020
+  },
+  peak: 61079552
+}
