@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
 import argon2 from "argon2";
 import { createAccountingFixture } from "./helpers/accounting-fixture.mjs";
+import { bankScenario, creditScenario, reverseArgs, reverseSql } from "./helpers/reversal-dependencies.mjs";
 
 test("real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries", { timeout: 360_000 }, async t => {
   const base = process.env.AMS_TEST_APP_URL;
@@ -105,6 +106,26 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       const before=(await f.admin.query('SELECT count(*)::integer AS n FROM finance.journal_entries WHERE organization_id=$1',[f.org])).rows[0].n;
       for(let retry=0;retry<2;retry++){const result=await fetch(`${base}/api/v1/webhooks/billing/synthetic`,{method:'POST',headers:{'content-type':'application/json','x-signature':'forged'},body:JSON.stringify({organization_id:f.org,status:'active'})});assert.equal(result.status,503);assert.equal((await result.json()).error.code,'BILLING_DISABLED');}
       const counts=(await f.admin.query('SELECT (SELECT count(*) FROM finance.subscriptions WHERE organization_id=$1)::integer AS subscriptions,(SELECT count(*) FROM finance.billing_events WHERE organization_id=$1)::integer AS billing_events,(SELECT count(*) FROM finance.journal_entries WHERE organization_id=$1)::integer AS journals',[f.org])).rows[0];assert.deepEqual(counts,{subscriptions:0,billing_events:0,journals:before});
+    });
+    await t.test("real authenticated reversal API permits resolved bank history and preserves replay and authorization", async () => {
+      const b = await bankScenario(f), matches = [await b.add(b.statements[0]), await b.add(b.statements[1])];
+      const path = api(f.org, `documents/${b.receipt.document_id}/reverse`), key = randomUUID();
+      const options = { method: "POST", headers: { "content-type": "application/json", origin: base, "idempotency-key": key }, body: JSON.stringify({ reversal_date: "2025-01-20", reason: "Synthetic API correction of resolved bank history" }) };
+      assert.equal((await owner(path, options)).status, 409);
+      await b.unmatch(matches[0]); await b.unmatch(matches[1]);
+      assert.equal((await billing(path, options)).status, 403);
+      const response = await owner(path, options); assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
+      const receipt = await response.json(), replay = await owner(path, options);
+      assert.equal(replay.status, 200); assert.deepEqual((await replay.json()).data, receipt.data);
+    });
+    await t.test("real authenticated reversal API respects the linked credit reversal's effective date", async () => {
+      const { original, credit } = await creditScenario(f, "customer_credit");
+      await f.rpc(reverseSql, reverseArgs(f, credit, "2025-01-20"));
+      const path = api(f.org, `documents/${original.document_id}/reverse`);
+      const options = date => ({ method: "POST", headers: { "content-type": "application/json", origin: base, "idempotency-key": randomUUID() }, body: JSON.stringify({ reversal_date: date, reason: "Synthetic API correction after child credit reversal" }) });
+      const early = await owner(path, options("2025-01-19")); assert.equal(early.status, 409);
+      const failure = await early.json(); assert.equal(failure.error.code, "REVERSAL_DEPENDENCY"); assert.match(failure.error.fields.reversal_date, /on or after/);
+      const response = await owner(path, options("2025-01-20")); assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
     });
     await t.test("S-07 a still-valid authentication session loses company access immediately after deactivation", async () => {
       const member = (await f.admin.query("SELECT id FROM finance.organization_members WHERE organization_id=$1 AND user_id=$2", [f.org, f.ids.owner])).rows[0].id;
