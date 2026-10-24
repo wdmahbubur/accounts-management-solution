@@ -119,26 +119,28 @@
   {
     "id": "T-10",
     "kind": "functional",
-    "status": "blocked",
+    "status": "covered",
     "evidence": [
-      "docs/user-stories/US-042.md",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Advance application is not implemented in the runtime save/post/API path. T-10 cannot pass.",
-    "last_result": "blocked",
+    "note": "Customer advance application reclassifies liability to AR, creates both settlement pairs atomically, moves no cash, supports replay and dated reversal; Edge create/preview/submit/post passed.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-11",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
-      "tests/database/cash-posting-preview.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Advance cash entries pass; advance application and linked refund lifecycle remain unavailable.",
-    "last_result": "partial",
+    "note": "Supplier application uses AP/advance asset with paired settlements; unused refund debits bank and settles the selected advance asset; exact applied/refunded/residual amounts and permissions are tested.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -158,13 +160,15 @@
   {
     "id": "T-13",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
+      "tests/database/advance-refund-settlement.test.mjs",
+      "tests/database/opening-advance-settlement.test.mjs",
       "tests/database/refund-safety.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/advance-refund-settlements-2026-10-21.md"
     ],
-    "note": "Unsafe credit-free refund was reproduced. Migration 0105 now rejects all unlinked refunds; eligible linked refund workflow is incomplete.",
-    "last_result": "partial",
+    "note": "Explicit linked trade/advance refunds enforce historical source capacity, finance authority and cash capacity; unlinked, excessive, foreign-company, incompatible-control and empty physical-cash refunds cannot post.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -535,13 +539,13 @@
   {
     "id": "T-42",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
-      "tests/database/cutover-classification.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/cash-flow-finalization.test.mjs",
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Unclassified cash is provisional and blocks period lock; dedicated cash-flow finalization workflow remains unverified.",
-    "last_result": "partial",
+    "note": "Immutable cash-flow finalization passes restricted-role race/stale/provisional checks and actual authenticated HTTP/Edge review and selected JSON download. Finalization does not lock or certify books.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -561,52 +565,50 @@
   {
     "id": "T-44",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
       "tests/database/export-acceptance.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Actual private CSV/XLSX equal immutable screen cutoff despite later posting; PDF bytes/digest pass, but PDF content/layout and browser export flows remain unverified.",
-    "last_result": "partial",
+    "note": "Actual private CSV/PDF/XLSX retain captured filters/cutoff; Edge queues and downloads the golden PDF. Extracted exact totals, visual rendering, bilingual pagination and clipping checks pass.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-45",
     "kind": "functional",
-    "status": "blocked",
+    "status": "deferred",
     "evidence": [
-      "docs/qa/full-acceptance-2026-10-21.md",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Billing provider, approved plans and runtime webhook/entitlement integration are absent. No billing-provider test was run.",
-    "last_result": "blocked",
+    "note": "Explicitly deferred by the user on 21 October 2026: paid billing/provider activation waits for approved paid plans and limits. No provider sandbox lifecycle or expiry/downgrade result is claimed.",
+    "last_result": "deferred",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-46",
     "kind": "functional",
-    "status": "blocked",
+    "status": "deferred",
     "evidence": [
-      "docs/qa/full-acceptance-2026-10-21.md",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Billing provider, approved plans and runtime webhook/entitlement integration are absent. No billing-provider test was run.",
-    "last_result": "blocked",
+    "note": "Explicitly deferred by the user on 21 October 2026: paid billing/provider activation waits for approved paid plans and limits. No provider sandbox lifecycle or expiry/downgrade result is claimed.",
+    "last_result": "deferred",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "T-47",
     "kind": "functional",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
       "tests/database/golden-books.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Golden source journals, AR/AP, cashbook, statements, TB/P&L/BS/cash flow pass in PostgreSQL. Required Edge browser golden flow is blocked by disconnected Edge.",
-    "last_result": "partial",
+    "note": "All six golden sources were reviewed/posted in Edge; dashboard, all-source journal register/drilldown, GL, cashbook, AR/AP, statements, trial balance, P&L, BS and cash flow agree. Restricted PostgreSQL golden regression passes 10 tests including allocation/unapply counterpart links.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -860,26 +862,26 @@
   {
     "id": "S-15",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
       "tests/database/http-security.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Authenticated report responses are private/no-store and tenant scoped; Edge company-switch cache behavior remains unrun.",
-    "last_result": "partial",
+    "note": "Actual Edge switch from populated Golden alpha to empty Golden beta shows no alpha values. Back history and an old alpha dashboard URL require reopening the correct company; actual authenticated report responses remain private/no-store and tenant scoped.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
     "id": "S-16",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "covered",
     "evidence": [
-      "tests/database/export-acceptance.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "tests/database/attachment-scanner.test.mjs",
+      "docs/qa/release-verification-2026-10-21.md"
     ],
-    "note": "Actual CSV formula escaping, literal XLSX data, private paths and quarantine denial pass. No configured ClamAV engine/signature/EICAR provider run.",
-    "last_result": "partial",
+    "note": "Actual ClamAV 1.5.4/signatures 28160 scans private clean/EICAR uploads; quarantine, tenant denial, unsafe paths/types and outage backoff pass. Production scanner hosting/scheduling remains an operations gate.",
+    "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
@@ -925,13 +927,13 @@
   {
     "id": "S-20",
     "kind": "security_concurrency",
-    "status": "partial",
+    "status": "deferred",
     "evidence": [
       "tests/database/http-security.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/company-country-currency-2026-10-21.md"
     ],
-    "note": "Nonmember authenticated requests deny. Approved exceptional support access with expiry/audit is not implemented or verified.",
-    "last_result": "partial",
+    "note": "The owner explicitly deferred privileged support access on 21 October 2026. Nonmember requests remain denied; no support bypass, operator enrollment or consent grant is enabled. The original exceptional-access acceptance case is not a pass.",
+    "last_result": "deferred",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   }

@@ -1,8 +1,9 @@
+import {isCountryCode,isBaseCurrency,type BaseCurrency} from '@ams/contracts';
 export interface CompanyOnboardingInput {
   name: string;
   legalName: string;
   countryCode: string;
-  baseCurrency: "BDT";
+  baseCurrency: BaseCurrency;
   timezone: string;
   fiscalYearStartMonth: number;
   booksStartDate: string;
@@ -45,16 +46,16 @@ export function parseCompanyOnboardingForm(
       "Enter the legal company name."
     );
   }
-  if (!/^[A-Z]{2}$/.test(countryCode)) {
+  if (!isCountryCode(countryCode)) {
     throw new CompanyOnboardingValidationError(
       "country_code",
-      "Use a two-letter country code."
+      "Choose a country from the list."
     );
   }
-  if (baseCurrency !== "BDT") {
+  if (!isBaseCurrency(baseCurrency)) {
     throw new CompanyOnboardingValidationError(
       "base_currency",
-      "V1 supports BDT only."
+      "Choose a supported two-decimal currency from the list."
     );
   }
   if (!timezone || timezone.length > 64) {
@@ -86,7 +87,7 @@ export function parseCompanyOnboardingForm(
     name,
     legalName,
     countryCode,
-    baseCurrency: "BDT",
+    baseCurrency,
     timezone,
     fiscalYearStartMonth: fiscalMonth,
     booksStartDate,

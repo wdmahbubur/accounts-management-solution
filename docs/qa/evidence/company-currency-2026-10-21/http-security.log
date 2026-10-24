@@ -1,0 +1,21 @@
+▶ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries
+  ✔ S-01/S-03/S-05 direct report and source APIs enforce live ordinary-user permissions (18657.3852ms)
+  ✔ concurrent authenticated reads keep ordinary-role authorization isolated (18252.053ms)
+  ✔ S-04 forged Owner metadata cannot change an authenticated Billing user's authority (7438.7091ms)
+  ✔ company currency cannot be overridden through an authenticated document API (8757.244ms)
+  ✔ cookie-authenticated financial commands reject an untrusted Origin (4898.6612ms)
+  ✔ T-44 real authenticated HTTP queues the displayed PDF snapshot and replays the same job (20127.3605ms)
+  ✔ T-42 real HTTP finalizes cash flow and exports the selected immutable review (27569.1781ms)
+  ✔ deferred SaaS billing remains authenticated, permission checked and unable to create paid state (27573.3297ms)
+  ✔ disabled billing webhooks never acknowledge activation or change company books (2503.7491ms)
+{"fixture":"http-security","organizationId":"bdc842b2-590b-42fb-82a4-89a712e6b949"}
+  ✔ S-07 a still-valid authentication session loses company access immediately after deactivation (18322.0635ms)
+✔ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries (204821.3904ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204927.0822

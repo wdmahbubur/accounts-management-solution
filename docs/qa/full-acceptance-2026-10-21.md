@@ -1,5 +1,7 @@
 # Accounting and security acceptance — 21 October 2026
 
+Subsequent candidate: [advance applications and linked refunds](advance-refund-settlements-2026-10-21.md), PR #185, implements and verifies T-10/T-11/T-13 on the tested branch. The current matrix is **64 covered, 6 partial and 2 blocked**. The report below preserves the earlier PR #184 baseline and its execution boundaries; it is not a worldwide launch approval.
+
 ## Release decision
 
 **Not ready for worldwide launch.** This is a measured V1 accounting/security test pass and gap register, not certification or a launch approval. The supported books remain BDT-only accrual accounting for Bangladesh service/non-stock SMEs. Worldwide access does not establish worldwide currency, tax, legal or regulatory support.

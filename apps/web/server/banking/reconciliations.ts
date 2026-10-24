@@ -65,7 +65,7 @@ export function parseReconciliationStart(value: unknown): { cashAccountId: strin
     if (days < 0) errors.ends_on = "The end date must be on or after the start date.";
     else if (days > 370) errors.ends_on = "A statement session can cover at most 370 days.";
   }
-  for (const field of ["statement_opening", "statement_closing"]) if (typeof row[field] !== "string" || !/^-?\d{1,12}\.\d{2}$/.test(row[field])) errors[field] = "Use an exact BDT amount with two decimal places.";
+  for (const field of ["statement_opening", "statement_closing"]) if (typeof row[field] !== "string" || !/^-?\d{1,12}\.\d{2}$/.test(row[field])) errors[field] = "Use an exact amount with two decimal places.";
   let cashAccountId = "";
   try { cashAccountId = parseUuid(row.cash_account_id, "cash_account_id"); } catch { errors.cash_account_id = "Choose a cash or bank account."; }
   if (Object.keys(errors).length) throw CommandError.validation(errors);

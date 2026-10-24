@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -98,9 +100,9 @@ export function CreditApplicationAction({organizationId,documentId,initial,initi
     {options?<>
       <p>Original {options.original_document_type==="bill"?"bill":"invoice"}: <Link href={`/o/${organizationId}/accounting/documents/${options.original_document_id}`}>{options.original_document_number??"Open original document"}</Link></p>
       <dl className={styles.statusStrip}>
-        <div><dt>Unused credit · BDT</dt><dd>{options.credit_residual_amount===null?"Not yet effective":displayMoney(options.credit_residual_amount)}</dd></div>
-        <div><dt>Original outstanding · BDT</dt><dd>{options.original_residual_amount===null?"Not yet effective":displayMoney(options.original_residual_amount)}</dd></div>
-        <div><dt>Available to apply · BDT</dt><dd>{displayMoney(options.available_amount)}</dd></div>
+        <div><dt>Unused credit · <CompanyCurrency /></dt><dd>{options.credit_residual_amount===null?"Not yet effective":displayMoney(options.credit_residual_amount)}</dd></div>
+        <div><dt>Original outstanding · <CompanyCurrency /></dt><dd>{options.original_residual_amount===null?"Not yet effective":displayMoney(options.original_residual_amount)}</dd></div>
+        <div><dt>Available to apply · <CompanyCurrency /></dt><dd>{displayMoney(options.available_amount)}</dd></div>
       </dl>
       <p className={styles.hint}>Balances for {detailDate(options.effective_date)}. Available amounts also account for later dated settlements.</p>
       <p className={styles.hint}>{creditApplicationMessage(options)}</p>
@@ -111,7 +113,7 @@ export function CreditApplicationAction({organizationId,documentId,initial,initi
       <label>Application date<input type="date" name="effective_date" required value={effectiveDate} disabled={busy||retry} onChange={event=>{setEffectiveDate(event.target.value);setError("");}}/></label>
       <button type="button" className="secondary" disabled={busy||retry} onClick={()=>void refresh()}>{busy?"Working…":"Refresh available credit"}</button>
       {canApply?<>
-        <label>Credit amount to apply · BDT<input name="amount" inputMode="decimal" pattern="(0|[1-9][0-9]{0,17})([.][0-9]{1,2})?" required={!retry} disabled={busy||retry||!available} value={amount} onChange={event=>{setAmount(event.target.value);setError("");}}/></label>
+        <label>Credit amount to apply · <CompanyCurrency /><input name="amount" inputMode="decimal" pattern="(0|[1-9][0-9]{0,17})([.][0-9]{1,2})?" required={!retry} disabled={busy||retry||!available} value={amount} onChange={event=>{setAmount(event.target.value);setError("");}}/></label>
         <button type="submit" disabled={busy||(!retry&&!available)}>{busy?"Working…":retry?"Retry the same credit application":"Apply credit"}</button>
       </>:<p className={styles.hint}>An authorized user with settlement permission can apply this credit.</p>}
     </form>

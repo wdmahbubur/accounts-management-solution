@@ -24,9 +24,8 @@ export async function listActiveMemberships(
 ): Promise<ActiveCompanyMembership[]> {
   const { data, error } = await client.rpc("list_active_memberships");
 
-  if (error || !Array.isArray(data)) {
-    return [];
-  }
+  if (error) throw new Error("Company memberships could not be loaded.");
+  if (!Array.isArray(data)) throw new Error("Invalid company membership response.");
 
   return data.map((value) => {
     const row = value as MembershipListRow;

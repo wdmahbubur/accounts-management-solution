@@ -32,7 +32,7 @@ for (const type of cashPreviewTypes) {
       calls.push({ name, args });
       return { data: name === "read_financial_document" ? source(type) : databasePreview(type), error: null };
     } };
-    const result = await previewFinancialDocument(client, actor(["sales.write", "purchases.write", "banking.write"]), documentId, 3);
+    const result = await previewFinancialDocument(client, actor(["sales.write", "purchases.write", "banking.write", "journal.write"]), documentId, 3);
     assert.equal(result.preview.kind, "cash");
     assert.deepEqual(calls.map(call => call.name), ["read_financial_document", "preview_cash_document_posting"]);
     assert.deepEqual(calls[1]?.args, { p_organization_id: org, p_document_id: documentId, p_expected_version: 3 });

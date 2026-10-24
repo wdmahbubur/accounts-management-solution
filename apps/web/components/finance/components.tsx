@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from './company-currency.tsx';
+
 import { createContext, useContext, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { displayMoney, feedback, moneyInputError, type FeedbackKind, type ScopedOptions } from "./contracts.ts";
 import styles from "./finance.module.css";
@@ -34,7 +36,7 @@ export function MoneyInput({ label, name, value, onChange, error, allowNegative 
     <input id={id} name={name} value={value} onChange={(e) => onChange(e.target.value)} onBlur={() => setTouched(true)}
       type="text" inputMode="decimal" autoComplete="off" spellCheck={false} maxLength={22} disabled={disabled || !online || readOnly}
       aria-invalid={Boolean(message)} aria-describedby={`${id}-hint${message ? ` ${id}-error` : ""}`} />
-    <small id={`${id}-hint`}>BDT · use two decimal places, for example 1250.00</small>
+    <small id={`${id}-hint`}><CompanyCurrency /> · use two decimal places, for example 1250.00</small>
     {message && <p id={`${id}-error`} role="alert">{message}</p>}
   </div>;
 }

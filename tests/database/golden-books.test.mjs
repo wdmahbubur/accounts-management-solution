@@ -61,6 +61,9 @@ test("golden books reconcile invoice, collection, purchases, paid expense and st
       }
     });
     await t.test("T-47 GL, trial balance, profit/loss, balance sheet and cash flow tie to golden books", async () => {
+      const register=(await read("SELECT * FROM public.read_journal_register($1,NULL,'2025-01-01','2025-12-31',101)",[f.org])).rows;
+      assert.equal(register.length,6);assert.equal(new Set(register.map(row=>row.document_type)).size,6);
+      for(const row of register)money(row.debit_total,row.credit_total);
       const pl = (await read("SELECT public.read_profit_loss_snapshot($1,'2025-01-01'::date,'2025-12-31'::date,NULL,NULL,NULL) AS value", [f.org])).rows[0].value;
       money(pl.data.totals.net_profit, "5000.00");
       const bs = (await read("SELECT public.read_balance_sheet_snapshot($1,'2025-12-31'::date,NULL) AS value", [f.org])).rows[0].value.data.current;
@@ -77,6 +80,9 @@ test("golden books reconcile invoice, collection, purchases, paid expense and st
       for (const [scope, party, expected] of [["customer", f.contacts.customer, "4000.00"], ["vendor", f.contacts.vendor, "1000.00"]]) {
         const statement = (await read("SELECT public.read_party_statement_snapshot($1,$2,$3,'2025-01-01'::date,'2025-12-31'::date) AS value", [f.org, scope, party])).rows[0].value.data;
         money(statement.closing.trade, expected); money(statement.control_bridge.trade_difference, "0.00");
+        const allocation=statement.events.find(event=>event.event_type==='allocation');
+        assert.equal(allocation.source_document_id,scope==='customer'?receipt.document_id:payment.document_id);
+        assert.equal(allocation.related_document_id,scope==='customer'?invoice.document_id:bill.document_id);
       }
       const cash = (await read("SELECT public.read_cash_flow_snapshot($1,'2025-01-01'::date,'2025-12-31'::date) AS value", [f.org])).rows[0].value.data;
       money(cash.closing_cash, "102000.00");
@@ -85,6 +91,13 @@ test("golden books reconcile invoice, collection, purchases, paid expense and st
         const rows = await f.journal(doc);
         assert.equal(rows.reduce((sum, row) => sum + units(row.debit) - units(row.credit), 0n), 0n);
       }
+    });
+    await t.test('statement unapply evidence retains both distinct source documents without another journal',async()=>{
+      const allocation=(await f.admin.query('SELECT id FROM finance.settlement_allocations WHERE organization_id=$1 AND source_document_id=$2',[f.org,receipt.document_id])).rows[0].id;
+      const m=request('statement unapply');await f.rpc("SELECT * FROM public.reverse_open_item_allocation($1,$2,$3,$4,$5,$6,'2025-01-20'::date,$7)",[f.org,allocation,`allocations.reverse:${allocation}`,m.id,m.key,m.hash,'Synthetic statement counterpart check']);
+      const statement=(await read("SELECT public.read_party_statement_snapshot($1,'customer',$2,'2025-01-01','2025-01-31') AS value",[f.org,f.contacts.customer])).rows[0].value.data;
+      const event=statement.events.find(event=>event.event_type==='allocation_reversal');assert.equal(event.source_document_id,receipt.document_id);assert.equal(event.related_document_id,invoice.document_id);
+      money(statement.closing.trade,'4000.00');money(await balance('1010'),'102000.00');
     });
     await t.test("S-03 reports deny Billing and foreign identities while Auditor succeeds", async () => {
       const sql = "SELECT public.read_balance_sheet_snapshot($1,'2025-12-31'::date,NULL) AS value";

@@ -1,0 +1,3 @@
+Applied 0123_company_local_calendar.sql
+Migration check complete (122 files).
+{"recoveredCandidateForwardUpgrade":"passed","migrations":122,"lastMigration":"0123_company_local_calendar.sql","originalTableFingerprintsPreserved":70,"allLedgerAndObjectMetadataUnchanged":true}

@@ -1,0 +1,100 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records" [expanded]:
+          - generic: Review and records
+      - link "Advances and refunds":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/advances
+      - link "Approval inbox":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/approvals
+      - link "Evidence library":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/documents
+      - link "Imports":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/imports
+      - link "Export jobs":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/exports
+      - link "Audit trail":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/audit
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - generic: Export jobs
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Reports · Private files
+  - heading "Export jobs" [level=1]
+  - paragraph: Each export captures the requested date and ledger cutoff. Files are private, available to the requester for 24 hours, and permission is checked again when downloaded.
+  - paragraph:
+    - text: Exports use the snapshot currently shown by each report.
+    - link "Open Trial Balance to export":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/trial-balance
+  - heading "Your exports" [level=2]
+  - button "Refresh jobs"
+  - region "Export jobs":
+    - table:
+      - rowgroup:
+        - row "Report and cutoff Status Requested File expires Details Actions":
+          - columnheader "Report and cutoff"
+          - columnheader "Status"
+          - columnheader "Requested"
+          - columnheader "File expires"
+          - columnheader "Details"
+          - columnheader "Actions"
+      - rowgroup:
+        - 'row "Profit and Loss · 2025-01-01 – 2025-01-31 Ledger cutoff: 21 Oct 2026, 18:48 BST completed 21 Oct 2026, 18:49 BST 22 Oct 2026, 18:50 BST PDF · BDT Download PDF"':
+          - 'cell "Profit and Loss · 2025-01-01 – 2025-01-31 Ledger cutoff: 21 Oct 2026, 18:48 BST"':
+            - text: Profit and Loss · 2025-01-01 – 2025-01-31
+            - generic: "Ledger cutoff: 21 Oct 2026, 18:48 BST"
+          - cell "completed":
+            - generic: completed
+          - cell "21 Oct 2026, 18:49 BST"
+          - cell "22 Oct 2026, 18:50 BST"
+          - cell "PDF · BDT"
+          - cell "Download PDF":
+            - link "Download PDF":
+              - /url: /api/v1/organizations/ff2673c0-021f-43fe-b84a-96028da68ad0/exports/65abfd1d-eedf-4287-86eb-6592303b0fc4/download
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: Export jobs

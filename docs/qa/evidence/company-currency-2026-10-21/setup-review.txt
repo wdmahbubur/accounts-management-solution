@@ -1,0 +1,45 @@
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Your companies":
+    - /url: /companies
+  - heading "Start your books" [level=1]
+  - paragraph: Set up your company and financial calendar.
+  - list "Company setup steps":
+    - listitem: 1. Company
+    - listitem: 2. Calendar
+    - listitem: 3. Books
+    - listitem: 4. Review
+  - heading "Review and create" [level=2]
+  - term: Company
+  - definition: Global USD acceptance
+  - term: Legal name
+  - definition: Synthetic Global USD Acceptance Company
+  - term: Country
+  - definition: United States of America (US)
+  - term: Currency
+  - definition: USD
+  - term: Timezone
+  - definition: America/New_York
+  - term: Fiscal start month
+  - definition: "1"
+  - term: Books start
+  - definition: 2025-01-01
+  - paragraph: You’ll be the company Owner. You can add teammates and set up approvals after creating the company.
+  - paragraph: Next, finish setting up your books by choosing whether to start from zero or bring in existing balances.
+  - button "Back"
+  - button "Create company"
+  - generic "Save or restore a draft"
+  - paragraph: Drafts are kept in this browser session while you prepare your company details.
+  - button "Save draft"
+  - button "Restore saved draft"
+  - status: Draft saved in this browser session.
+- button "Open Next.js Dev Tools":
+- button "Open issues overlay":
+  - generic: "0"
+  - generic: "1"
+  - generic: Issue
+- button "Collapse issues badge":
+- alert

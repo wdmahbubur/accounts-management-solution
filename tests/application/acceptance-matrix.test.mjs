@@ -13,7 +13,7 @@ test("US-005 acceptance matrix tracks every T/S case without treating incomplete
   assert.deepEqual(ids, expected);
   assert.equal(new Set(ids).size, 72);
 
-  const allowed = new Set(["covered", "partial", "fixture_ready", "pending", "blocked", "failed"]);
+  const allowed = new Set(["covered", "partial", "fixture_ready", "pending", "blocked", "deferred", "failed"]);
   for (const entry of matrix) {
     assert.equal(allowed.has(entry.status), true, `unsupported status for ${entry.id}`);
     if (entry.status !== "pending") {
@@ -22,6 +22,6 @@ test("US-005 acceptance matrix tracks every T/S case without treating incomplete
     }
     assert.ok(entry.note?.length > 10, `${entry.id} needs a scope/limitation note`);
     if (entry.status === "covered") assert.equal(entry.last_result, "passed");
-    if (entry.status === "blocked" || entry.status === "partial") assert.equal(entry.last_result, entry.status);
+    if (entry.status === "blocked" || entry.status === "partial" || entry.status === "deferred") assert.equal(entry.last_result, entry.status);
   }
 });

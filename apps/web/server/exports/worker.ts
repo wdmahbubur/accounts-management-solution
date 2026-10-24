@@ -1,3 +1,4 @@
+import {parseBaseCurrency} from '@ams/contracts';
 import "server-only";
 
 import { createHash } from "node:crypto";
@@ -8,6 +9,7 @@ import PDFDocument from "pdfkit";
 import { withWorkerDatabase } from "../database.ts";
 import { deletePrivateImportObject, readPrivateObject } from "../storage/private.ts";
 import { deletePrivateExport, putPrivateExport } from "./private-storage.ts";
+import { reportPresentation } from "./report-presentation.ts";
 
 type ExportJob = {
   job_id: string;
@@ -21,7 +23,7 @@ type ExportJob = {
   attempt_count: number;
 };
 type ReportSnapshot = {
-  report_type: string; company: { name: string; timezone?: string }; filters: Record<string, unknown>;
+  report_type: string; company: { name: string; timezone?: string; base_currency?: string }; filters: Record<string, unknown>;
   generated_at: string; ledger_cutoff_at: string; provisional?: boolean; status?: string; data: unknown; export_format: "csv" | "pdf" | "xlsx";
 };
 type ExportRow = {
@@ -78,7 +80,7 @@ function renderReportCsv(snapshot: ReportSnapshot): Uint8Array {
   }
   const metadata: Array<[string, string]> = [
     ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name],
-    ["Currency", "BDT"], ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
+    ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')], ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
     ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).map(([key, value]): [string, string] => [`Filter: ${key}`, String(value ?? "")])
   ];
@@ -94,7 +96,7 @@ function renderReportXlsx(snapshot: ReportSnapshot): Promise<Uint8Array> {
   workbook.created = new Date(snapshot.generated_at);
   const sheet = workbook.addWorksheet(snapshot.report_type.replaceAll("_", " ").slice(0, 31));
   const metadata: Array<[string, string]> = [
-    ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name], ["Currency", "BDT"],
+    ["Report", snapshot.report_type.replaceAll("_", " ")], ["Company", snapshot.company.name], ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')],
     ["Generated at", snapshot.generated_at], ["Ledger cutoff at", snapshot.ledger_cutoff_at],
     ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
     ...Object.entries(snapshot.filters ?? {}).map(([key, value]): [string, string] => [`Filter: ${key}`, String(value ?? "")])
@@ -117,6 +119,7 @@ function fontFile(name: string): Buffer {
 const bengali = /[\u0980-\u09ff]/;
 
 function reportPdfText(doc: InstanceType<typeof PDFDocument>, text: string, bold = false, size = 9) {
+  doc.fontSize(size);
   const safe = text.replace(/[\u0000-\u001f\u007f]/g, " ");
   const runs = safe.match(/[\u0980-\u09ff][\u0980-\u09ff\u200c\u200d\s.,:;()/-]*|[^\u0980-\u09ff]+/gu) ?? [safe];
   const x = doc.page.margins.left;
@@ -132,7 +135,17 @@ function reportPdfText(doc: InstanceType<typeof PDFDocument>, text: string, bold
     const bn = bengali.test(run);
     doc.font(bold ? (bn ? "ams-bold-bn" : "ams-bold-latin") : (bn ? "ams-regular-bn" : "ams-regular-latin"));
     const tokens = run.match(/\s+|\S+/gu) ?? [run];
-    for (const token of tokens) {
+    for (const token of tokens.flatMap(token => {
+      if (doc.widthOfString(token) <= right - x) return [token];
+      // Long references and unspaced text must wrap without splitting a grapheme.
+      const chunks: string[] = []; let chunk = '';
+      for (const { segment } of new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(token)) {
+        if (chunk && doc.widthOfString(chunk + segment) > right - x) { chunks.push(chunk); chunk = ''; }
+        chunk += segment;
+      }
+      if (chunk) chunks.push(chunk);
+      return chunks;
+    })) {
       const tokenWidth = doc.widthOfString(token);
       if (cursor > x && cursor + tokenWidth > right && token.trim()) {
         lineY += lineHeight;
@@ -151,8 +164,8 @@ function reportPdfText(doc: InstanceType<typeof PDFDocument>, text: string, bold
   doc.y = lineY + lineHeight;
 }
 
-async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Array> {
-  const doc = new PDFDocument({ size: "A4", margin: 42, bufferPages: false });
+export async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Array> {
+  const doc = new PDFDocument({ size: "A4", margin: 42, bufferPages: true });
   doc.registerFont("ams-regular-bn", fontFile("noto-sans-bengali-bengali-400-normal.woff"));
   doc.registerFont("ams-regular-latin", fontFile("noto-sans-bengali-latin-400-normal.woff"));
   doc.registerFont("ams-bold-bn", fontFile("noto-sans-bengali-bengali-700-normal.woff"));
@@ -163,16 +176,27 @@ async function renderReportPdf(snapshot: ReportSnapshot): Promise<Uint8Array> {
     doc.on("end", () => resolve(Buffer.concat(parts)));
     doc.on("error", reject);
   });
-  doc.fontSize(16); reportPdfText(doc, snapshot.report_type.replaceAll("_", " "), true, 16);
+  const reportTitles: Record<string, string> = { profit_loss: 'Profit and Loss', profit_and_loss: 'Profit and Loss', balance_sheet: 'Balance Sheet', customer_statement: 'Customer Statement', vendor_statement: 'Supplier Statement', trial_balance: 'Trial Balance' };
+  doc.fontSize(16); reportPdfText(doc, reportTitles[snapshot.report_type] ?? snapshot.report_type.replaceAll("_", " "), true, 16);
   doc.moveDown(0.5); doc.fontSize(9);
-  for (const [key, value] of [["Company", snapshot.company.name], ["Currency", "BDT"], ["Generated at", snapshot.generated_at],
+  for (const [key, value] of [["Company", snapshot.company.name], ["Currency", parseBaseCurrency(snapshot.company.base_currency ?? 'BDT')], ["Generated at", snapshot.generated_at],
     ["Ledger cutoff at", snapshot.ledger_cutoff_at], ["Provisional", snapshot.provisional ? "Yes" : "No"], ["Status", snapshot.status ?? "posted"],
-    ...Object.entries(snapshot.filters ?? {}).map(([key, value]) => [`Filter: ${key}`, String(value ?? "")])]) {
+    ...Object.entries(snapshot.filters ?? {}).filter(([key,value]) => !key.endsWith('_id') && key !== 'party_id' && key !== 'cost_center' && value !== null && value !== '').map(([key, value]) => [key.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase()), String(value)])]) {
     reportPdfText(doc, `${key}: ${value}`, false, 9); doc.moveDown(0.2);
   }
-  doc.moveDown(0.5); doc.fontSize(10); reportPdfText(doc, "Snapshot details", true, 10); doc.moveDown(0.3); doc.fontSize(8);
-  for (const [key, value] of flatten(snapshot.data)) {
-    reportPdfText(doc, `${key}: ${value}`, false, 8); doc.moveDown(0.15);
+  if (snapshot.filters?.cost_center) reportPdfText(doc, 'Scope: selected cost center (see the captured report in the app)', false, 9);
+  doc.moveDown(0.5);
+  for (const line of reportPresentation(snapshot.report_type, snapshot.data, parseBaseCurrency(snapshot.company.base_currency ?? 'BDT'))) {
+    if (line.heading) doc.moveDown(0.3);
+    reportPdfText(doc, line.text, !!line.heading, line.heading ? 11 : 9); doc.moveDown(0.15);
+  }
+  const pageRange = doc.bufferedPageRange();
+  for (let page = pageRange.start; page < pageRange.start + pageRange.count; page++) {
+    doc.switchToPage(page);
+    const bottomMargin = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
+    doc.font('ams-regular-latin').fontSize(8).fillColor('#526077').text(`Page ${page + 1} of ${pageRange.count}`, 42, doc.page.height - 32, { width: doc.page.width - 84, align: 'center', lineBreak: false });
+    doc.page.margins.bottom = bottomMargin;
   }
   doc.end();
   return new Uint8Array(await finished);
