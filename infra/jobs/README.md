@@ -1,0 +1,26 @@
+# Background jobs on the existing Linux server
+
+This runs the current leased email, export, attachment-scan and reminder jobs. It adds no web listener or public scanner port. Vercel remains the interactive application; Neon remains the database/private object store. Financial posting remains inside the existing transactional commands.
+
+The selected NextGenPOS Azure VM was inspected read-only on 24 October 2026: approximately 896 MiB total RAM, 353 MiB available, and healthy existing POS/Redis containers. That is insufficient for ClamAV. Activation is refused below a host allocation of 8 GiB, allowing the scanner's 4 GiB budget, these jobs, the existing POS services and operating-system headroom. This is a conservative operational budget, not a measured load guarantee. VM resizing/costs and production activation need explicit owner authorization. No existing POS service, port, network, volume or deployment script is changed.
+
+Build on a machine with enough memory, using the committed lockfile and pinned official image digests:
+
+```sh
+docker build -f infra/jobs/Dockerfile -t ams-jobs:sha-COMMIT .
+docker build -f infra/jobs/Clamav.Dockerfile -t ams-clamav:sha-COMMIT .
+```
+
+Copy the two tested images plus `compose.yml` and `deploy.sh` into a separate `/opt/ams-jobs` release. The local `.env` contains only `AMS_JOBS_IMAGE=ams-jobs:sha-COMMIT` and `AMS_CLAMAV_IMAGE=ams-clamav:sha-COMMIT`. Place four separately provisioned secret files under `/opt/ams-jobs/secrets`, owned by UID 1000 with mode 0400. Compose mounts only the corresponding file at `/run/secrets/worker_env`; credentials are loaded by Node inside the container, not placed in Docker's environment metadata or the image/build context.
+
+Each file contains `NODE_ENV=production`, `DATABASE_WORKER_URL` for the existing restricted `ams_job_worker_login` and a credential-free `DATABASE_WORKER_TARGET_URL=postgresql://HOST/DATABASE`. Both must select the same host, port and database; the worker URL requires TLS. Do not copy owner, migration, interactive runtime or authentication secrets. The runner refuses those variables. The target reference is metadata, never a usable application login.
+
+Mail, exports and scanner also need the existing branch-scoped `OBJECT_STORE_BUCKET`, HTTPS `OBJECT_STORE_ENDPOINT`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`. Mail additionally needs the authorized `SMTP_URL`, `SMTP_FROM`, existing `INVITATION_DELIVERY_KEY` and canonical HTTPS `NEXT_PUBLIC_APP_URL`. Scanner needs `CLAMAV_HOST=clamav` and `CLAMAV_PORT=3310`. Reminders needs only the restricted database connection. Never copy POS database/Redis credentials into these files. Secret provisioning is separate from image creation; do not print Compose's expanded secret contents or upload secret files to GitHub.
+
+Each process claims one job per cycle, waits 60 seconds after completion and never overlaps its own batches. `AMS_JOB_INTERVAL_MS` can change that interval within 1 second–1 hour. SIGTERM stops new claims and allows the current batch to finish. A 90-second hard process deadline is shorter than the shortest 120-second lease; a crashed/terminated worker's claim is recovered through the existing expiry/token fencing. SMTP can have an ambiguous acknowledgement after a connection failure; stable Message-ID supports deduplication, but exactly-once receipt by an arbitrary external mail server is not promised. Exports remain bound to their original immutable snapshot. No worker retries financial posting.
+
+ClamAV's full engine runs on the private jobs bridge without published ports. Its signature volume persists between restarts; a verified FreshClam update completes before the daemon first loads its engine, then updates run twelve times daily. Startup fails closed if the update fails. This avoids the vendor entrypoint's observed cold-start race, where the daemon loaded stale bundled signatures before its concurrent updater finished. Scanner and daemon use UTC. New clean decisions refuse signatures older than 72 hours, invalid dates or dates more than 30 minutes in the future. Failures retain quarantine and retry. No protection is disabled to reduce memory. See [official ClamAV requirements](https://docs.clamav.net/manual/Installing/Docker.html).
+
+After approval and resource/secret preflight, run `/opt/ams-jobs/deploy.sh`. It checks host RAM, secret ownership/mode and Compose configuration, then waits for health. Rollback changes only compatible images and keeps the signature volume and committed books. Do not use `down -v`, reset databases or restore an earlier backup over newer accounting facts.
+
+`docker compose ps` and bounded JSON logs expose liveness and batch counts. A fresh heartbeat confirms a completed batch, not delivery of every queued item. `worker.batch_failed`, `worker.batch_deadline`, growing retries/dead letters, aged pending jobs, outdated signatures or an unhealthy container need operator action. Docker restart policy restarts exited processes; it does not restart a merely unhealthy container. External alert routing and response ownership must be confirmed before claiming monitored production operations. Test a real delivery/export/upload, a worker interruption and a compatible image restart after activation; HTTP/daemon health alone is insufficient evidence.

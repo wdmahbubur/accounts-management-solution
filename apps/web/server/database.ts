@@ -27,13 +27,23 @@ function openWorkerPool(): Pool {
   const connectionString = process.env.DATABASE_WORKER_URL;
   if (!connectionString) throw new Error("DATABASE_WORKER_URL is required for background job access.");
   const workerUrl = new URL(connectionString);
-  const runtimeUrl = process.env.DATABASE_RUNTIME_URL ? new URL(process.env.DATABASE_RUNTIME_URL) : null;
+  // A dedicated worker host needs only a credential-free target reference,
+  // rather than a second credential granting interactive application access.
+  const target = process.env.DATABASE_RUNTIME_URL ?? process.env.DATABASE_WORKER_TARGET_URL;
+  const runtimeUrl = target ? new URL(target) : null;
   if (decodeURIComponent(workerUrl.username) !== "ams_job_worker_login" || !runtimeUrl ||
       workerUrl.hostname !== runtimeUrl.hostname || workerUrl.pathname !== runtimeUrl.pathname) {
     throw new Error("DATABASE_WORKER_URL must use the restricted worker role on the application database.");
   }
   workerPool = new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
   return workerPool;
+}
+
+/** Drain only after the job runner has stopped claiming and finished its batch. */
+export async function closeWorkerDatabase(): Promise<void> {
+  const pool = workerPool;
+  workerPool = undefined;
+  await pool?.end();
 }
 
 export async function withDatabase<T>(work: DatabaseWork<T>): Promise<T> {

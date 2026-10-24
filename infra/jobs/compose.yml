@@ -1,0 +1,98 @@
+name: ams-jobs
+x-job: &job
+  image: ${AMS_JOBS_IMAGE:?Set an immutable tested image reference}
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:rw,nosuid,noexec,size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  cpus: 0.50
+  stop_grace_period: 110s
+  networks: [jobs]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: "3"}
+
+services:
+  mail:
+    <<: *job
+    command: [mail]
+    mem_limit: 256m
+    environment: {NODE_OPTIONS: --max-old-space-size=128, TZ: UTC}
+    secrets: [{source: mail_env, target: worker_env}]
+    healthcheck:
+      test: [CMD, node, scripts/check-background-health.mjs, mail]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+  exports:
+    <<: *job
+    command: [exports]
+    mem_limit: 768m
+    environment: {NODE_OPTIONS: --max-old-space-size=512, TZ: UTC}
+    secrets: [{source: exports_env, target: worker_env}]
+    healthcheck:
+      test: [CMD, node, scripts/check-background-health.mjs, exports]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+  scanner:
+    <<: *job
+    command: [scanner]
+    mem_limit: 256m
+    environment: {NODE_OPTIONS: --max-old-space-size=128, TZ: UTC}
+    secrets: [{source: scanner_env, target: worker_env}]
+    depends_on:
+      clamav: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, scripts/check-background-health.mjs, scanner]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+  reminders:
+    <<: *job
+    command: [reminders]
+    mem_limit: 128m
+    environment: {NODE_OPTIONS: --max-old-space-size=64, TZ: UTC}
+    secrets: [{source: reminders_env, target: worker_env}]
+    healthcheck:
+      test: [CMD, node, scripts/check-background-health.mjs, reminders]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+  clamav:
+    image: ${AMS_CLAMAV_IMAGE:?Set the immutable tested ClamAV wrapper image}
+    restart: unless-stopped
+    mem_limit: 4g
+    cpus: 1.0
+    pids_limit: 128
+    stop_grace_period: 30s
+    security_opt: [no-new-privileges:true]
+    environment:
+      FRESHCLAM_CHECKS: "12"
+      TZ: UTC
+      CLAMD_CONF_StreamMaxLength: 10M
+      CLAMD_CONF_MaxThreads: "2"
+      CLAMD_CONF_MaxQueue: "4"
+    volumes: [signatures:/var/lib/clamav]
+    networks: [jobs]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+networks:
+  jobs: {driver: bridge}
+volumes:
+  signatures:
+secrets:
+  mail_env: {file: ./secrets/mail.env}
+  exports_env: {file: ./secrets/exports.env}
+  scanner_env: {file: ./secrets/scanner.env}
+  reminders_env: {file: ./secrets/reminders.env}
