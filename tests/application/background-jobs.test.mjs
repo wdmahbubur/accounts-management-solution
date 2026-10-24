@@ -1,14 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {randomBytes} from 'node:crypto';
 import {workerConfiguration} from '../../scripts/background-jobs/config.mjs';
 import {runSerialJobs} from '../../scripts/background-jobs/loop.mjs';
 
-const env={NODE_ENV:'production',DATABASE_WORKER_URL:'postgresql://ams_job_worker_login:synthetic@worker.example.invalid/books?sslmode=require',DATABASE_WORKER_TARGET_URL:'postgresql://worker.example.invalid/books'};
+// Never store credential-shaped fixtures in source. These generated values
+// cannot identify a real server: every test target uses the reserved .invalid.
+function pg({user='ams_job_worker_login',host='worker.example.invalid',database='books',tls='require'}={}){
+ const url=new URL(`postgresql://${host}/${database}`);url.username=user;url.password=randomBytes(16).toString('hex');url.searchParams.set('sslmode',tls);return url.toString();
+}
+const env={NODE_ENV:'production',DATABASE_WORKER_URL:pg(),DATABASE_WORKER_TARGET_URL:'postgresql://worker.example.invalid/books'};
 test('worker deployment rejects owner/runtime credentials and mismatched targets before claiming work',()=>{
  assert.deepEqual(workerConfiguration(env,['reminders','--once']),{kind:'reminders',once:true,intervalMs:60000});
  for(const field of['DATABASE_URL','MIGRATION_DATABASE_URL','DATABASE_RUNTIME_URL','AUTH_SECRET'])assert.throws(()=>workerConfiguration({...env,[field]:'synthetic'},['reminders']),/Remove/);
- for(const value of['postgresql://owner:synthetic@worker.example.invalid/books?sslmode=require','postgresql://ams_job_worker_login:synthetic@other.example.invalid/books?sslmode=require','postgresql://ams_job_worker_login:synthetic@worker.example.invalid/other?sslmode=require','postgresql://ams_job_worker_login:synthetic@worker.example.invalid/books?sslmode=disable'])assert.throws(()=>workerConfiguration({...env,DATABASE_WORKER_URL:value},['reminders']),/restricted TLS/);
- assert.throws(()=>workerConfiguration({...env,DATABASE_WORKER_TARGET_URL:'postgresql://owner:synthetic@worker.example.invalid/books'},['reminders']),/no credentials/);
+ for(const value of[pg({user:'owner'}),pg({host:'other.example.invalid'}),pg({database:'other'}),pg({tls:'disable'})])assert.throws(()=>workerConfiguration({...env,DATABASE_WORKER_URL:value},['reminders']),/restricted TLS/);
+ assert.throws(()=>workerConfiguration({...env,DATABASE_WORKER_TARGET_URL:pg({user:'owner'})},['reminders']),/no credentials/);
  for(const args of[[],['other'],['mail','reminders'],['reminders','--once','--once']])assert.throws(()=>workerConfiguration(env,args));
  assert.throws(()=>workerConfiguration({...env,AMS_JOB_INTERVAL_MS:'0'},['reminders']));
  for(const kind of['mail','exports','scanner'])assert.throws(()=>workerConfiguration(env,[kind]),/OBJECT_STORE_BUCKET/);
