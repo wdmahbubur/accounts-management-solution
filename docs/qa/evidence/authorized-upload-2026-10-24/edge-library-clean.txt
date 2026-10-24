@@ -1,0 +1,88 @@
+Browser tab: 1474154980, Title: "Accounts Management Solution", URL: "http://localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/documents?search=&from=&to=".
+1 AXWebArea Accounts Management Solution, URL: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/documents?search=&from=&to=
+	2 link Description: Skip to workspace content, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/documents?search=&from=&to=#workspace-content
+	3 container Workspace sidebar
+		4 link Description: Accounts, Value: localhost:3001/companies
+		5 link Description: Change company. Current company: Launch corrections 24 Oct, Value: localhost:3001/companies
+		6 container
+			7 container Workspace navigation
+				8 container Overview
+					9 heading Overview, Value: 2
+						10 button (collapsed) Overview, Secondary Actions: Expand
+				11 container Sales
+					12 heading Sales, Value: 2
+						13 button (collapsed) Sales, Secondary Actions: Expand
+				14 container Purchases
+					15 heading Purchases, Value: 2
+						16 button (collapsed) Purchases, Secondary Actions: Expand
+				17 container Banking
+					18 heading Banking, Value: 2
+						19 button (collapsed) Banking, Secondary Actions: Expand
+				20 container Accounting
+					21 heading Accounting, Value: 2
+						22 button (collapsed) Accounting, Secondary Actions: Expand
+				23 container Review and records
+					24 heading Review and records, Value: 2
+						25 button (expanded) Review and records, Secondary Actions: Collapse
+					26 container
+						27 link Description: Advances and refunds, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/advances
+						28 link Description: Approval inbox, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/approvals
+						29 link Description: Evidence library, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/documents
+						30 link Description: Imports, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/imports
+						31 link Description: Export jobs, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/exports
+						32 link Description: Audit trail, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/audit
+				33 container Settings
+					34 heading Settings, Value: 2
+						35 button (collapsed) Settings, Secondary Actions: Expand
+			36 link Description: Your profile, Value: localhost:3001/settings/profile
+			37 link Description: Session security, Value: localhost:3001/settings/security
+	38 container
+		39 container Breadcrumb
+			40 link Description: Launch corrections 24 Oct, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+			41 text Evidence library
+		42 text acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid
+		43 button Sign out
+	44 container
+		45 text DOCUMENTS · PRIVATE EVIDENCE
+		46 heading Evidence library, Value: 1
+			47 text Evidence library
+		48 text Find receipts and supporting files attached to documents you can access. Downloads are available only after the file is marked clean.
+		49 container
+			50 text Filename, source or uploader
+			51 text field (settable) Filename, source or uploader
+		52 container
+			53 text Uploaded from
+			54 date field (settable) Uploaded from
+				55 container
+					83 stepper
+					84 stepper
+					85 stepper
+				59 pop up button Show date picker Show date picker
+		60 container
+			61 text Uploaded through
+			62 date field (settable) Uploaded through
+				63 container
+					86 stepper
+					87 stepper
+					88 stepper
+				67 pop up button Show date picker Show date picker
+		68 button Search evidence
+		69 container Evidence files
+			70 container
+				71 heading edge-evidence.txt, Value: 2
+					72 text edge-evidence.txt
+				73 text text/plain  ·  1 KB  · Uploaded  Oct 24, 2026
+				74 link Description: Download, Value: localhost:3001/api/v1/organizations/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/attachments/3bfab543-8035-4085-bd3f-39a0fd584306/download
+				75 text Source:
+				76 link Description: Saved draft · invoice, Value: localhost:3001/o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/20a4f258-92a2-46ef-a020-d9b0ea3c369f
+				77 text  ·  Jan 20, 2025
+				78 text Uploaded by:
+				79 text Synthetic owner
+		80 container Evidence pages
+	81 container
+		82 text USD  books · No financial changes are queued offline.
+	89 button Open Next.js Dev Tools
+		90 container
+			91 text Rendering . . .
+
+The focused UI element is 74 link Description: Download, URL: localhost:3001/api/v1/organizations/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/attachments/3bfab543-8035-4085-bd3f-39a0fd584306/download

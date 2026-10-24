@@ -13,6 +13,7 @@ const procedures = new Set([
   "read_linked_settlement_options",
   "authorize_artifact_download",
   "create_attachment_upload_intent",
+  "authorize_attachment_upload_completion",
   "complete_attachment_upload",
   "create_staged_import",
   "stage_import_rows",

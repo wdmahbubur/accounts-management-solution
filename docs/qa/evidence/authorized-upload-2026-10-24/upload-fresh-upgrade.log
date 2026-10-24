@@ -1,0 +1,1 @@
+{"isolated":true,"database":"/ams_launch_corrections_20261024","previousReceipts":124,"applied":[{"name":"0126_authorize_attachment_storage_writes.sql","sha256":"507536b1789eeaea19ad4769d5d1de37efef765d2f0f6ea88c4289fef9d4b121"}],"unchangedFinancialFacts":true}

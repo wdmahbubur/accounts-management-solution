@@ -1,0 +1,1 @@
+{"isolated":true,"database":"/ams_clean_launch_20261021","previousReceipts":125,"applied":[{"name":"0127_company_local_evidence_dates.sql","sha256":"3cf4c6c1787a01c8a2529543e3086715dad4fac9c8b3c590b8cd5b74a8bc91ec"}],"unchangedFinancialFacts":true}
