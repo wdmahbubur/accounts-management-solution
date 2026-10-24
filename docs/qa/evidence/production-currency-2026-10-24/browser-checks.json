@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "date": "2026-10-24",
+  "browser": "Edge",
+  "origin": "https://accounts-management-solution-web.vercel.app",
+  "finalCommit": "cb97b195ca32942f346c0c446e8e7e8407fbd646",
+  "identity": "Existing public demo identity; synthetic company records only",
+  "checks": {
+    "countryOptions": 249,
+    "currencyOptions": 132,
+    "jpyAndKwdNotSelectable": true,
+    "usUsdDraftRestored": true,
+    "usUsdCompanyCreatedAndActivated": true,
+    "deEurCompanyCreatedAndActivated": true,
+    "usdAndEurDashboardsUseSelectedCurrency": true,
+    "existingBdtCompanySwitchCorrect": true,
+    "staleEurUrlRequiresCompanySelection": true,
+    "usdInvoiceDisplayAndRoundingCurrencyCorrect": true,
+    "usdTypedTotal": "123.45",
+    "eurTypedQuantity": "3",
+    "eurTypedUnitRate": "0.335",
+    "eurTypedTotal": "1.01",
+    "bdtInvoiceDisplayAndRoundingCurrencyCorrect": true,
+    "noTakaSymbolInUsdOrEurForms": true,
+    "consoleEntriesCaptured": 0,
+    "testInvoicesSaved": 0,
+    "testJournalsPosted": 0
+  },
+  "limitations": [
+    "Desktop Edge only; no new mobile, axe, all-currency, invoice-mail, payment or PDF-delivery certification.",
+    "Programmatic fill did not initially update the hydrated draft; actual keyboard input verified USD calculation. EUR validation changed its accessible label during incomplete input; the label-prefix locator continued typing and the exact final total passed."
+  ]
+}

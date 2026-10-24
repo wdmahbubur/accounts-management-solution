@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "productionErrorAndFatalGroupsReturned": 0,
+  "windows": [
+    {
+      "deployment": "dpl_BgfLmqCSe9kwFKSoibXqca4W52cv",
+      "lookback": "15m"
+    },
+    {
+      "deployment": "dpl_BNbGz644EM3VEbZNPH6tDutLxcPq",
+      "lookback": "30m"
+    }
+  ],
+  "source": "Vercel runtime logs grouped by requestPath, filtered to error and fatal",
+  "browserConsoleEntriesCaptured": 0,
+  "limitations": "A short observation window is not proof of long-term availability, complete telemetry, monitoring ownership or incident response."
+}

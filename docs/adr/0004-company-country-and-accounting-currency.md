@@ -2,6 +2,8 @@
 
 Status: owner-requested implementation for review, 21 October 2026. Production migration/deployment is not authorized by this decision record.
 
+Production follow-up, 24 October 2026: the owner separately authorized backup, migrations, dependency merges and deployment. The [production release record](../qa/production-country-currency-2026-10-24.md) records the actual rollout and live tests. Independent accounting and country-specific review remain open; the deployment is not manufactured sign-off.
+
 The owner explicitly requested: “Add currency list and during company setup user will select the currency and country from there.” This extends the original BDT-only onboarding contract. The original v1.0 source documents remain unchanged. This record does not manufacture independent accounting or country-specific tax/legal approval.
 
 Each company selects one country/region and one supported accounting currency when its books are created. Existing companies retain BDT. The choice is immutable: changing either requires separate books, rather than relabeling historical amounts. Documents must match their own company's currency at save, preview, posting and through linked settlements. Currency selection does not convert values, consolidate companies or enable foreign-currency transactions within one company.

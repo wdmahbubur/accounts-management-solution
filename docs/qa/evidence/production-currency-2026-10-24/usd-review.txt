@@ -1,0 +1,35 @@
+- alert
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Your companies":
+    - /url: /companies
+  - heading "Start your books" [level=1]
+  - paragraph: Set up your company and financial calendar.
+  - list "Company setup steps":
+    - listitem: 1. Company
+    - listitem: 2. Calendar
+    - listitem: 3. Books
+    - listitem: 4. Review
+  - heading "Review and create" [level=2]
+  - term: Company
+  - definition: E2E US USD 2026-10-24
+  - term: Legal name
+  - definition: Synthetic US USD Setup Test
+  - term: Country
+  - definition: United States of America (US)
+  - term: Currency
+  - definition: USD
+  - term: Timezone
+  - definition: America/New_York
+  - term: Fiscal start month
+  - definition: "1"
+  - term: Books start
+  - definition: 2026-10-24
+  - paragraph: You’ll be the company Owner. You can add teammates and set up approvals after creating the company.
+  - paragraph: Next, finish setting up your books by choosing whether to start from zero or bring in existing balances.
+  - button "Back"
+  - button "Create company"
+  - generic "Save or restore a draft"

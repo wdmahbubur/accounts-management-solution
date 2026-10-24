@@ -1,0 +1,105 @@
+- alert: Finish setting up your books
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: E2E DE EUR 2026-10-24"':
+    - /url: /companies
+    - strong: E2E DE EUR 2026-10-24
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings" [expanded]:
+          - generic: Settings
+      - link "Company setup":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/setup
+      - link "Users and invitations":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/users
+      - link "Roles and permissions":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/roles
+      - link "Tax configuration":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/taxes
+      - link "Approval policies":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/approvals
+      - link "Subscription":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/subscription
+      - link "Opening balances":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/opening-balances
+      - link "Email preferences":
+        - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/notifications/preferences
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "E2E DE EUR 2026-10-24":
+      - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc
+    - generic: /
+    - generic: Company setup
+  - generic "demo@ams-public-demo.example"
+  - button "Sign out"
+- main:
+  - paragraph: Company settings · E2E DE EUR 2026-10-24
+  - heading "Your books are active" [level=1]
+  - paragraph:
+    - text: Books start on
+    - strong: 2026-10-24
+    - text: . Any imported opening balances belong to
+    - strong: 2026-10-23
+    - text: . All amounts are in EUR.
+  - heading "Setup complete" [level=2]
+  - paragraph: These books started with a recorded zero opening position. No opening journal was created.
+  - link "Open invoices":
+    - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/sales/invoices
+  - link "Open dashboard":
+    - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/dashboard
+  - heading "Before your first transactions" [level=2]
+  - paragraph: Activation preserves every posting and approval check. Complete the configuration needed for the work you plan to do next.
+  - list:
+    - strong: To do
+    - text: · Set up a cash or bank account before recording receipts or payments.
+    - link "Set up cash and bank accounts":
+      - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/banking/accounts
+    - strong: To do
+    - text: · Configure an invoice approval policy before submitting invoices.
+    - link "Configure approval policies":
+      - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/approvals
+    - strong: To do
+    - text: · Configure a receipt approval policy before submitting receipts.
+    - link "Configure approval policies":
+      - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/approvals
+    - strong: To do
+    - text: · Configure bill, expense and supplier-payment policies before submitting purchases.
+    - link "Configure approval policies":
+      - /url: /o/c722080c-ae33-414f-874a-56baf4e42bcc/settings/approvals
+  - paragraph: Self approval is available only when explicitly configured for a sole active owner.
+- contentinfo: EUR books · No financial changes are queued offline.

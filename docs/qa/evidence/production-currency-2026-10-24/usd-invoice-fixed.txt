@@ -1,0 +1,159 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: E2E US USD 2026-10-24"':
+    - /url: /companies
+    - strong: E2E US USD 2026-10-24
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales" [expanded]:
+          - generic: Sales
+      - link "Invoices":
+        - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd/sales/invoices
+      - link "Customer receipts":
+        - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd/sales/receipts
+      - link "Customers":
+        - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd/sales/customers
+      - link "Service catalogue":
+        - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd/catalog/items
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "E2E US USD 2026-10-24":
+      - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd
+    - generic: /
+    - link "Invoices":
+      - /url: /o/fb43ae44-34fe-421f-b58d-0af12ccc2dfd/sales/invoices
+    - generic: /
+    - generic: Create invoice
+  - generic "demo@ams-public-demo.example"
+  - button "Sign out"
+- main:
+  - region "New sales invoice":
+    - paragraph: Draft · USD
+    - heading "New sales invoice" [level=1]
+    - paragraph: Save your draft, check the saved preview, then submit it for approval. Saving a draft does not post to your books.
+    - region "Document details":
+      - heading "Document details" [level=2]
+      - text: Customer
+      - combobox "Customer No active customer is available. Add one in Sales → Customers before saving.":
+        - option "Choose a customer" [selected]
+      - generic: No active customer is available. Add one in Sales → Customers before saving.
+      - text: Issue date
+      - textbox "Issue date": 2026-10-24
+      - text: Accounting date
+      - textbox "Accounting date": 2026-10-24
+      - generic: Due date Optional
+      - textbox "Due date Optional"
+      - generic: Reference Optional
+      - textbox "Reference Optional":
+        - /placeholder: PO number or your reference
+      - generic: Description Optional
+      - textbox "Description Optional":
+        - /placeholder: What is this document for?
+      - paragraph: The issue date appears on the document. The accounting date determines when it is recorded in the books.
+    - heading "Service and payment details" [level=2]
+    - text: When is this revenue earned?
+    - combobox "When is this revenue earned?":
+      - option "Services already delivered" [selected]
+      - option "Future services · deferred revenue"
+    - checkbox "I confirm these services have been delivered"
+    - text: I confirm these services have been delivered
+    - generic: Payment terms Optional
+    - textbox "Payment terms Optional":
+      - /placeholder: For example, payment within 30 days
+    - region "Items and services":
+      - heading "Items and services" [level=2]
+      - paragraph: Amounts are in USD. Add a discount to the line it applies to.
+      - generic: 1 line
+      - region "Line 1":
+        - heading "Line 1" [level=3]
+        - generic: "0.00"
+        - button "Remove line 1" [disabled]: Remove
+        - generic: Catalogue item Optional
+        - combobox "Catalogue item Optional":
+          - option "Enter a custom item or service" [selected]
+        - text: Description
+        - textbox "Description":
+          - /placeholder: Describe the service or item
+        - generic: Quantity
+        - textbox "Quantity": "1"
+        - text: Unit price (USD)
+        - textbox "Unit price (USD)": "0.00"
+        - text: Discount (USD)
+        - textbox "Discount (USD)": "0.00"
+        - generic "Account and tax 4000 · Service revenue · No tax":
+          - text: Account and tax
+          - generic: 4000 · Service revenue · No tax
+        - option "Choose an account"
+        - option "4000 · Service revenue" [selected]
+        - option "4090 · Sales returns/allowances"
+        - option "No cost center" [selected]
+        - option "No tax" [selected]
+        - option "Before tax · tax added" [selected]
+        - option "Tax inclusive · tax included"
+        - term: Before discount
+        - definition: "0.00"
+        - term: Discount
+        - definition: "0.00"
+        - term: Net
+        - definition: "0.00"
+        - term: Tax
+        - definition: "0.00"
+      - button "+ Add another line"
+    - generic "Invoice notes Optional"
+    - generic "Rounding adjustment Optional · up to USD 0.05":
+      - text: Rounding adjustment
+      - generic: Optional · up to USD 0.05
+    - option "Choose an account if adjusting" [selected]
+    - option "6600 · Rounding difference"
+    - region "Draft totals":
+      - heading "Draft totals" [level=2]
+      - paragraph: Calculated from your entries. The saved preview confirms tax snapshots and totals before approval.
+      - term: Before discounts
+      - definition: "0.00"
+      - term: Line discounts
+      - definition: − 0.00
+      - term: Net amount
+      - definition: "0.00"
+      - term: Tax
+      - definition: "0.00"
+      - term: Total (USD)
+      - definition:
+        - status "Draft total in company currency": "0.00"
+    - status: Draft only · save to continue
+    - button "Save draft"
+- contentinfo: USD books · No financial changes are queued offline.

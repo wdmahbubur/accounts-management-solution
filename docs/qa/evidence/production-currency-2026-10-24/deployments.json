@@ -1,0 +1,22 @@
+{
+  "initial": {
+    "id": "dpl_BNbGz644EM3VEbZNPH6tDutLxcPq",
+    "commit": "12e2df2e037724f16b29fdcfa1a835c86dc4d1b6",
+    "state": "READY",
+    "target": "production",
+    "buildSeconds": 59
+  },
+  "final": {
+    "id": "dpl_BgfLmqCSe9kwFKSoibXqca4W52cv",
+    "commit": "cb97b195ca32942f346c0c446e8e7e8407fbd646",
+    "state": "READY",
+    "target": "production",
+    "buildSeconds": 36,
+    "readyAt": "2026-10-24T04:41:10.384Z",
+    "canonicalAlias": "accounts-management-solution-web.vercel.app",
+    "canonicalAliasMatchesFinalDeployment": true,
+    "aliasError": null
+  },
+  "framework": "Next.js 16.4.2 (Turbopack)",
+  "region": "iad1"
+}

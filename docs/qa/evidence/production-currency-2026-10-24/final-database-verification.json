@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "migrationCount": 122,
+  "latestMigration": "0123_company_local_calendar.sql",
+  "retainedBackupAllFingerprintsUnchanged": true,
+  "originalFinancialTableFingerprintsPreserved": [
+    "business_documents",
+    "document_lines",
+    "journal_entries",
+    "journal_lines",
+    "open_items",
+    "settlement_allocations",
+    "invoice_pdf_versions",
+    "report_snapshots"
+  ],
+  "allLedgerTotalsAndFileMetadataUnchanged": true,
+  "syntheticCompanies": [
+    {
+      "id": "fb43ae44-34fe-421f-b58d-0af12ccc2dfd",
+      "country": "US",
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "zeroOpeningJournalCount": 0
+    },
+    {
+      "id": "c722080c-ae33-414f-874a-56baf4e42bcc",
+      "country": "DE",
+      "currency": "EUR",
+      "timezone": "Europe/Berlin",
+      "zeroOpeningJournalCount": 0
+    }
+  ],
+  "existingCompaniesStillBDT": true,
+  "catalogs": {
+    "countries": 249,
+    "currencies": 132
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "afterFormatterDeployment": "cb97b195ca32942f346c0c446e8e7e8407fbd646",
+  "financialTableFingerprintsPreserved": 8,
+  "migrations": 122,
+  "test_documents": 0,
+  "test_journals": 0
+}
