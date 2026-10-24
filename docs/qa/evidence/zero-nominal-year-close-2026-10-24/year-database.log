@@ -1,0 +1,44 @@
+▶ dormant years close and reopen with immutable snapshots, actual races and no artificial journal
+  ✔ missing prerequisites, capability, tenant and recent authentication cannot close a dormant year (10153.443ms)
+  ✔ same-key independent close connections replay one zero-nominal snapshot and leave reports/facts unchanged (41573.9091ms)
+  ✔ same-key reopen connections record one dated actor/reason event and no reversal journal (9611.0877ms)
+  ✔ different-key close race records one new active snapshot and preserves the reopened prior run (30381.1187ms)
+{"fixture":"zero-nominal-years","organizationId":"d4376c61-61c2-4096-b335-bfb2130a0177","financialFactsUnchanged":true,"actualConnections":true}
+  ✔ consecutive years and close/reopen races preserve chronological order (96090.8294ms)
+✔ dormant years close and reopen with immutable snapshots, actual races and no artificial journal (219960.9408ms)
+{"fixture":"year-close-balance_sheet_only","organizationId":"5eda5934-fb1e-4013-9eed-97a72d63bb96","kind":"zero_nominal","profit":"0"}
+✔ year close retains correct journal behavior for balance_sheet_only (80605.5489ms)
+{"fixture":"year-close-fully_reversed","organizationId":"0e4d164d-f025-4725-970f-f32245eeb8b1","kind":"zero_nominal","profit":"0"}
+✔ year close retains correct journal behavior for fully_reversed (79719.7922ms)
+✖ year close retains correct journal behavior for zero_net (74972.4487ms)
+✖ year close retains correct journal behavior for loss (68835.4165ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 8
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 524520.9922
+
+✖ failing tests:
+
+test at tests\database\zero-nominal-year-close.test.mjs:68:76
+✖ year close retains correct journal behavior for zero_net (74972.4487ms)
+  TypeError: l.debit.replace is not a function
+      at file:///F:/accounts-management-solution/tests/database/zero-nominal-year-close.test.mjs:76:327
+      at Array.reduce (<anonymous>)
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/zero-nominal-year-close.test.mjs:76:296)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at tests\database\zero-nominal-year-close.test.mjs:68:76
+✖ year close retains correct journal behavior for loss (68835.4165ms)
+  TypeError: l.debit.replace is not a function
+      at file:///F:/accounts-management-solution/tests/database/zero-nominal-year-close.test.mjs:76:327
+      at Array.reduce (<anonymous>)
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/zero-nominal-year-close.test.mjs:76:296)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

@@ -1,0 +1,26 @@
+▶ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries
+  ✔ S-01/S-03/S-05 direct report and source APIs enforce live ordinary-user permissions (14942.6148ms)
+  ✔ concurrent authenticated reads keep ordinary-role authorization isolated (22180.9585ms)
+  ✔ S-04 forged Owner metadata cannot change an authenticated Billing user's authority (6616.2264ms)
+  ✔ company currency cannot be overridden through an authenticated document API (9680.0343ms)
+  ✔ cookie-authenticated financial commands reject an untrusted Origin (4800.0872ms)
+  ✔ T-44 real authenticated HTTP queues the displayed PDF snapshot and replays the same job (18620.1819ms)
+  ✔ T-42 real HTTP finalizes cash flow and exports the selected immutable review (22869.7521ms)
+  ✔ deferred SaaS billing remains authenticated, permission checked and unable to create paid state (23680.8965ms)
+  ✔ disabled billing webhooks never acknowledge activation or change company books (2716.2775ms)
+  ✔ real authenticated reversal API permits resolved bank history and preserves replay and authorization (40822.6909ms)
+  ✔ real authenticated reversal API respects the linked credit reversal's effective date (27463.2344ms)
+  ✔ private upload APIs deny anonymous, foreign and stale-context storage writes, then complete one authorized upload (33835.1408ms)
+  ✔ legacy cutover evidence writes reject foreign origin, stale company context and missing capability (9449.3609ms)
+  ✔ year close and reopen reject cross-origin, stale-context and unauthorized requests, then replay a genuine zero-nominal close (113409.0026ms)
+{"fixture":"http-security","organizationId":"3bc4b3a1-783b-4088-8af4-84d95151d518"}
+  ✔ S-07 a still-valid authentication session loses company access immediately after deactivation (19219.7974ms)
+✔ real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries (414063.6964ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 414713.1591

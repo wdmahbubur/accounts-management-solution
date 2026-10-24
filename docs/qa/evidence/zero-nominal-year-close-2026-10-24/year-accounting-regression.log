@@ -1,0 +1,44 @@
+▶ tax, rounding, asset treatment, immutable books and invalid monetary inputs
+  ✔ T-15 paid equipment is an asset, with no forced expense or payable (9273.2645ms)
+  ✔ T-16 recoverable and nonrecoverable illustrative tax use the correct accounts (21602.9883ms)
+  ✔ T-17 inclusive and exclusive illustrative rates yield the same net/tax/gross (11872.5199ms)
+  ✔ T-18 fractional quantities and half-up ties use exact decimal amounts (5943.1032ms)
+  ✔ T-19/T-50 malformed amounts, zero-value posting, excess scale and foreign currency cannot post (21100.6415ms)
+  ✔ T-20/T-21 malformed journals and direct controls without party/items cannot commit (26421.0978ms)
+  ✔ T-22 the ordinary runtime cannot update or delete posted facts (6206.592ms)
+  ✔ T-27 a dual-role contact retains separate AR and AP without automatic netting (14899.3465ms)
+{"fixture":"accounting-guards","organizationId":"a48aef65-d1f3-4a8d-b362-d6df00ef9c8c"}
+  ✔ T-48 classification changes after use are denied and archived accounts keep history (11433.8153ms)
+✔ tax, rounding, asset treatment, immutable books and invalid monetary inputs (163592.6723ms)
+▶ period locks, dated unapply, reopen and fiscal-year close preserve books
+  ✔ T-07 receipt allocated across three invoices preserves every residual (26740.7935ms)
+  ✔ T-26 prepare an allocation whose later reversal must retain historical aging (17025.818ms)
+  ✔ T-34 lock rejects posting, allocation, unapply and source reversal (9869.7251ms)
+  ✔ T-35 reopen checks capability, reason, recent auth and retains close evidence (16589.8237ms)
+  ✔ T-40 close transfers profit once and keeps historical P&L (34304.8877ms)
+{"fixture":"period-year-controls","organizationId":"1a57a475-65ce-4327-bbd3-4229403396a9"}
+  ✔ T-41 reopen and reclose preserve old run and one active transfer (30695.5972ms)
+✔ period locks, dated unapply, reopen and fiscal-year close preserve books (163538.8465ms)
+{"fixture":"bank-reversal-dependencies","organizationId":"44ca8178-c49a-43e1-b363-d87e65375cba"}
+✔ resolved bank match history permits a source reversal while active and finalized matches still block (76139.5457ms)
+{"fixture":"customer_credit-reversal-dependency","organizationId":"27f85b3f-dccc-488f-bc49-bddae2bdffcb"}
+✔ customer_credit: only a posted child reversal effective by the requested date resolves its dependency (54809.011ms)
+{"fixture":"vendor_credit-reversal-dependency","organizationId":"5f173bfd-b9da-423a-8b2a-ddcab414442a"}
+✔ vendor_credit: only a posted child reversal effective by the requested date resolves its dependency (60912.5476ms)
+✔ customer_credit: refund history is released only on or after its reversal date (65034.038ms)
+✔ vendor_credit: refund history is released only on or after its reversal date (63097.5402ms)
+▶ independent bank mutation/source-reversal races cannot leave a live match on a reversed source
+  ✔ finalize/source reversal and finalize/unmatch races preserve active finalized evidence (38036.1839ms)
+  ✔ new match versus source reversal has one winner (20171.1143ms)
+  ✔ unmatch versus source reversal is serialized before reading dependencies (23752.1166ms)
+{"fixture":"reversal-dependency-races","organizationId":"5c7a91cd-5a8e-48b4-8008-ab2fb3a037ae","independentConnections":2}
+  ✔ different-key source reversals still produce one opposite journal (21012.0533ms)
+✔ independent bank mutation/source-reversal races cannot leave a live match on a reversed source (132130.1842ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 622297.6547
