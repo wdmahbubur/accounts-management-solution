@@ -37,6 +37,9 @@ test('historical opening due dates retain aging evidence without moving ledger a
    assert.equal(rows.length,8);for(const [,, , ,ref,due]of details){const row=rows.find(r=>r.reference===ref);assert.equal(row.due_date,due);assert.equal(row.issue_date,'2026-09-30');}
    const facts=(await f.admin.query("SELECT count(*)::int AS journals,min(accounting_date)::text AS first_date,max(accounting_date)::text AS last_date FROM finance.journal_entries WHERE organization_id=$1 AND state='posted'",[org])).rows[0];assert.deepEqual(facts,{journals:1,first_date:'2026-09-30',last_date:'2026-09-30'});
    assert.equal((await f.admin.query("SELECT count(*)::int AS n FROM finance.journal_lines l JOIN finance.accounts a ON a.organization_id=l.organization_id AND a.id=l.account_id WHERE l.organization_id=$1 AND a.account_type IN ('income','expense')",[org])).rows[0].n,0);
+   const evidence=(await call('SELECT public.read_opening_cutover_summary($1,$2) AS value',[org,opening.document_id])).value;
+   assert.equal(evidence.source_document.version,opening.document_version);assert.equal(evidence.source_document.state,'posted');assert.equal(evidence.control_items.length,8);
+   for(const [,, , ,ref,due]of details){const row=evidence.control_items.find(item=>item.original_reference===ref);assert.equal(row.original_due_date,due);assert.equal(row.availability_date,'2026-09-30');}
   });
   await t.test('pre-cutover history is empty and current/future/leap aging reconciles at cutover and afterwards',async()=>{
    for(const [kind,total,current,future,overdue,leap]of[['ar','175.00','25.00','40.00','100.00','10.00'],['ap','100.00','15.00','20.00','60.00','5.00']]){
