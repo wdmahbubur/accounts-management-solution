@@ -131,7 +131,7 @@ export function detailDecimal(value: unknown, money = false): string {
   if (typeof value !== "string" || !/^-?(?:0|[1-9]\d*)(?:\.\d{1,6})?$/.test(value)) throw new Error("Saved decimal value is invalid.");
   const [whole, fraction = ""] = value.split(".");
   const digits = fraction.replace(/0+$/, "");
-  return `${money ? "৳" : ""}${whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${digits ? `.${money ? digits.padEnd(2, "0") : digits}` : money ? ".00" : ""}`;
+  return `${whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${digits ? `.${money ? digits.padEnd(2, "0") : digits}` : money ? ".00" : ""}`;
 }
 
 export function exactJournalTotals(rows: readonly DetailRecord[]) {

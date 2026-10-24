@@ -37,11 +37,11 @@ test("issued customer display uses only immutable snapshot data, including legac
 });
 
 test("saved six-place quantities and rates retain every digit without floating point coercion", () => {
-  assert.equal(detailDecimal("12345678901234.123456",true),"৳12,345,678,901,234.123456");
+  assert.equal(detailDecimal("12345678901234.123456",true),"12,345,678,901,234.123456");
   assert.equal(detailDecimal("0.000001"),"0.000001");
   assert.equal(detailDecimal("1.000000"),"1");
-  assert.equal(detailDecimal("1250.370000",true),"৳1,250.37");
-  assert.equal(detailDecimal("2.100000",true),"৳2.10");
+  assert.equal(detailDecimal("1250.370000",true),"1,250.37");
+  assert.equal(detailDecimal("2.100000",true),"2.10");
   for (const invalid of [12.34,null,"1e3","12.1234567","01.25"]) assert.throws(()=>detailDecimal(invalid,true));
 });
 
