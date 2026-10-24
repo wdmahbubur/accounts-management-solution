@@ -1,0 +1,1 @@
+{"at":"2026-10-24T08:32:44.215Z","event":"worker.batch_complete","kind":"scanner","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0}}

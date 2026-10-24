@@ -1,0 +1,25 @@
+file:///F:/accounts-management-solution/tests/database/linux-job-runner.test.mjs:10
+import {getIssuedInvoicePdf} from '../../apps/web/server/documents/invoice-pdf.ts';
+        ^^^^^^^^^^^^^^^^^^^
+SyntaxError: The requested module '../../apps/web/server/documents/invoice-pdf.ts' does not provide an export named 'getIssuedInvoicePdf'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:302:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:405:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.12.0
+✖ tests\database\linux-job-runner.test.mjs (1172.6534ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1181.276
+
+✖ failing tests:
+
+test at tests\database\linux-job-runner.test.mjs:1:1
+✖ tests\database\linux-job-runner.test.mjs (1172.6534ms)
+  'test failed'

@@ -1,8 +1,14 @@
 import { assertIsolatedTargets } from "./isolation.mjs";
-import { processOutboxBatch } from "../../../apps/web/server/outbox/worker.ts";
 assertIsolatedTargets(process.env.TEST_DATABASE_URL, process.env.DATABASE_RUNTIME_URL);
 const smtp = new URL(process.env.SMTP_URL);
 if (smtp.hostname !== "127.0.0.1") throw new Error("Worker acceptance may send only to its loopback SMTP fixture.");
-const result = await processOutboxBatch(10);
-process.send?.({ result });
+const target = new URL(process.env.DATABASE_RUNTIME_URL);
+target.username = ''; target.password = ''; target.search = ''; target.hash = '';
+process.env.DATABASE_WORKER_TARGET_URL = target.toString();
+for (const key of ['DATABASE_URL','MIGRATION_DATABASE_URL','DATABASE_RUNTIME_URL','AUTH_SECRET']) delete process.env[key];
+process.env.NEXT_PUBLIC_APP_URL = 'https://acceptance.example.invalid';
+process.env.NODE_ENV = 'production';
+process.argv = [process.argv[0],process.argv[1],'mail','--once'];
+await import('../../../scripts/run-background-jobs.mjs');
+process.send?.({ done: true });
 process.disconnect?.();

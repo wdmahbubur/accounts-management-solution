@@ -43,6 +43,9 @@ test("renderer/delivery faults and crashed worker leases never repost financial 
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   process.env.SMTP_URL = `smtp://127.0.0.1:${server.address().port}`; process.env.SMTP_FROM = "acceptance@example.invalid";
   process.env.NODE_ENV = "production";
+  // Parent and dedicated child use the same canonical origin, preserving the
+  // Message-ID across crash recovery while SMTP stays on the loopback fixture.
+  process.env.NEXT_PUBLIC_APP_URL = "https://acceptance.example.invalid";
   const facts = async () => (await f.admin.query(`SELECT jsonb_build_object(
     'document',(SELECT to_jsonb(d) FROM finance.business_documents d WHERE organization_id=$1 AND id=$2),
     'journals',(SELECT jsonb_agg(to_jsonb(j) ORDER BY id) FROM finance.journal_entries j WHERE organization_id=$1),

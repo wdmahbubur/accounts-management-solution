@@ -1,0 +1,48 @@
+ClamAV update process started at Sat Oct 24 08:39:21 2026
+daily database available for update (local version: 28157, remote version: 28163)
+Testing database: '/var/lib/clamav/tmp.d2f6dc0cbe/daily.cld' ...
+Database test passed.
+daily.cld updated (version: 28163, sigs: 355788, f-level: 90, builder: svc.clamav-publisher)
+main.cvd database is up-to-date (version: 63, sigs: 3287027, f-level: 90, builder: tomjudge)
+bytecode.cvd database is up-to-date (version: 339, sigs: 80, f-level: 90, builder: nrandolp)
+WARNING: Clamd was NOT notified: Can't connect to clamd through /tmp/clamd.sock: No such file or directory
+Starting Freshclamd
+Starting ClamAV
+Socket for clamd not found yet, retrying (0/1800) ...ClamAV update process started at Sat Oct 24 08:39:31 2026
+daily.cld database is up-to-date (version: 28163, sigs: 355788, f-level: 90, builder: svc.clamav-publisher)
+main.cvd database is up-to-date (version: 63, sigs: 3287027, f-level: 90, builder: tomjudge)
+bytecode.cvd database is up-to-date (version: 339, sigs: 80, f-level: 90, builder: nrandolp)
+Socket for clamd not found yet, retrying (1/1800) ...Socket for clamd not found yet, retrying (2/1800) ...Socket for clamd not found yet, retrying (3/1800) ...Socket for clamd not found yet, retrying (4/1800) ...Socket for clamd not found yet, retrying (5/1800) ...Socket for clamd not found yet, retrying (6/1800) ...Socket for clamd not found yet, retrying (7/1800) ...Socket for clamd not found yet, retrying (8/1800) ...Socket for clamd not found yet, retrying (9/1800) ...Socket for clamd not found yet, retrying (10/1800) ...Sat Oct 24 08:39:42 2026 -> Limits: Global time limit set to 120000 milliseconds.
+Sat Oct 24 08:39:42 2026 -> Limits: Global size limit set to 419430400 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: File size limit set to 104857600 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: Recursion level limit set to 17.
+Sat Oct 24 08:39:42 2026 -> Limits: Files limit set to 10000.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxEmbeddedPE limit set to 41943040 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxHTMLNormalize limit set to 41943040 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxHTMLNoTags limit set to 8388608 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxScriptNormalize limit set to 20971520 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxZipTypeRcg limit set to 1048576 bytes.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxPartitions limit set to 50.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxIconsPE limit set to 100.
+Sat Oct 24 08:39:42 2026 -> Limits: MaxRecHWP3 limit set to 16.
+Sat Oct 24 08:39:42 2026 -> Limits: PCREMatchLimit limit set to 100000.
+Sat Oct 24 08:39:42 2026 -> Limits: PCRERecMatchLimit limit set to 2000.
+Sat Oct 24 08:39:42 2026 -> Limits: PCREMaxFileSize limit set to 104857600.
+Sat Oct 24 08:39:42 2026 -> Archive support enabled.
+Sat Oct 24 08:39:42 2026 -> Image (graphics) scanning support enabled.
+Sat Oct 24 08:39:42 2026 -> Detection using image fuzzy hash enabled.
+Sat Oct 24 08:39:42 2026 -> AlertExceedsMax heuristic detection disabled.
+Sat Oct 24 08:39:42 2026 -> Heuristic alerts enabled.
+Sat Oct 24 08:39:42 2026 -> Portable Executable support enabled.
+Sat Oct 24 08:39:42 2026 -> ELF support enabled.
+Sat Oct 24 08:39:42 2026 -> Mail files support enabled.
+Sat Oct 24 08:39:42 2026 -> OLE2 support enabled.
+Sat Oct 24 08:39:42 2026 -> PDF support enabled.
+Sat Oct 24 08:39:42 2026 -> SWF support enabled.
+Sat Oct 24 08:39:42 2026 -> HTML support enabled.
+Sat Oct 24 08:39:42 2026 -> XMLDOCS support enabled.
+Sat Oct 24 08:39:42 2026 -> HWP3 support enabled.
+Sat Oct 24 08:39:42 2026 -> OneNote support enabled.
+Sat Oct 24 08:39:42 2026 -> Self checking every 600 seconds.
+Sat Oct 24 08:39:42 2026 -> Set stacksize to 1048576
+socket found, clamd started.

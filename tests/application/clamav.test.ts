@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:net";
 import test from "node:test";
-import { ClamAvError, readClamAvVersion, scanWithClamAv } from "../../apps/web/server/artifacts/clamav.ts";
+import { ClamAvError, readClamAvVersion, scanWithClamAv, validateClamAvVersion } from "../../apps/web/server/artifacts/clamav.ts";
 
 async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, verdictFor: (bytes: Uint8Array) => string,
   options: { delayed?: boolean; split?: boolean; trailing?: boolean; drip?: boolean } = {}) {
@@ -37,7 +37,7 @@ async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, ve
         if (buffered.length < version.length && version.subarray(0, buffered.length).equals(buffered)) return;
         if (buffered.length < command.length && command.subarray(0, buffered.length).equals(buffered)) return;
         if (buffered.subarray(0, version.length).equals(version)) {
-          reply("ClamAV 1.4.2/27839/Sat Oct 04 10:33:00 2026");
+          reply(`ClamAV 1.4.2/27839/${new Date().toUTCString()}`);
           return;
         }
         if (!buffered.subarray(0, command.length).equals(command)) return socket.destroy();
@@ -121,4 +121,12 @@ test("scanner's overall deadline cannot be extended by trickling response bytes"
     await assert.rejects(readClamAvVersion, error => error instanceof ClamAvError && error.code === "SCAN_TIMEOUT");
     assert.ok(Date.now() - started < 25_000);
   }, () => "stream: OK", { drip: true });
+});
+
+test('scanner rejects expired, invalid and future signatures before a clean decision',()=>{
+ const now=Date.parse('2026-10-24T08:00:00Z'),version=(date:string)=>`ClamAV 1.5.4/28162/${date}`;
+ assert.equal(validateClamAvVersion(version('Sat Oct 24 07:00:00 2026 GMT'),now),'ClamAV-1.5.4-db28162');
+ assert.equal(validateClamAvVersion(version('Wed Oct 21 08:00:00 2026 GMT'),now),'ClamAV-1.5.4-db28162');
+ for(const date of['Wed Oct 21 07:59:59 2026 GMT','Sat Oct 24 08:30:01 2026 GMT','invalid'])assert.throws(()=>validateClamAvVersion(version(date),now),error=>error instanceof ClamAvError&&error.code==='CLAMAV_UNAVAILABLE');
+ assert.throws(()=>validateClamAvVersion(version('Sat Oct 24 07:00:00 2026 GMT')+'\nextra',now),error=>error instanceof ClamAvError&&error.code==='SCAN_PROTOCOL_ERROR');
 });

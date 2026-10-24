@@ -1,0 +1,34 @@
+▶ real Linux job containers deliver, render, scan and schedule with only restricted worker credentials
+  ✔ real SMTP container receives the existing issued PDF once; no public listener or runtime/owner credential (15945.608ms)
+  ✔ Linux export worker renders the immutable report snapshot into private PDF bytes (19684.4337ms)
+{"fixture":"linux-containers","organizationId":"b2443499-d68b-4c34-9c8d-ce6099113d4e","image":"ams-jobs:launch-candidate","restrictedWorkerOnly":true,"privateNetwork":true,"loopbackProviderFixture":true,"financialJournalsUnchanged":true}
+  ✖ private Linux ClamAV releases only a real clean upload and the reminder runner uses the same restricted target (17311.3514ms)
+✖ real Linux job containers deliver, render, scan and schedule with only restricted worker credentials (129414.7973ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130103.4346
+
+✖ failing tests:
+
+test at tests\database\linux-job-runner.test.mjs:52:11
+✖ private Linux ClamAV releases only a real clean upload and the reminder runner uses the same restricted target (17311.3514ms)
+  Error: Command failed: docker run --name ams-test-scanner-0bb78c1c-c94a-4d07-8cec-d73c50e58ee0 --network ams-test-0bb78c1c-c94a-4d07-8cec-d73c50e58ee0 --memory 256m --cpus 0.5 --pids-limit 128 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=64m,mode=1777 --mount type=bind,source=F:\accounts-management-solution\output\worker-tests\0bb78c1c-c94a-4d07-8cec-d73c50e58ee0\scanner.env,target=/run/secrets/worker_env,readonly ams-jobs:launch-candidate scanner --once
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:508:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'docker run --name ams-test-scanner-0bb78c1c-c94a-4d07-8cec-d73c50e58ee0 --network ams-test-0bb78c1c-c94a-4d07-8cec-d73c50e58ee0 --memory 256m --cpus 0.5 --pids-limit 128 --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:rw,nosuid,noexec,size=64m,mode=1777 --mount type=bind,source=F:\\accounts-management-solution\\output\\worker-tests\\0bb78c1c-c94a-4d07-8cec-d73c50e58ee0\\scanner.env,target=/run/secrets/worker_env,readonly ams-jobs:launch-candidate scanner --once',
+    stdout: '{"at":"2026-10-24T08:28:18.163Z","event":"worker.batch_failed","kind":"scanner"}\n',
+    stderr: ''
+  }
