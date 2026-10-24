@@ -40,6 +40,11 @@ export function workerConfiguration(env, args) {
     let origin;try{origin=new URL(requireValue(env,'NEXT_PUBLIC_APP_URL'));}catch{throw new Error('Configure the canonical HTTPS application origin.');}
     if(origin.protocol!=='https:'||origin.username||origin.password||origin.search||origin.hash||origin.pathname!=='/')throw new Error('Configure the canonical HTTPS application origin.');
   }
-  if(kind==='scanner'&&(!env.CLAMAV_HOST||!/^\d+$/.test(env.CLAMAV_PORT??'')||Number(env.CLAMAV_PORT)<1||Number(env.CLAMAV_PORT)>65535))throw new Error('Configure the private scanner host and port.');
+  if(kind==='scanner'){
+    const provider=env.ATTACHMENT_SCAN_PROVIDER??'clamav';
+    if(provider==='bouncer'){
+      if(!/^bnc_live_[A-Za-z0-9_-]{16,240}$/.test(env.BOUNCER_API_KEY??'')||!/^bouncer-(?:dev|prod)-uploads-[0-9]{12}\.s3\.ap-south-1\.amazonaws\.com$/.test(env.BOUNCER_UPLOAD_HOST??''))throw new Error('Configure the Bouncer key and approved upload host.');
+    }else if(provider!=='clamav'||!env.CLAMAV_HOST||!/^\d+$/.test(env.CLAMAV_PORT??'')||Number(env.CLAMAV_PORT)<1||Number(env.CLAMAV_PORT)>65535)throw new Error('Configure the selected private scanner host and port.');
+  }
   return {kind,once,intervalMs:Number(interval)};
 }

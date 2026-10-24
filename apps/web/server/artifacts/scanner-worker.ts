@@ -3,7 +3,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { withWorkerDatabase } from "../database.ts";
 import { readPrivateObject } from "../storage/private.ts";
-import { ClamAvError, readClamAvVersion, scanWithClamAv } from "./clamav.ts";
+import { attachmentScanProvider, scanFailureCode } from "./scan-providers.ts";
+import { ScanProviderError, type ScanCheckpoint, type ScanReference } from "./scan-provider.ts";
 
 type ClaimedScan = {
   attachment_id: string;
@@ -46,15 +47,32 @@ async function scan(job: ClaimedScan): Promise<ScanOutcome> {
         !Number.isSafeInteger(size) || size < 1 || size > 10 * 1024 * 1024 || !/^[0-9a-f]{64}$/.test(job.sha256)) {
       return await fail(job, "SCAN_WORKER_ERROR") ? "retry_queued" : "lease_lost";
     }
-    const bytes = await readPrivateObject(job.object_key);
-    if (!bytes || bytes.byteLength !== size) return await fail(job, "OBJECT_READ_ERROR") ? "retry_queued" : "lease_lost";
-    const digest = createHash("sha256").update(bytes).digest("hex");
-    if (digest !== job.sha256) return await fail(job, "OBJECT_DIGEST_MISMATCH") ? "retry_queued" : "lease_lost";
-    const engine = await readClamAvVersion();
-    const verdict = await scanWithClamAv(bytes);
-    return await finish(job, verdict === "clean" ? "clean" : "rejected", digest, engine) ? "resolved" : "lease_lost";
+    const provider = attachmentScanProvider();
+    const args = [job.organization_id, job.attachment_id, job.lease_token, provider.name, job.sha256];
+    const checkpoint: ScanCheckpoint = {
+      begin: () => withWorkerDatabase(async client => {
+        const result = await client.query<{ value: { created: boolean; remote_id: string | null; created_at: string } }>(
+          "SELECT finance_private.begin_attachment_provider_scan($1::uuid,$2::uuid,$3::uuid,$4::text,$5::text) AS value", args);
+        const row = result.rows[0]?.value;
+        if (!row || typeof row.created !== "boolean" || typeof row.created_at !== "string" || (row.remote_id !== null && typeof row.remote_id !== "string")) throw new Error("Invalid scan checkpoint.");
+        return { created: row.created, remoteId: row.remote_id, createdAt: row.created_at } satisfies ScanReference;
+      }),
+      attach: remoteId => withWorkerDatabase(async client => (await client.query<{ value: boolean }>(
+        "SELECT finance_private.record_attachment_provider_scan($1::uuid,$2::uuid,$3::uuid,$4::text,$5::text,$6::text) AS value", [...args, remoteId])).rows[0]?.value === true),
+      abandonUnsubmitted: () => withWorkerDatabase(async client => (await client.query<{ value: boolean }>(
+        "SELECT finance_private.abandon_unsubmitted_attachment_scan($1::uuid,$2::uuid,$3::uuid,$4::text,$5::text) AS value", args)).rows[0]?.value === true)
+    };
+    const result = await provider.scanner.scan({ byteSize: size, sha256: job.sha256, readBytes: async () => {
+      const bytes = await readPrivateObject(job.object_key);
+      if (!bytes || bytes.byteLength !== size) throw new ScanProviderError("OBJECT_READ_ERROR");
+      if (createHash("sha256").update(bytes).digest("hex") !== job.sha256) throw new ScanProviderError("OBJECT_DIGEST_MISMATCH");
+      return bytes;
+    } }, checkpoint);
+    // A resumed cloud result is bound to the immutable digest and byte count
+    // checked before its original upload; polling needs no second object fetch.
+    return await finish(job, result.decision, job.sha256, result.engine) ? "resolved" : "lease_lost";
   } catch (error) {
-    const code = error instanceof ClamAvError ? error.code : "SCAN_WORKER_ERROR";
+    const code = scanFailureCode(error);
     try { return await fail(job, code) ? "retry_queued" : "lease_lost"; }
     catch { return "lease_lost"; }
   }

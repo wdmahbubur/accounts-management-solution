@@ -19,7 +19,7 @@ async function batch(){
  if(config.kind==='mail')return(await import('../apps/web/server/outbox/worker.ts')).processOutboxBatch(1);
  if(config.kind==='exports')return(await import('../apps/web/server/exports/worker.ts')).processTrialBalanceExportBatch(1);
  if(config.kind==='scanner'){
-  await(await import('../apps/web/server/artifacts/clamav.ts')).readClamAvVersion();
+  await(await import('../apps/web/server/artifacts/scan-providers.ts')).attachmentScanProvider().scanner.check();
   return(await import('../apps/web/server/artifacts/scanner-worker.ts')).processAttachmentScanBatch(1);
  }
  const result=await withWorkerDatabase(db=>db.query('SELECT finance_private.enqueue_due_notification_reminders() AS queued'));
