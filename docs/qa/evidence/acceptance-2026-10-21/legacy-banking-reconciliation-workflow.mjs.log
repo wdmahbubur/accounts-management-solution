@@ -1,0 +1,10 @@
+{"check":"actual restricted commands create fresh company, cash accounts, receipt100 and transfer10; privileged identity/contact/role setup disclosed","status":"passed","organization_id":"3ab16e0a-381c-45e8-809b-b57c042db013"}
+{"check":"blank opposite columns import exact directions and original bytes; exact-file retry is a no-op and cash facts remain unchanged","status":"passed"}
+{"check":"partial/unmatch/many-to-one matching works; incompatible directions and excess fail; workspace amounts are strings and cash facts unchanged","status":"passed"}
+{"check":"recent authentication is required; valid finalization records90.00 and locks matching/reversal without changing posted cash","status":"passed"}
+{"check":"authorized reopen retains prior evidence; list distinguishes reopened and re-finalized sessions under banking.read","status":"passed"}
+{"check":"overlapping draft cannot alter finalized statement/book matches; reopen permits correction; two actual connections serialize finalize versus unmatch","status":"passed","race_winner":"unmatch"}
+{"check":"valid outstanding book deposit still adjusts closing; offsetting unmatched bank-only observations cannot finalize and create no effects","status":"passed"}
+{"check":"reader/writer/operator permissions and cross-company reads remain scoped; import/match/reconcile create no cash or control ledger facts","status":"passed"}
+{"check":"history uses stable50-row pages, account/status scope and exact strings; foreign account and invalid offset fail without effects","status":"passed"}
+{"result":"passed","checks":9,"organization_id":"3ab16e0a-381c-45e8-809b-b57c042db013","reconciliation_id":"dc9788c9-63f9-43d1-af74-7a5f1026539b","import_id":"d7f3064b-3309-4156-ab2a-a49706ad0568","note":"Unique fixtures retained. Privileged identity/contact/role and fresh Auth.js-session fixtures disclosed; all financial and banking commands ran through actual restricted login. No provider calls or retained-browser-company changes."}

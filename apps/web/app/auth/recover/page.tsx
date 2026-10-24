@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AccountShell } from "../../../components/shell/account-shell.tsx";
+import styles from "../account-pages.module.css";
 
 import { recoverAction } from "../actions.ts";
 
@@ -13,9 +15,7 @@ export default async function RecoverPage({ searchParams }: { searchParams: Sear
   const status = first(params.status);
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Account recovery</p>
-      <h1>Reset password</h1>
+    <AccountShell title="Reset password" eyebrow="Account recovery" description="Enter your email to request a password reset link.">
       <section className="panel">
         {status === "recovery_requested" ? (
           <p className="alert" role="status">
@@ -29,8 +29,8 @@ export default async function RecoverPage({ searchParams }: { searchParams: Sear
           </label>
           <button type="submit">Request reset email</button>
         </form>
-        <Link href="/auth/sign-in">Back to sign in</Link>
+        <Link className={styles.help} href="/auth/sign-in">Back to sign in</Link>
       </section>
-    </main>
+    </AccountShell>
   );
 }

@@ -1,0 +1,56 @@
+.report { min-width: 0; }
+.report > p:not(:global(.eyebrow)) { max-width: 88ch; color: var(--muted); font-size: .84rem; }
+.report :global(.panel) { gap: 16px; }
+.report :global(.panel) > p { margin: 0; font-size: .84rem; line-height: 1.6; }
+.report form:global(.toolbar) { gap: 12px; }
+.report form:global(.toolbar) > label { flex-basis: 180px; max-width: 300px; font-size: .8rem; font-weight: 500; }
+.report form:global(.toolbar) > button, .report form:global(.toolbar) > a { font-size: .8rem; }
+.report dl:global(.toolbar) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 20px 28px; align-items: start; margin: 0; }
+.report dl > div { min-width: 0; }
+.report dt { color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.report dd { margin: 7px 0 0; font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.report :global(.table-scroll) { min-width: 0; }
+.report :global(.table-scroll) table { font-size: .8125rem; }
+.report :global(.table-scroll) thead th { font-size: .72rem; }
+.report .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.report pre { max-width: 100%; overflow: auto; padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: #f8fafc; font-size: .75rem; }
+.report > [role="alert"], .report :global(.panel) > [role="alert"] { margin: 0; padding: 12px 14px; border: 1px solid #ebd3d3; border-radius: 6px; background: #fff8f8; color: #8d3838; }
+.report [role="status"] { font-size: .82rem; }
+.report details:global(.panel) { display: block; margin-top: 10px; padding: 14px 16px; }
+.report details > summary { font-size: .82rem; font-weight: 500; }
+.context { min-width: 0; color: var(--muted); font-size: .8rem; }
+.context > summary { width: fit-content; }
+.context p { margin: 8px 0 0; max-width: 92ch; line-height: 1.7; overflow-wrap: anywhere; }
+.catalogSection { display: grid; gap: 12px; min-width: 0; }
+.catalogSection h2 { margin: 0; }
+.catalog { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.catalog article { display: grid; align-content: start; gap: 8px; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); min-width: 0; }
+.catalog h3 { margin: 0; font-size: .9rem; font-weight: 600; }
+.catalog h3 a { text-decoration: none; }
+.catalog h3 a:hover { text-decoration: underline; }
+.catalog p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+.catalog .dateMeaning { font-size: .73rem; }
+.report ol { display: grid; gap: 12px; padding: 0; margin: 0; }
+.report li { min-width: 0; overflow-wrap: anywhere; }
+.writeOff { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.writeOff > label { min-width: 0; }
+.writeOff > label:first-child, .writeOff > label:nth-child(5), .writeOff > p { grid-column: 1 / -1; }
+@media(max-width: 640px) {
+  .report form:global(.toolbar) > label { flex-basis: 100%; max-width: none; }
+  .report dl:global(.toolbar) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .writeOff { grid-template-columns: minmax(0, 1fr); }
+}
+@media(max-width: 380px) { .report dl:global(.toolbar) { grid-template-columns: minmax(0, 1fr); } }
+
+.exportControls { display: inline-flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; max-width: 100%; }
+.exportControls label { display: grid; gap: 6px; min-width: 90px; color: var(--text); font-size: .8rem; }
+.exportControls select { width: 100%; }
+.exportControls button { font-size: .8rem; }
+.exportControls > [role="status"] { flex-basis: 100%; font-size: .78rem; line-height: 1.5; }
+
+.statementHeader { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 24px; min-width: 0; }
+.statementIdentity { display: grid; gap: 12px; flex: 1 1 280px; min-width: 0; }
+.statementIdentity h2, .statementIdentity p { margin: 0; }
+.statementIdentity > p:not(:global(.eyebrow)) { color: var(--muted); font-size: .84rem; }
+.statementActions { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; min-width: 0; max-width: 100%; }
+.statementActions > p { margin: 0; }

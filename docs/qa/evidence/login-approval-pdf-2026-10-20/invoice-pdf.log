@@ -1,0 +1,16 @@
+
+> accounts-management-solution@0.0.0 test:database:invoice-pdf
+> node --conditions=react-server --test tests/database/invoice-pdf-download.test.mjs
+
+▶ issued PDF retrieval with real bigint metadata and restricted authorization
+  ✔ download and retry return identical issued bytes without registering another version (7413.0385ms)
+  ✔ missing capability, foreign company, anonymous and nonmember identities cannot download (4539.7148ms)
+✔ issued PDF retrieval with real bigint metadata and restricted authorization (15262.9174ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16590.3118

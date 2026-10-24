@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { AccountShell } from "../../../components/shell/account-shell.tsx";
+import styles from "../../auth/account-pages.module.css";
 
 import { createClient } from "../../../lib/database/server.ts";
 import { updateProfileAction } from "../../auth/actions.ts";
@@ -36,24 +38,23 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
   const timezone = persisted?.timezone === "UTC" ? "UTC" : "Asia/Dhaka";
 
   return (
-    <main className="auth-shell">
-      <p className="eyebrow">Personal settings</p>
-      <h1>Profile</h1>
+    <AccountShell title="Profile" eyebrow="Personal settings" description="Manage your name and personal preferences." settingsPage="profile" backHref="/companies" backLabel="Back to companies">
       <section className="panel">
-        {first(params.status) === "profile_updated" ? <p className="alert">Profile preferences updated.</p> : null}
+        {first(params.status) === "profile_updated" ? <p className="alert" role="status">Profile preferences updated.</p> : null}
         {first(params.error) ? <p className="alert" role="alert">Profile could not be updated.</p> : null}
         <form action={updateProfileAction} className="settings-form">
           <label className="field">
             <span>Display name</span>
             <input
               name="display_name"
+              autoComplete="name"
               maxLength={120}
               defaultValue={displayName}
               required
             />
           </label>
           <label className="field">
-            <span>Locale</span>
+            <span>Language and region</span>
             <select name="locale" defaultValue={locale}>
               <option value="en-BD">English (Bangladesh)</option>
               <option value="bn-BD">Bangla (Bangladesh)</option>
@@ -62,16 +63,14 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
           <label className="field">
             <span>Timezone</span>
             <select name="timezone" defaultValue={timezone}>
-              <option value="Asia/Dhaka">Asia/Dhaka</option>
+              <option value="Asia/Dhaka">Bangladesh time · Asia/Dhaka</option>
               <option value="UTC">UTC</option>
             </select>
           </label>
           <button type="submit">Save profile</button>
         </form>
-        <p className="muted">
-          Profile preferences are stored in the application profile. Roles and capabilities are resolved from live company membership, never editable Auth metadata.
-        </p>
+        <p className={styles.help}>These are personal preferences. Company access and roles are managed separately by your company administrator.</p>
       </section>
-    </main>
+    </AccountShell>
   );
 }

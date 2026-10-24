@@ -45,32 +45,22 @@ export async function canAttemptPasswordLogin(email: string): Promise<boolean> {
 }
 
 export async function recordFailedPasswordLogin(email: string): Promise<void> {
-  await withDatabaseTransaction(async (client) => {
-    const key = emailKey(email);
-    await client.query(
-      `INSERT INTO identity.auth_rate_limits (email_hash, attempts)
-       VALUES ($1, 1) ON CONFLICT (email_hash) DO NOTHING`,
-      [key]
-    );
-    const result = await client.query<{ attempts: number; window_started_at: Date }>(
-      `SELECT attempts, window_started_at FROM identity.auth_rate_limits
-       WHERE email_hash = $1 FOR UPDATE`,
-      [key]
-    );
-    const current = result.rows[0];
-    if (!current) throw new Error("Login limiter row was not created.");
-    const expired = Date.now() - new Date(current.window_started_at).getTime() >= 15 * 60 * 1000;
-    const attempts = expired ? 1 : Math.min(current.attempts + 1, 1000);
-    await client.query(
-      `UPDATE identity.auth_rate_limits
-       SET window_started_at = CASE WHEN $2 THEN now() ELSE window_started_at END,
-           attempts = $3,
-           blocked_until = CASE WHEN $3 >= 5 THEN now() + interval '15 minutes' ELSE NULL END,
-           updated_at = now()
-       WHERE email_hash = $1`,
-      [key, expired, attempts]
-    );
-  });
+  // One atomic upsert counts the first failure once and serializes concurrent
+  // failures across app instances. Use database time for the whole window.
+  await withDatabase((client) => client.query(
+    `INSERT INTO identity.auth_rate_limits AS limiter (email_hash, attempts)
+     VALUES ($1, 1)
+     ON CONFLICT (email_hash) DO UPDATE
+     SET window_started_at = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes'
+           THEN now() ELSE limiter.window_started_at END,
+         attempts = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes'
+           THEN 1 ELSE LEAST(limiter.attempts + 1, 1000) END,
+         blocked_until = CASE WHEN limiter.window_started_at <= now() - interval '15 minutes' THEN NULL
+           WHEN limiter.attempts >= 4 THEN now() + interval '15 minutes' ELSE NULL END,
+         updated_at = now()
+     WHERE limiter.blocked_until IS NULL OR limiter.blocked_until <= now()`,
+    [emailKey(email)]
+  ));
 }
 
 export async function clearPasswordLoginFailures(email: string): Promise<void> {
@@ -98,6 +88,16 @@ export async function issueIdentityToken(userId: string, purpose: IdentityTokenP
   const token = randomBytes(32).toString("base64url");
   const lifetime = purpose === "verify_email" ? "24 hours" : "1 hour";
   await withDatabaseTransaction(async (client) => {
+    // Serialize token issuance across app instances without conflicting with the
+    // verification consumer's token/user row locks. A rejected resend keeps the
+    // previous link usable and returns the same public response as other accounts.
+    await client.query("SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended($1, 0))",
+      [`ams.identity-token:${userId}:${purpose}`]);
+    const recent = await client.query(
+      `SELECT 1 FROM identity.verification_tokens WHERE user_id = $1::uuid AND purpose = $2
+       AND created_at > now() - interval '60 seconds' LIMIT 1`, [userId, purpose]
+    );
+    if (recent.rows.length) throw new Error("Account email requested too recently.");
     await client.query(
       `UPDATE identity.verification_tokens SET consumed_at = now()
        WHERE user_id = $1::uuid AND purpose = $2 AND consumed_at IS NULL`,

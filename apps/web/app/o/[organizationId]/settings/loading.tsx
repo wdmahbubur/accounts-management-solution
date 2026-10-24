@@ -1,3 +1,4 @@
+import styles from "../workspace.module.css";
 export default function Loading() {
-  return <main className="management-shell" aria-busy="true"><p role="status">Loading company access settings…</p></main>;
+  return <main className={styles.page} aria-busy="true"><p role="status">Loading company settings…</p></main>;
 }

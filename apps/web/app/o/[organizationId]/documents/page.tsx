@@ -1,3 +1,4 @@
+import styles from "../workspace.module.css";
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -61,30 +62,30 @@ export default async function EvidenceLibraryPage({ params, searchParams }: { pa
     else if (error instanceof CommandError && error.code === "VALIDATION_FAILED") invalid = true;
     else if (!(error instanceof CommandError)) throw error;
   }
-  if (forbidden) return <main><p className="eyebrow">Documents · Read only</p><h1>Access denied</h1><p>You need attachments.read to view supporting evidence.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
+  if (forbidden) return <main className={styles.page}><p className="eyebrow">Documents · Read only</p><h1>Access denied</h1><p>You need attachments.read to view supporting evidence.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
   const pageUrl = (page: number) => { const p = new URLSearchParams(); if (search) p.set("search", search); if (from) p.set("from", from); if (to) p.set("to", to); if (page > 1) p.set("page", String(page)); return `/o/${organizationId}/documents?${p}`; };
-  return <main>
-    <p className="eyebrow">Documents · Private evidence</p><h1>Evidence library</h1>
-    <p>Find receipts and supporting files attached to documents you can access. Downloads are available only after the file is marked clean.</p>
-    <form method="get" className="panel" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem", alignItems: "end" }}>
+  return <main className={styles.page}>
+    <header className={styles.pageHeader}><p className="eyebrow">Documents · Private evidence</p><h1>Evidence library</h1>
+    <p>Find receipts and supporting files attached to documents you can access. Downloads are available only after the file is marked clean.</p></header>
+    <form method="get" className={`panel ${styles.formGrid}`}>
       <label>Filename, source or uploader<input name="search" defaultValue={search} maxLength={120} /></label>
       <label>Uploaded from<input name="from" type="date" defaultValue={from} /></label>
       <label>Uploaded through<input name="to" type="date" defaultValue={to} /></label>
       <button type="submit">Search evidence</button>
     </form>
     {invalid && <p role="alert">Enter valid search dates and a search phrase up to 120 characters.</p>}
-    <section aria-label="Evidence files" style={{ display: "grid", gap: "1rem", marginTop: "1.25rem" }}>
+    <section aria-label="Evidence files" className={styles.stack}>
       {rows.length === 0 ? <div className="panel"><h2>No evidence found</h2><p>Clear a filter or attach a file to an eligible draft.</p></div> : rows.map((row) => <article className="panel" key={`${row.attachment_id}:${row.source_id}`}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "start", justifyContent: "space-between", gap: "1rem" }}>
-          <div><h2 style={{ marginTop: 0 }}>{row.filename}</h2><p>{row.content_type} · {sizeLabel(row.byte_size)} · Uploaded {formatDate(row.uploaded_at)}</p></div>
+        <div className={styles.heading}>
+          <div><h2>{row.filename}</h2><p className={styles.metadata}>{row.content_type} · {sizeLabel(row.byte_size)} · Uploaded {formatDate(row.uploaded_at)}</p></div>
           {row.scan_status === "clean" ? <Link className="button secondary" href={`/api/v1/organizations/${organizationId}/attachments/${row.attachment_id}/download`}>Download</Link>
-            : <span className="eyebrow">{row.scan_status === "pending" ? "Pending security scan · Download unavailable" : "Rejected by security scan · Download unavailable"}</span>}
+            : <span className={styles.badge}>{row.scan_status === "pending" ? "Pending security scan · Download unavailable" : "Rejected by security scan · Download unavailable"}</span>}
         </div>
         <p><strong>Source:</strong> <Link href={`/o/${organizationId}/accounting/documents/${row.source_id}`}>{row.source_number ?? row.source_type} · {row.source_type.replaceAll("_", " ")}</Link> · {formatDate(`${row.source_date}T12:00:00+06:00`)}</p>
-        <p><strong>Uploaded by:</strong> {row.uploader}</p>
+        <p className={styles.metadata}><strong>Uploaded by:</strong> {row.uploader}</p>
       </article>)}
     </section>
-    <nav aria-label="Evidence pages" style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
+    <nav aria-label="Evidence pages" className={styles.heading}>
       {pageNumber > 1 ? <Link href={pageUrl(pageNumber - 1)}>Previous page</Link> : <span />}
       {hasMore && <Link href={pageUrl(pageNumber + 1)}>Next page</Link>}
     </nav>

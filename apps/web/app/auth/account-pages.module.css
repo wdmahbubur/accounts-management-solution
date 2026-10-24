@@ -1,0 +1,21 @@
+.help { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+.secondarySection { display: grid; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
+.details { min-width: 0; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; }
+.details > summary { width: fit-content; color: var(--text); font-size: .82rem; font-weight: 500; }
+.details p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.details form { margin-top: 14px; }
+.facts { display: grid; gap: 14px; margin: 0; }
+.facts > div { display: grid; gap: 5px; min-width: 0; }
+.facts dt { color: var(--muted); font-size: .78rem; }
+.facts dd { margin: 0; color: var(--text); font-size: .9rem; overflow-wrap: anywhere; }
+.securityGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-width: 0; align-items: start; }
+.wide { grid-column: 1 / -1; }
+.accountFacts { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 28px; margin: 0; }
+.accountFacts > div { display: grid; gap: 5px; min-width: 0; }
+.accountFacts dt { color: var(--muted); font-size: .78rem; }
+.accountFacts dd { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.actions form { min-width: 0; }
+.actions button { font-size: .82rem; }
+@media(max-width: 680px) { .securityGrid { grid-template-columns: minmax(0, 1fr); } }
+@media(max-width: 440px) { .actions { align-items: stretch; flex-direction: column; } .actions button, .actions form { width: 100%; } }

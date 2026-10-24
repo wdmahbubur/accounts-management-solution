@@ -1,4 +1,5 @@
 "use client";
+import styles from "../../workspace.module.css";
 import Link from "next/link";
 import { useState } from "react";
 type Preferences={email_approvals:boolean;email_invoice_reminders:boolean;email_bill_reminders:boolean};
@@ -14,12 +15,12 @@ export function NotificationPreferences({organizationId,initial,capabilities}:{o
     setValue({email_approvals:data.email_approvals,email_invoice_reminders:data.email_invoice_reminders,email_bill_reminders:data.email_bill_reminders});setMessage("Email preferences saved.");
   }catch(caught){setError(caught instanceof Error?caught.message:"Could not save preferences.");}finally{setBusy(false);}}
   return <form className="panel" onSubmit={event=>void save(event)} aria-label="Email notification preferences">
-    {error&&<p role="alert">{error}</p>}{message&&<p role="status">{message}</p>}
-    {fields.map(([key,label,capability])=><label key={key} style={{display:"block",padding:".65rem 0"}}><input type="checkbox" checked={value[key]} disabled={busy||(!capabilities.includes(capability)&&!value[key])}
-      onChange={event=>setValue(current=>({...current,[key]:event.target.checked}))}/> {label}
+    {error&&<p role="alert" className={styles.error}>{error}</p>}{message&&<p role="status" className={styles.notice}>{message}</p>}
+    {fields.map(([key,label,capability])=><label key={key} className={styles.check}><input type="checkbox" checked={value[key]} disabled={busy||(!capabilities.includes(capability)&&!value[key])}
+      onChange={event=>setValue(current=>({...current,[key]:event.target.checked}))}/> <span>{label}
       {!capabilities.includes(capability)&&<small> Requires {capability}.</small>}
-    </label>)}
-    <p>Reminder events are deduplicated by member, category and company-local date. A scheduled event contains no invoice or bill name or amount.</p>
-    <button type="submit" disabled={busy}>{busy?"Saving…":"Save preferences"}</button> <Link href={`/o/${organizationId}/notifications`}>Back to notifications</Link>
+    </span></label>)}
+    <p className={styles.metadata}>Daily reminders follow the company date. Scheduled reminders contain no invoice or bill names or amounts.</p>
+    <div className={styles.actions}><button type="submit" disabled={busy}>{busy?"Saving…":"Save preferences"}</button> <Link href={`/o/${organizationId}/notifications`}>Back to notifications</Link></div>
   </form>;
 }

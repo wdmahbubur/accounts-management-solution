@@ -1,0 +1,1 @@
+{"command":"verify","status":"passed","tableCount":69,"migrationCount":100,"lastMigration":"0101_dashboard_cash_bank_split.sql","journalGroups":3,"pdfs":1,"attachments":0,"snapshotTime":"2026-10-20 18:24:57.211185+00","lsn":"0/304B5E0"}

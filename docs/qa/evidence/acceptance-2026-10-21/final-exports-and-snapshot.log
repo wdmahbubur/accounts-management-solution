@@ -1,0 +1,18 @@
+▶ report exports retain screen filters/cutoff and private download authorization
+  ✔ T-44 queue CSV/PDF/XLSX exports bound to the same immutable report snapshot (29417.6851ms)
+  ✔ T-44 CSV rows equal the original screen snapshot despite later postings (24884.9912ms)
+  ✔ T-44 PDF and XLSX are real private files; XLSX retains the exact original profit (19679.1413ms)
+{"fixture":"export-acceptance","organizationId":"99463284-a857-44d3-9707-f16d77ab931f","jobs":["57acca66-92fa-457b-bf6d-c74e74f2f131","89b90648-2131-401a-9aa5-7fbce01ee70e","030052f6-5fef-4c0b-bf34-d6cbc4f78c1f","5c091af9-c7da-47da-8364-bbfbbffa7f14"]}
+  ✔ S-01/S-03/S-14 guessed IDs, another tenant, Billing and revoked requesters cannot download (15295.1234ms)
+  ✔ S-16 malformed export paths cannot write or read storage (1.0967ms)
+✔ report exports retain screen filters/cutoff and private download authorization (128634.9251ms)
+{"fixture":"issued-snapshot","organizationId":"b7b9b1c9-60ec-48b5-877f-0b0a4a1aec0c","pdfId":"2c10f50d-9d19-4358-8f94-b4ac9cfa0432","checksumVerified":true}
+✔ T-49 issued invoice and PDF retain original customer and tax snapshots (77451.0635ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129861.9041

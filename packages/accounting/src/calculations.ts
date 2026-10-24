@@ -1,4 +1,5 @@
 import { ContractValidationError, parseMoneyString, parseUuid, type MoneyString } from "@ams/contracts";
+import {isBaseCurrency,type BaseCurrency} from '@ams/contracts';
 
 const SCALE = 1_000_000n;
 const PERCENT = 100n * SCALE;
@@ -41,7 +42,7 @@ export interface CalculatedLine {
   base: MoneyString; discount: MoneyString; net: MoneyString; tax: MoneyString; gross: MoneyString;
 }
 export interface DocumentPreview {
-  currency: "BDT"; lines: CalculatedLine[]; base: MoneyString; discount: MoneyString;
+  currency: BaseCurrency; lines: CalculatedLine[]; base: MoneyString; discount: MoneyString;
   net: MoneyString; tax: MoneyString; gross: MoneyString; rounding_adjustment: MoneyString; total: MoneyString;
 }
 export function calculateLine(raw: unknown): CalculatedLine {
@@ -71,7 +72,7 @@ export function calculateLine(raw: unknown): CalculatedLine {
 /** Pure preview, NOT a posting authorization or an approved statutory tax rate. */
 export function calculateDocument(raw: unknown): DocumentPreview {
   const input = record(raw, ["currency", "lines", "rounding"], "document");
-  if (input.currency !== "BDT") return fail("currency", "V1 supports BDT only.");
+  if (!isBaseCurrency(input.currency)) return fail("currency", "Choose a supported two-decimal accounting currency.");
   if (!Array.isArray(input.lines) || input.lines.length === 0 || input.lines.length > MAX_PREVIEW_LINES) {
     return fail("lines", `Supply 1-${MAX_PREVIEW_LINES} lines.`);
   }
@@ -80,14 +81,14 @@ export function calculateDocument(raw: unknown): DocumentPreview {
   if ("rounding" in input) {
     const r = record(input.rounding, ["amount", "reason", "account_id"], "rounding");
     adjustment = moneyUnits(r.amount, "rounding.amount");
-    if (adjustment < -5n || adjustment > 5n) return fail("rounding.amount", "Explicit rounding is limited to 0.05 BDT either way.");
+    if (adjustment < -5n || adjustment > 5n) return fail("rounding.amount", "Explicit rounding is limited to 0.05 in company currency either way.");
     if (typeof r.reason !== "string" || !r.reason.trim() || r.reason.length > 500) return fail("rounding.reason", "Provide a reason of 1-500 characters.");
     parseUuid(r.account_id, "rounding.account_id");
   }
   const sum = (key: keyof CalculatedLine) => lines.reduce((total, line) => total + moneyUnits(line[key]), 0n);
   const gross = sum("gross");
   if (gross + adjustment < 0n) return fail("total", "Document total cannot be negative.");
-  return { currency: "BDT", lines, base: formatMoney(sum("base")), discount: formatMoney(sum("discount")),
+  return { currency: input.currency, lines, base: formatMoney(sum("base")), discount: formatMoney(sum("discount")),
     net: formatMoney(sum("net")), tax: formatMoney(sum("tax")), gross: formatMoney(gross),
     rounding_adjustment: formatMoney(adjustment), total: formatMoney(gross + adjustment) };
 }

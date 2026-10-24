@@ -1,3 +1,4 @@
+import { assertIsolatedTargets, assertRestrictedRuntime } from "./helpers/isolation.mjs";
 // Fresh isolated fixtures only. No retained browser company changes or database reset.
 // AMS_DATABASE_TESTS=isolated node --conditions=react-server tests/database/banking-reconciliation-workflow.mjs
 // Pre-fix diagnosis only: add AMS_EXPECT_RECONCILIATION_BASELINE=1; unsafe finalize is rolled back.
@@ -12,9 +13,10 @@ assert.equal(process.env.AMS_DATABASE_TESTS,"isolated","Explicitly select an iso
 const ownerUrl=process.env.TEST_DATABASE_URL??process.env.MIGRATION_DATABASE_URL??process.env.DATABASE_URL;
 const runtimeUrl=process.env.TEST_DATABASE_RUNTIME_URL??process.env.DATABASE_RUNTIME_URL;
 let sameTarget=false;
-try{const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)==="ams_app_login";}catch{/* Never echo configuration. */}
+try{const a=new URL(ownerUrl),b=new URL(runtimeUrl);sameTarget=a.hostname===b.hostname&&a.pathname===b.pathname&&decodeURIComponent(b.username)!==decodeURIComponent(a.username);}catch{/* Never echo configuration. */}
 assert.ok(sameTarget,"Select the isolated owner and actual runtime on the same database.");
 neonConfig.webSocketConstructor=WebSocket;types.setTypeParser(types.builtins.DATE,value=>value);
+assertIsolatedTargets(ownerUrl, runtimeUrl);
 const adminPool=new Pool({connectionString:ownerUrl,max:1,connectionTimeoutMillis:30000});
 const runtimePool=new Pool({connectionString:runtimeUrl,max:2,connectionTimeoutMillis:30000});
 const ids={owner:randomUUID(),reader:randomUUID(),writer:randomUUID(),noAuth:randomUUID(),outsider:randomUUID()};
@@ -66,7 +68,8 @@ async function posted(body){const key=randomUUID(),reviewKey=randomUUID(),postKe
 async function reverseDocument(document){const key=randomUUID();return rpc("SELECT * FROM public.reverse_posted_document($1,$2,$3::date,$4,$5,$6,$7)",[org,document.document_id,today,"Synthetic reconciled cash reversal probe",`bank_${key}`,key,hash(document)]);}
 
 try {
-  const role=(await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole FROM pg_roles r WHERE r.rolname=current_user")).rows[0];assert.equal(role.current_user,"ams_app_login");assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);
+  await assertRestrictedRuntime(runtimePool, runtimeUrl);
+  const role=(await runtimePool.query("SELECT current_user,r.rolsuper,r.rolbypassrls,r.rolcreaterole FROM pg_roles r WHERE r.rolname=current_user")).rows[0];assert.equal(role.current_user, decodeURIComponent(new URL(runtimeUrl).username));assert.equal(role.rolsuper,false);assert.equal(role.rolbypassrls,false);assert.equal(role.rolcreaterole,false);
   stage="fixture setup";
   for(const [name,user] of Object.entries(ids)){await admin("INSERT INTO identity.users(id,email_normalized,display_name,password_hash,email_verified_at) VALUES($1,$2,$3,$4,now())",[user,`banking-${user}@example.invalid`,`Banking QA ${name}`,"$argon2id$synthetic-unusable-test-hash"]);await admin("INSERT INTO finance.profiles(user_id,display_name,locale,timezone) VALUES($1,$2,'en-BD','Asia/Dhaka')",[user,`Banking QA ${name}`]);}
   for(const foreign of [false,true]){const organization=(await rpc("SELECT * FROM public.create_company_atomic($1,$1,'BD','BDT','Asia/Dhaka',1::smallint,$2::date,$3)",[`Banking ${foreign?"foreign ":""}QA ${run}`,`${today.slice(0,4)}-01-01`,randomUUID()])).rows[0].organization_id;

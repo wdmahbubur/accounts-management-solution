@@ -1,0 +1,108 @@
+{
+  "data": {
+    "to": "2025-01-31",
+    "from": "2025-01-01",
+    "activity": [
+      {
+        "date": "2025-01-15",
+        "amount": "100000.00",
+        "account_id": "238ed67f-8738-4b19-9ca0-496b608d73c5",
+        "flow_class": "financing",
+        "description": "Synthetic golden owner contribution",
+        "document_id": "2d056750-29b2-4d77-87a5-d7f82bde25a0",
+        "account_code": "1010",
+        "cash_account": "Bank",
+        "document_type": "manual_journal",
+        "document_number": "JV-FY 2025-000001",
+        "exception_reason": null
+      },
+      {
+        "date": "2025-01-15",
+        "amount": "6000.00",
+        "account_id": "238ed67f-8738-4b19-9ca0-496b608d73c5",
+        "flow_class": "operating",
+        "description": "",
+        "document_id": "a9a92bbf-7f7d-4b53-b7d2-e79944e424db",
+        "account_code": "1010",
+        "cash_account": "Bank",
+        "document_type": "receipt",
+        "document_number": "RCPT-FY 2025-000001",
+        "exception_reason": null
+      },
+      {
+        "date": "2025-01-15",
+        "amount": "-1000.00",
+        "account_id": "238ed67f-8738-4b19-9ca0-496b608d73c5",
+        "flow_class": "operating",
+        "description": "",
+        "document_id": "622ab834-76ae-4ad5-a4c3-e8c90d58743d",
+        "account_code": "1010",
+        "cash_account": "Bank",
+        "document_type": "paid_expense",
+        "document_number": "EXP-FY 2025-000001",
+        "exception_reason": null
+      },
+      {
+        "date": "2025-01-15",
+        "amount": "-3000.00",
+        "account_id": "238ed67f-8738-4b19-9ca0-496b608d73c5",
+        "flow_class": "operating",
+        "description": "",
+        "document_id": "6b7d093d-7956-49b8-a037-2bb3ebeb472b",
+        "account_code": "1010",
+        "cash_account": "Bank",
+        "document_type": "vendor_payment",
+        "document_number": "PAY-FY 2025-000001",
+        "exception_reason": null
+      }
+    ],
+    "timezone": "Asia/Dhaka",
+    "cutoff_at": "2026-10-21T12:39:01.870625+00:00",
+    "financing": "100000.00",
+    "investing": "0",
+    "operating": "2000.00",
+    "exceptions": [],
+    "provisional": false,
+    "closing_cash": "102000.00",
+    "opening_cash": "0",
+    "unclassified": "0",
+    "cash_accounts": [
+      {
+        "closing": "102000.00",
+        "opening": "0",
+        "account_id": "238ed67f-8738-4b19-9ca0-496b608d73c5",
+        "account_code": "1010",
+        "account_name": "Bank",
+        "cash_account_id": "039d6f34-7c3d-4bec-9bf9-91cb34445241"
+      }
+    ],
+    "calculated_closing": "102000.00",
+    "unclassified_count": 0,
+    "internal_transfer_net": "0",
+    "internal_transfer_inflows": "0",
+    "reconciliation_difference": "0.00",
+    "internal_transfer_outflows": "0",
+    "cash_equivalent_account_count": 1
+  },
+  "meta": {
+    "request_id": "req_2505f9d0-d260-4106-b247-16180e1f6e81",
+    "status": "posted",
+    "company": {
+      "id": "ff2673c0-021f-43fe-b84a-96028da68ad0",
+      "name": "Golden alpha",
+      "timezone": "Asia/Dhaka"
+    },
+    "filters": {
+      "to": "2025-01-31",
+      "from": "2025-01-01"
+    },
+    "provisional": false,
+    "report_type": "cash_flow",
+    "snapshot_id": "3a785334-b498-4e99-a973-8ec85ad004ae",
+    "generated_at": "2026-10-21T12:39:01.870625+00:00",
+    "ledger_cutoff_at": "2026-10-21T12:39:01.870625+00:00",
+    "template_version": "v1.0",
+    "finalization_id": "59fae944-cbc2-4d31-88cd-3df97925076b",
+    "finalized_at": "2026-10-21T12:39:01.870625+00:00"
+  }
+}

@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import {createHash,randomUUID} from 'node:crypto';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {Pool,neonConfig} from '@neondatabase/serverless';
+import {S3Client,GetObjectCommand,PutObjectCommand} from '@aws-sdk/client-s3';
+import {readPrivateArtifact} from '../../../apps/web/server/artifacts/download.ts';
+import {databaseSnapshot} from '../../../scripts/recovery-database.mjs';
+neonConfig.webSocketConstructor=WebSocket;
+const sourceUrl=new URL(process.env.DATABASE_URL),targetUrl=new URL(sourceUrl),runtimeUrl=new URL(process.env.DATABASE_RUNTIME_URL);
+assert.equal(process.env.AMS_DATABASE_TESTS,'isolated');assert.equal(sourceUrl.hostname,'ep-mute-silence-b402pwbi-pooler.c-6.us-east-2.aws.neon.tech');assert.equal(sourceUrl.pathname,'/ams_clean_launch_20261021');
+targetUrl.hostname=runtimeUrl.hostname='ep-empty-mode-b42bm5kw-pooler.c-6.us-east-2.aws.neon.tech';
+const sourceEndpoint=process.env.OBJECT_STORE_ENDPOINT,targetEndpoint='https://br-morning-glitter-b4b1qies.storage.c-6.us-east-2.aws.neon.tech',bucket='ams-candidate-recovery';
+assert.equal(new URL(sourceEndpoint).hostname,'br-delicate-term-b4tsbm0u.storage.c-6.us-east-2.aws.neon.tech');assert.equal(process.env.OBJECT_STORE_BUCKET,'ams-recovery-drill');
+const sourceS3=new S3Client({endpoint:sourceEndpoint,region:process.env.AWS_REGION,forcePathStyle:true}),targetS3=new S3Client({endpoint:targetEndpoint,region:process.env.AWS_REGION,forcePathStyle:true});
+const owner=new Pool({connectionString:targetUrl.toString(),max:1}),runtime=new Pool({connectionString:runtimeUrl.toString(),max:1});
+const digest=bytes=>createHash('sha256').update(bytes).digest('hex'),directory=new URL('./candidate-object-backup/',import.meta.url);
+let actor='';
+const client={rpc:async(name,args)=>{assert.equal(name,'authorize_artifact_download');const db=await runtime.connect();try{await db.query('BEGIN READ ONLY');await db.query("SELECT set_config('ams.actor_user_id',$1,true)",[actor]);const rows=(await db.query('SELECT * FROM public.authorize_artifact_download($1,$2,$3)',[args.p_organization_id,args.p_kind,args.p_artifact_id])).rows;await db.query('COMMIT');return{data:rows,error:null};}catch(e){await db.query('ROLLBACK');return{data:null,error:{code:e.code}};}finally{db.release();}}};
+const get=async(s3,b,key)=>{const r=await s3.send(new GetObjectCommand({Bucket:b,Key:key}));assert.ok(r.Body);return Buffer.from(await r.Body.transformToByteArray());};
+try{
+ const items=(await owner.query("SELECT id,organization_id,'invoice-pdfs' AS kind,object_key,sha256,byte_size::text AS byte_size FROM finance.invoice_pdf_versions UNION ALL SELECT id,organization_id,'exports',object_key,output_sha256,output_size::text FROM finance.export_jobs WHERE object_key IS NOT NULL ORDER BY kind,id")).rows;
+ assert.equal(items.length,10);
+ for(const[t,key]of[['attachments','object_key'],['bank_imports','file_object_key'],['import_jobs','file_object_key'],['import_jobs','upload_cleanup_object_key'],['report_snapshots','object_key']])assert.equal((await owner.query(`SELECT count(*)::int AS n FROM finance.${t} WHERE ${key} IS NOT NULL`)).rows[0].n,0,'Unexpected additional referenced files in '+t);
+ const baseline=JSON.parse(await readFile(new URL('./candidate-recovery.private.json',import.meta.url),'utf8'));
+ await mkdir(directory,{recursive:true,mode:0o700});
+ for(const item of items){
+  assert.match(item.sha256,/^[0-9a-f]{64}$/);assert.equal(item.object_key,`${item.organization_id}/${item.kind}/${item.id}`);
+  const bytes=await get(sourceS3,process.env.OBJECT_STORE_BUCKET,item.object_key);assert.equal(digest(bytes),item.sha256);assert.equal(String(bytes.length),item.byte_size);
+  await writeFile(new URL(item.sha256+'.bin',directory),bytes,{flag:'wx',mode:0o600}).catch(e=>{if(e.code!=='EEXIST')throw e;});
+  const backup=await readFile(new URL(item.sha256+'.bin',directory));assert.deepEqual(backup,bytes);
+ }
+ await writeFile(new URL('./candidate-object-manifest.private.json',import.meta.url),JSON.stringify(items,null,2),{flag:'wx',mode:0o600});
+ console.log(JSON.stringify({independentObjectBackup:'passed',files:items.length,pdfs:items.filter(i=>i.kind==='invoice-pdfs').length,exports:items.filter(i=>i.kind==='exports').length,allReferencedObjectClassesInventoried:true}));
+ for(const item of items){
+  await assert.rejects(()=>get(targetS3,bucket,item.object_key),e=>['NoSuchKey','NotFound'].includes(e.name)||e.$metadata?.httpStatusCode===404);
+  const backup=await readFile(new URL(item.sha256+'.bin',directory));
+  await targetS3.send(new PutObjectCommand({Bucket:bucket,Key:item.object_key,Body:backup,ContentLength:backup.length,ContentType:'application/octet-stream',IfNoneMatch:'*'}));
+  const bytes=await get(targetS3,bucket,item.object_key);assert.equal(digest(bytes),item.sha256);assert.equal(String(bytes.length),item.byte_size);
+  const unsigned=await fetch(new URL(`/${bucket}/${item.object_key}`,targetEndpoint),{redirect:'manual'});await unsigned.body?.cancel();assert.ok([403,404].includes(unsigned.status));
+ }
+ process.env.OBJECT_STORE_ENDPOINT=targetEndpoint;process.env.OBJECT_STORE_BUCKET=bucket;
+ let pdfReads=0,revokedExportDenials=0;
+ for(const item of items){
+  if(item.kind==='invoice-pdfs'){
+   actor=(await owner.query("SELECT m.user_id FROM finance.organization_members m JOIN finance.member_roles mr ON mr.organization_id=m.organization_id AND mr.member_id=m.id JOIN finance.roles r ON r.organization_id=mr.organization_id AND r.id=mr.role_id JOIN identity.users u ON u.id=m.user_id WHERE m.organization_id=$1 AND m.status='active' AND r.template_key='owner' AND u.email_normalized LIKE '%@example.invalid' ORDER BY m.id LIMIT 1",[item.organization_id])).rows[0].user_id;
+   const downloaded=await readPrivateArtifact(client,item.organization_id,item.kind,item.id);assert.equal(digest(Buffer.from(await downloaded.bytes.arrayBuffer())),item.sha256);pdfReads++;
+   await assert.rejects(()=>readPrivateArtifact(client,randomUUID(),item.kind,item.id),e=>e.code==='NOT_FOUND');
+   actor='';await assert.rejects(()=>readPrivateArtifact(client,item.organization_id,item.kind,item.id),e=>e.code==='NOT_FOUND');
+  }else{
+   const requester=(await owner.query('SELECT m.user_id,m.status FROM finance.export_jobs e JOIN finance.organization_members m ON m.organization_id=e.organization_id AND m.id=e.requested_by_member_id WHERE e.id=$1',[item.id])).rows[0];
+   assert.notEqual(requester.status,'active');actor=requester.user_id;await assert.rejects(()=>readPrivateArtifact(client,item.organization_id,item.kind,item.id),e=>e.code==='NOT_FOUND');revokedExportDenials++;
+  }
+ }
+ const after=await databaseSnapshot(targetUrl.toString());for(const key of ['facts','migrations','ledger','objects','security'])assert.deepEqual(after[key],baseline[key],'Restored database changed during object recovery: '+key);
+ console.log(JSON.stringify({candidateObjectRestore:'passed',files:items.length,allDigestsAndSizesMatch:true,unsignedRequestsDenied:items.length,restrictedPdfDownloads:pdfReads,revokedExportRequestersStillDenied:revokedExportDenials,anonymousAndWrongCompanyPdfDenials:pdfReads*2,allDatabaseFingerprintsUnchanged:true}));
+}finally{sourceS3.destroy();targetS3.destroy();await runtime.end();await owner.end();}

@@ -1,3 +1,4 @@
+import styles from "../workspace.module.css";
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -28,8 +29,8 @@ export default async function NotificationsPage({params}:{params:Promise<{organi
     if(actor.organizationId!==organizationId)throw CommandError.notFound();items=parseItems(result.data);
   }catch(error){if(error instanceof CommandError&&error.code==="UNAUTHENTICATED")redirect("/auth/sign-in?next=/companies");if(error instanceof CommandError&&error.code==="FORBIDDEN")forbidden=true;
     else if(error instanceof CommandError&&error.code==="NOT_FOUND")redirect("/companies?error=not_found");else throw error;}
-  if(forbidden)return <main><h1>Notifications</h1><p role="alert">You do not have permission to view notifications.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
-  return <main><p className="eyebrow">Workspace</p><h1>Notifications</h1><p>Approvals, due items, and failed delivery or export activity you are authorized to view.</p>
+  if(forbidden)return <main className={styles.page}><h1>Notifications</h1><p role="alert">You do not have permission to view notifications.</p><Link href={`/o/${organizationId}`}>Back to company</Link></main>;
+  return <main className={styles.page}><header className={styles.pageHeader}><p className="eyebrow">Workspace</p><h1>Notifications</h1><p>Approvals, due items, and failed delivery or export activity you are authorized to view.</p></header>
     <p><Link href={`/o/${organizationId}/notifications/preferences`}>Email preferences</Link></p>
     <NotificationList organizationId={organizationId} items={items} canRetryDeliveries={canRetryDeliveries}/></main>;
 }

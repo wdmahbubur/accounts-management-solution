@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -5,6 +6,7 @@ import { resolveActorContext } from "../../../../../server/auth/resolve-actor.ts
 import { CommandError } from "../../../../../server/commands/errors.ts";
 import { readReceiptRegister } from "../../../../../server/documents/customer-receipts.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
+import styles from "../../../../../components/finance/finance.module.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -46,10 +48,22 @@ export default async function ReceiptRegisterPage({ params, searchParams }: {
     return `/o/${organizationId}/sales/receipts?${values.toString()}`;
   };
 
-  return <main className="content"><p className="eyebrow">Sales</p><h1>Customer receipts</h1><p>Receipts record cash evidence and settle receivables. Unallocated amounts remain customer trade credit.</p>
-    <div className="toolbar"><Link className="primary" href={`/o/${organizationId}/sales/receipts/new`}>Record receipt</Link><Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=customer_advance`}>Record customer advance</Link></div>
-    <nav className="toolbar" aria-label="Receipt status">{tabs.map(value => <Link key={value} className={tab === value ? "primary" : "secondary"} aria-current={tab === value ? "page" : undefined} href={href(value)}>{value.replaceAll("_", " ")}</Link>)}</nav>
-    <form className="panel toolbar" action={`/o/${organizationId}/sales/receipts`} method="get"><input type="hidden" name="tab" value={tab}/><label>Search receipts<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, customer or reference"/></label><button type="submit">Search</button>{search && <Link className="secondary" href={href(tab)}>Clear</Link>}</form>
-    <section className="panel"><h2>Receipts</h2>{page.items.length === 0 ? <p>No receipts match these filters.</p> : <div className="table-scroll"><table><thead><tr><th>Number</th><th>Customer</th><th>Date</th><th>Received (BDT)</th><th>Applied (BDT)</th><th>Unused trade credit (BDT)</th><th>State</th></tr></thead><tbody>{page.items.map(receipt => <tr key={receipt.id}><td><Link href={`/o/${organizationId}/sales/receipts/${receipt.id}`}>{receipt.documentNumber ?? "Draft"}</Link></td><td>{receipt.customerName}</td><td>{receipt.issueDate}</td><td>{receipt.totalAmount}</td><td>{receipt.appliedAmount}</td><td>{receipt.unusedCredit}</td><td>{receipt.state.replaceAll("_", " ")} · {receipt.settlementStatus.replaceAll("_", " ")}</td></tr>)}</tbody></table></div>}{page.nextCursor && <p><Link className="secondary" href={href(tab, page.nextCursor)}>Next page</Link></p>}</section>
+  const tabLabels: Record<ReceiptTab, string> = { all: "All", drafts: "Drafts", awaiting_approval: "Awaiting approval", posted: "Posted" };
+  return <main className="content">
+    <header className={styles.pageHeader}><div><p className="eyebrow">Sales</p><h1>Customer receipts</h1><p>Track money received and the invoices it settles.</p></div>
+      <div className={styles.actions}><Link className="primary" href={`/o/${organizationId}/sales/receipts/new`}>Record receipt</Link><Link className="secondary" href={`/o/${organizationId}/accounting/documents/new?type=customer_advance`}>Customer advance</Link></div>
+    </header>
+    <nav className={styles.tabs} aria-label="Receipt status">{tabs.map(value => <Link key={value} aria-current={tab === value ? "page" : undefined} href={href(value)}>{tabLabels[value]}</Link>)}</nav>
+    <form key={JSON.stringify([tab, search])} className="panel toolbar" action={`/o/${organizationId}/sales/receipts`} method="get"><input type="hidden" name="tab" value={tab}/><label>Search receipts<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, customer or reference"/></label><button type="submit">Search</button>{search && <Link className="secondary" href={`/o/${organizationId}/sales/receipts?tab=${tab}`}>Clear</Link>}</form>
+    <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabLabels[tab]} receipts</h2><p>Amounts in <CompanyCurrency /></p></div>
+      {page.items.length === 0 ? <p className={styles.empty}>No receipts match these filters.</p> : <div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Receipt register"><table>
+        <thead><tr><th scope="col">Receipt</th><th scope="col">Customer</th><th scope="col">Date</th><th scope="col" className={styles.amount}>Received</th><th scope="col" className={styles.amount}>Applied</th><th scope="col" className={styles.amount}>Unused trade credit</th><th scope="col">Status</th></tr></thead>
+        <tbody>{page.items.map(receipt => <tr key={receipt.id}><th scope="row"><Link href={`/o/${organizationId}/sales/receipts/${receipt.id}`}>{receipt.documentNumber ?? "Draft"}</Link></th><td>{receipt.customerName}</td><td>{receipt.issueDate}</td>
+          <td className={styles.amount}>{receipt.totalAmount}</td><td className={styles.amount}>{receipt.appliedAmount}</td><td className={styles.amount}>{receipt.unusedCredit}</td>
+          <td><span className={styles.badge}>{receipt.state.replaceAll("_", " ")}</span><span className={styles.meta}>{receipt.settlementStatus.replaceAll("_", " ")}</span></td>
+        </tr>)}</tbody></table></div>}
+      <p className={styles.filterHint}>Unallocated receipt amounts remain customer trade credit. Customer advances are recorded separately.</p>
+      {page.nextCursor && <p className={styles.pagination}><Link className="secondary" href={href(tab, page.nextCursor)}>Next page</Link></p>}
+    </section>
   </main>;
 }

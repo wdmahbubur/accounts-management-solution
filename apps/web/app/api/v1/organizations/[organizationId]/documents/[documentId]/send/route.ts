@@ -4,6 +4,7 @@ import { commandErrorBody, normalizeCommandError, CommandError } from "../../../
 import { generateRequestId } from "../../../../../../../../server/commands/request-context.ts";
 import { getIssuedInvoicePdf } from "../../../../../../../../server/documents/invoice-pdf-storage.ts";
 import { roleRuntime } from "../../../../../../../../server/roles/runtime.ts";
+import { requireInvoiceEmailDelivery } from "../../../../../../../../server/email/readiness.ts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     const runtime = await roleRuntime();
     const actor = await resolveActorContext(organizationId, runtime.dependencies);
     if (!actor.capabilities.includes("sales.write")) throw CommandError.forbidden();
+    requireInvoiceEmailDelivery();
     const pdf = await getIssuedInvoicePdf(runtime.client, actor, documentId);
     const result = await runtime.client.rpc("request_invoice_email_delivery", {
       p_organization_id: organizationId,

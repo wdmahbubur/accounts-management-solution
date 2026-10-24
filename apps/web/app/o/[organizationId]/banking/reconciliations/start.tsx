@@ -1,9 +1,12 @@
 "use client";
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { parseUuid } from "@ams/contracts";
 import type { ReconciliationAccount } from "../../../../../lib/reconciliation-history.ts";
+import styles from "../banking.module.css";
 
 export function ReconciliationStart({ organizationId, accounts, defaultAccountId = "", startsOn = "", endsOn = "" }: {
   organizationId: string; accounts: ReconciliationAccount[]; defaultAccountId?: string; startsOn?: string; endsOn?: string;
@@ -30,24 +33,38 @@ export function ReconciliationStart({ organizationId, accounts, defaultAccountId
       router.push(`/o/${organizationId}/banking/reconciliations/${id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not create reconciliation. Your entered details are preserved.");
-      requestAnimationFrame(() => errorRef.current?.focus());
+      requestAnimationFrame(() => {
+        const summary = errorRef.current;
+        if (!summary) return;
+        // A user can close the native disclosure while a request is pending.
+        // Make a rejected submission visible before moving focus to its error.
+        const details = summary.closest("details");
+        if (details) details.open = true;
+        summary.focus();
+      });
     } finally { pending.current = false; setBusy(false); }
   }
-  const fieldError = (field: string) => fields[field] ? <span id={`reconciliation-${field}-error`} role="alert">{fields[field]}</span> : null;
+  const fieldError = (field: string) => fields[field] ? <span id={`reconciliation-${field}-error`} role="alert" className={styles.fieldError}>{fields[field]}</span> : null;
   const attributes = (field: string) => ({ "aria-invalid": !!fields[field], "aria-describedby": fields[field] ? `reconciliation-${field}-error` : undefined });
-  return <section className="panel" aria-labelledby="reconciliation-start-title">
-    <h2 id="reconciliation-start-title">Start a statement session</h2>
-    <p>Use the account, dates and opening/closing balances shown on the statement. If a draft already exists for the same account and dates, it will resume with its saved balances.</p>
-    {error ? <div ref={errorRef} tabIndex={-1} role="alert"><p>{error}</p>{fields.form ? <p>{fields.form}</p> : null}</div> : null}
+  return <div className={styles.detailsBody}>
+    <p className={styles.muted}>Use the account, dates and balances shown on your statement.</p>
+    {error ? <div ref={errorRef} tabIndex={-1} role="alert" className={styles.error}><p>{error}</p>{fields.form ? <p>{fields.form}</p> : null}</div> : null}
     <form aria-busy={busy} onSubmit={event => { event.preventDefault(); void create(new FormData(event.currentTarget)); }}>
-      <fieldset disabled={busy} className="toolbar"><legend>Statement details</legend>
-        <label>Cash or bank account<select name="account" required defaultValue={defaultAccountId} {...attributes("cash_account_id")}><option value="">Choose an account</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.name} · {account.kind.replaceAll("_", " ")}</option>)}</select>{fieldError("cash_account_id")}</label>
-        <label>Statement start<input name="starts_on" type="date" required value={startDate} onChange={event => setStartDate(event.target.value)} {...attributes("starts_on")}/>{fieldError("starts_on")}</label>
-        <label>Statement end<input name="ends_on" type="date" required min={startDate || undefined} defaultValue={endsOn} {...attributes("ends_on")}/>{fieldError("ends_on")}</label>
-        <label>Opening statement balance (BDT)<input name="opening" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_opening")}/>{fieldError("statement_opening")}</label>
-        <label>Closing statement balance (BDT)<input name="closing" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_closing")}/>{fieldError("statement_closing")}</label>
-        <button type="submit">{busy ? "Opening session…" : "Start or resume reconciliation"}</button>
+      <fieldset disabled={busy} className={styles.fieldSet}><legend>Statement details</legend>
+        <div className={styles.grid}><label>Cash or bank account<select name="account" required defaultValue={defaultAccountId} {...attributes("cash_account_id")}><option value="">Choose an account</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.name} · {account.kind.replaceAll("_", " ")}</option>)}</select>{fieldError("cash_account_id")}</label></div>
+        <div className={styles.grid}>
+          <label>Statement start<input name="starts_on" type="date" required value={startDate} onChange={event => setStartDate(event.target.value)} {...attributes("starts_on")}/>{fieldError("starts_on")}</label>
+          <label>Statement end<input name="ends_on" type="date" required min={startDate || undefined} defaultValue={endsOn} {...attributes("ends_on")}/>{fieldError("ends_on")}</label>
+        </div>
+        <div className={styles.grid}>
+          <label>Opening balance · <CompanyCurrency /><input name="opening" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_opening")}/>{fieldError("statement_opening")}</label>
+          <label>Closing balance · <CompanyCurrency /><input name="closing" inputMode="decimal" pattern="-?[0-9]{1,12}[.][0-9]{2}" placeholder="0.00" required {...attributes("statement_closing")}/>{fieldError("statement_closing")}</label>
+        </div>
+        <div className={styles.formFooter}>
+          <p className={styles.muted}>If a draft already exists for the same account and dates, it will resume with its saved balances.</p>
+          <button type="submit" className="primary">{busy ? "Opening session…" : "Start or resume"}</button>
+        </div>
       </fieldset>
     </form>
-  </section>;
+  </div>;
 }

@@ -1,0 +1,13 @@
+▶ subscription summary is live, permission scoped and does not create paid or accounting state
+  ✔ Owner reads actual member usage with no invented paid plan (3565.9412ms)
+{"fixture":"subscription-summary","organizationId":"b7c5f9df-970e-48ce-90a5-93e548b75e39","paidBillingEnabled":false}
+  ✔ Billing, Auditor, nonmember and foreign companies cannot read platform subscription information (8931.385ms)
+✔ subscription summary is live, permission scoped and does not create paid or accounting state (41434.4435ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41826.4111

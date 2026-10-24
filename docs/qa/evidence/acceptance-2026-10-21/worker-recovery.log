@@ -1,0 +1,15 @@
+▶ renderer/delivery faults and crashed worker leases never repost financial activity
+  ✔ T-43 injected PDF renderer failure preserves the posted journal and creates no issued version (29456.203ms)
+  ✔ T-43 missing issued file causes delivery-only retry; restored bytes deliver through loopback SMTP (56882.3515ms)
+{"stage":"worker killed during SMTP; waiting for actual lease expiry","eventId":"283090c8-8449-4c93-b2e1-d2c92a743e93","leaseUntil":"2026-10-20T21:59:11.132Z"}
+{"fixture":"worker-recovery","organizationId":"40eb2354-89f5-4cd1-bdf3-48790cf3dd76","localSmtpMessages":3}
+  ✔ S-19 kill a real worker during SMTP delivery; expired lease is reclaimed and old token is fenced (133094.9301ms)
+✔ renderer/delivery faults and crashed worker leases never repost financial activity (255744.7997ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 261952.5973

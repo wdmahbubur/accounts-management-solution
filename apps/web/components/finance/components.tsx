@@ -1,4 +1,6 @@
 "use client";
+import {CompanyCurrency} from './company-currency.tsx';
+
 import { createContext, useContext, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { displayMoney, feedback, moneyInputError, type FeedbackKind, type ScopedOptions } from "./contracts.ts";
 import styles from "./finance.module.css";
@@ -34,7 +36,7 @@ export function MoneyInput({ label, name, value, onChange, error, allowNegative 
     <input id={id} name={name} value={value} onChange={(e) => onChange(e.target.value)} onBlur={() => setTouched(true)}
       type="text" inputMode="decimal" autoComplete="off" spellCheck={false} maxLength={22} disabled={disabled || !online || readOnly}
       aria-invalid={Boolean(message)} aria-describedby={`${id}-hint${message ? ` ${id}-error` : ""}`} />
-    <small id={`${id}-hint`}>BDT · use two decimal places, for example 1250.00</small>
+    <small id={`${id}-hint`}><CompanyCurrency /> · use two decimal places, for example 1250.00</small>
     {message && <p id={`${id}-error`} role="alert">{message}</p>}
   </div>;
 }
@@ -75,7 +77,7 @@ export function PostingPreview({ state, data }: { state: "loading" | "error" | "
   if (!data) return <ViewState kind="error" />;
   return <section aria-label="Posting preview"><h2>Posting preview</h2><p>Not posted · reviewed source version {data.sourceVersion}</p>
     <div className={styles.table} tabIndex={0} role="region" aria-label="Posting preview table"><table><caption>Server-provided journal preview</caption>
-      <thead><tr><th scope="col">Account</th><th scope="col">Debit</th><th scope="col">Credit</th></tr></thead>
+      <thead><tr><th scope="col">Account</th><th scope="col" className={styles.amount}>Debit</th><th scope="col" className={styles.amount}>Credit</th></tr></thead>
       <tbody>{data.rows.map((row) => <tr key={row.id}><th scope="row">{row.accountLabel}</th><td><MoneyCell value={row.debit} /></td><td><MoneyCell value={row.credit} /></td></tr>)}</tbody>
       <tfoot><tr><th scope="row">Server totals</th><td><MoneyCell value={data.totalDebit} /></td><td><MoneyCell value={data.totalCredit} /></td></tr></tfoot>
     </table></div></section>;

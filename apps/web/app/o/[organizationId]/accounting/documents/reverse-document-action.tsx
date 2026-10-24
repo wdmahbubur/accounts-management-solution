@@ -8,7 +8,7 @@ import {
 } from "./document-action-validation.ts";
 
 export function ReverseDocumentAction({ organizationId, documentId, sourceDate, defaultDate }: {
-  organizationId: string; documentId: string; sourceDate: string; defaultDate?: string;
+  organizationId: string; documentId: string; sourceDate: string; defaultDate: string;
 }) {
   const router = useRouter();
   const id = useId();

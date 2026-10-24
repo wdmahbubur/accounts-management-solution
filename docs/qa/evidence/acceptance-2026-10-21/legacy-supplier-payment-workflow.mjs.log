@@ -1,0 +1,8 @@
+{"check":"actual restricted login; unique fixtures; runtime company creation/zero activation; privileged identity/role/contact/bank seeding disclosed","status":"passed","organization_id":"c4da30bd-fd8e-4b47-8c11-724fa9d6556e"}
+{"check":"read-only target choices expose exact supplier references/capacity; role, customer-only, foreign-party and foreign-company denials; unallocated preparation still works without dues.read","status":"passed"}
+{"check":"partial payment across two bills matches authoritative preview, posts AP debit/bank credit without a second expense, leaves unused trade debit and replays once","status":"passed"}
+{"check":"wrong-supplier target fails atomically and editing an approved payment invalidates its source version/review","status":"passed"}
+{"check":"backdated choices respect every future capacity boundary; future allocation/unapply history is retained while current lifecycle totals use company today","status":"passed"}
+{"check":"draft/void/future/reversed sources excluded; effective reversal state and future history remain dated; generic reversal metadata stays permission-scoped; original journal is unchanged","status":"passed"}
+{"check":"two independent runtime connections competing for 10.00 residual commit only one 6.00 supplier payment and leave 4.00 outstanding","status":"passed"}
+{"result":"passed","checks":7,"organization_id":"c4da30bd-fd8e-4b47-8c11-724fa9d6556e","bill_id":"ed9c9d9c-b9a3-49dd-988d-d2465c456f17","payment_id":"c095f1a2-3f9a-4427-9fb1-f5db41c0f50b","note":"Unique synthetic fixtures retained. Privileged identity/role/contact/bank seeding and one void-state fixture are explicit; business commands and reads used the actual restricted login. No reset, prior fixture changes or provider calls."}

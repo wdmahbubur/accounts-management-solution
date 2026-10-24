@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -6,6 +7,7 @@ import { CommandError } from "../../../../../server/commands/errors.ts";
 import { readBillRegister, type BillTab } from "../../../../../server/documents/bill-register.ts";
 import { roleRuntime } from "../../../../../server/roles/runtime.ts";
 import { registerHref } from "../../../../../lib/register-navigation.ts";
+import styles from "../../../../../components/finance/finance.module.css";
 
 export const dynamic="force-dynamic";export const revalidate=0;
 const tabs:[BillTab,string][]=[["all","All"],["drafts","Drafts"],["awaiting_approval","Awaiting approval"],["posted","Posted"]];
@@ -19,10 +21,19 @@ export default async function BillRegisterPage({params,searchParams}:{params:Pro
  if(forbidden)return <main className="content"><h1>Access denied</h1><p>You need purchases.read to view bills.</p></main>;if(failure)throw failure;if(!page)throw new Error("Bill register response was empty.");
  const base=`/o/${organizationId}/purchases/bills`;
  const href=(next:BillTab,after?:string)=>registerHref(base,{tab:next,search,after});
- return <main className="content"><p className="eyebrow">Purchases</p><h1>Supplier bills</h1><p>Track vendor liabilities, invoice references, duplicate warnings and payments. Saving a draft has no ledger effect.</p>
-  <div className="toolbar"><Link className="primary" href={`/o/${organizationId}/purchases/bills/new`}>Create bill</Link></div>
-  <nav className="toolbar" aria-label="Bill status">{tabs.map(([value,label])=><Link key={value} aria-current={tab===value?"page":undefined} className={tab===value?"primary":"secondary"} href={href(value)}>{label}</Link>)}</nav>
-  <form key={JSON.stringify([tab,search])} className="panel toolbar" action={base} method="get"><input type="hidden" name="tab" value={tab}/><label>Search bills<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, vendor or invoice reference"/></label><button type="submit">Search</button>{search&&<Link className="secondary" href={registerHref(base,{tab})}>Clear</Link>}</form>
-  <section className="panel"><h2>{tabs.find(([value])=>value===tab)?.[1]} bills</h2>{page.items.length===0?<p>No bills match these filters.</p>:<div className="table-scroll"><table><thead><tr><th>Number</th><th>Vendor</th><th>Vendor invoice</th><th>Bill date</th><th>Due date</th><th>Total (BDT)</th><th>AP residual</th><th>Status</th><th>Actions</th></tr></thead><tbody>{page.items.map(bill=><tr key={bill.id}><td><Link href={`/o/${organizationId}/purchases/bills/${bill.id}`}>{bill.documentNumber??"Draft"}</Link></td><td>{bill.vendorName}</td><td>{bill.invoiceReference??"—"}{bill.duplicateReference&&<strong role="status"> · Possible duplicate</strong>}</td><td>{bill.issueDate}</td><td>{bill.dueDate??"—"}</td><td>{bill.totalAmount}</td><td>{bill.residualAmount??"—"}</td><td>{bill.settlementStatus.replaceAll("_"," ")}</td><td><Link href={`/o/${organizationId}/purchases/bills/${bill.id}`}>Open</Link> · <Link href={`/o/${organizationId}/purchases/bills/new?copy=${bill.id}`}>Duplicate</Link></td></tr>)}</tbody></table></div>}{page.nextCursor&&<p><Link className="secondary" href={href(tab,page.nextCursor)}>Next page</Link></p>}</section>
+ return <main className="content">
+  <header className={styles.pageHeader}><div><p className="eyebrow">Purchases</p><h1>Supplier bills</h1><p>Track supplier invoices, amounts due and payments.</p></div><div className={styles.actions}><Link className="primary" href={`/o/${organizationId}/purchases/bills/new`}>Create bill</Link></div></header>
+  <nav className={styles.tabs} aria-label="Bill status">{tabs.map(([value,label])=><Link key={value} aria-current={tab===value?"page":undefined} href={href(value)}>{label}</Link>)}</nav>
+  <form key={JSON.stringify([tab,search])} className="panel toolbar" action={base} method="get"><input type="hidden" name="tab" value={tab}/><label>Search bills<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, supplier or invoice reference"/></label><button type="submit">Search</button>{search&&<Link className="secondary" href={registerHref(base,{tab})}>Clear</Link>}</form>
+  <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value])=>value===tab)?.[1]} bills</h2><p>Amounts in <CompanyCurrency /></p></div>
+    {page.items.length===0?<p className={styles.empty}>No bills match these filters.</p>:<div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Supplier bill register"><table>
+      <thead><tr><th scope="col">Bill / supplier reference</th><th scope="col">Supplier</th><th scope="col">Dates</th><th scope="col" className={styles.amount}>Total</th><th scope="col" className={styles.amount}>Outstanding</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+      <tbody>{page.items.map(bill=><tr key={bill.id}>
+        <th scope="row"><Link href={`/o/${organizationId}/purchases/bills/${bill.id}`}>{bill.documentNumber??"Draft"}</Link><span className={styles.meta}>Supplier ref: {bill.invoiceReference??"—"}</span>{bill.duplicateReference&&<strong className={styles.warning} role="status">Possible duplicate reference</strong>}</th>
+        <td>{bill.vendorName}</td><td>{bill.issueDate}<span className={styles.meta}>Due {bill.dueDate??"—"}</span></td><td className={styles.amount}>{bill.totalAmount}</td><td className={styles.amount}>{bill.residualAmount??"—"}</td><td><span className={styles.badge}>{bill.settlementStatus.replaceAll("_"," ")}</span></td>
+        <td><div className={styles.actions}><Link href={`/o/${organizationId}/purchases/bills/${bill.id}`}>Open</Link><Link href={`/o/${organizationId}/purchases/bills/new?copy=${bill.id}`}>Duplicate</Link></div></td>
+      </tr>)}</tbody></table></div>}
+    {page.nextCursor&&<p className={styles.pagination}><Link className="secondary" href={href(tab,page.nextCursor)}>Next page</Link></p>}
+  </section>
  </main>;
 }

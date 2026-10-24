@@ -1,0 +1,30 @@
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Back to home":
+    - /url: /
+  - paragraph: Your account
+  - heading "Create account" [level=1]
+  - paragraph: Create your personal login, then verify your email.
+  - alert: Account email is temporarily unavailable. Try again later.
+  - form "Create personal account":
+    - generic: Display name
+    - textbox "Display name": E2E Retained Name
+    - generic: Email
+    - textbox "Email": <redacted>
+    - generic: Password
+    - textbox "Password"
+    - generic: At least 10 characters, including uppercase, lowercase and a number.
+    - button "Create account"
+  - generic "Need another verification email?"
+  - alert: Account email is temporarily unavailable. Try again later.
+  - form "Resend email verification":
+    - generic: Email
+    - textbox "Email": <redacted>
+    - button "Request verification email"
+  - paragraph: Check your inbox and spam folder. Please wait before requesting another email.
+  - link "Back to sign in":
+    - /url: /auth/sign-in
+- alert

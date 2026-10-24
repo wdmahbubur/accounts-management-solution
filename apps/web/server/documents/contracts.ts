@@ -1,4 +1,5 @@
 import { parseMoneyString, parseUuid, type MoneyString, type Uuid } from "@ams/contracts";
+import {isBaseCurrency,type BaseCurrency} from '@ams/contracts';
 import { CommandError, retryableTransactionError, type RetryableTransactionError } from "../commands/errors.ts";
 
 export const sourceTypes = ["invoice","customer_credit","bill","vendor_credit","paid_expense","receipt","vendor_payment","customer_refund","vendor_refund","customer_advance","vendor_advance","transfer","manual_journal","controlled_adjustment","opening_balance"] as const;
@@ -6,7 +7,7 @@ export type SourceType = typeof sourceTypes[number];
 export interface DraftLine { id: Uuid|null; itemId: Uuid|null; originalLineId: Uuid|null; description: string; quantity: string; unitPrice: string; discountAmount: MoneyString; accountId: Uuid; costCenterId: Uuid|null; taxCodeId: Uuid|null; taxMode: "inclusive"|"exclusive"; cashFlowClass: string|null }
 export interface DraftDocument {
   documentType: SourceType; partyId: Uuid|null; issueDate: string; accountingDate: string; dueDate: string|null;
-  externalReference: string|null; description: string; currency: "BDT"; roundingAdjustment: MoneyString; roundingReason:string|null; roundingAccountId:Uuid|null;
+  externalReference: string|null; description: string; currency: BaseCurrency; roundingAdjustment: MoneyString; roundingReason:string|null; roundingAccountId:Uuid|null;
   trade: Record<string, unknown>|null; movement: Record<string, unknown>|null; transfer: Record<string, unknown>|null;
   lines: DraftLine[]; journalRows: Record<string, unknown>[]; allocationPlan: { targetOpenItemId: Uuid; amount: MoneyString }[];
 }
@@ -32,7 +33,7 @@ export function validateAllocationPlanInput(raw:unknown):AllocationPlanInput{
 export function validateDraftDocument(raw:unknown):DraftDocument{
   const r=record(raw);exactKeys(r,["document_type","party_id","issue_date","accounting_date","due_date","external_reference","description","currency","rounding_adjustment","rounding_reason","rounding_account_id","trade","movement","transfer","lines","journal_rows","allocation_plan"],"body");
   const documentType=enumValue(r.document_type,sourceTypes,"document_type") as SourceType;
-  if(r.currency!=="BDT")throw CommandError.validation({currency:"V1 supports BDT only."});
+  if(!isBaseCurrency(r.currency))throw CommandError.validation({currency:"Choose a supported two-decimal company currency."});
   if(!Array.isArray(r.lines)||r.lines.length>500)throw CommandError.validation({lines:"Use up to 500 document lines."});
   if(!Array.isArray(r.journal_rows)||r.journal_rows.length>1000)throw CommandError.validation({journal_rows:"Use up to 1,000 journal rows."});
   const allocationPlanRaw=r.allocation_plan??[];if(!Array.isArray(allocationPlanRaw)||allocationPlanRaw.length>100)throw CommandError.validation({allocation_plan:"Use up to 100 settlement targets."});
@@ -66,8 +67,8 @@ export function validateDraftDocument(raw:unknown):DraftDocument{
   const roundingAdjustment=parseMoneyString(r.rounding_adjustment??"0.00","rounding_adjustment");const roundingUnits=BigInt(roundingAdjustment.replace(".",""));
   const roundingReason=r.rounding_reason===null||r.rounding_reason===undefined?null:text(r.rounding_reason,"rounding_reason",500);
   const roundingAccountId=idOrNull(r.rounding_account_id??null,"rounding_account_id");
-  if((roundingUnits===0n&&(roundingReason!==null||roundingAccountId!==null))||(roundingUnits!==0n&&(roundingUnits < -5n||roundingUnits>5n||!roundingReason||!roundingAccountId)))throw CommandError.validation({rounding_adjustment:"A nonzero rounding adjustment up to 0.05 BDT needs a reason and rounding account."});
-  return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:"BDT",roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows,allocationPlan};
+  if((roundingUnits===0n&&(roundingReason!==null||roundingAccountId!==null))||(roundingUnits!==0n&&(roundingUnits < -5n||roundingUnits>5n||!roundingReason||!roundingAccountId)))throw CommandError.validation({rounding_adjustment:"A nonzero rounding adjustment up to 0.05 in company currency needs a reason and rounding account."});
+  return{documentType,partyId:idOrNull(r.party_id??null,"party_id"),issueDate,accountingDate,dueDate,externalReference:r.external_reference===null||r.external_reference===undefined?null:text(r.external_reference,"external_reference",160,true),description:text(r.description??"","description",2000,true),currency:r.currency,roundingAdjustment,roundingReason,roundingAccountId,trade,movement,transfer,lines,journalRows,allocationPlan};
 }
 export function documentDatabaseError(error:{code?:string;message?:string}):CommandError|RetryableTransactionError{
   if(error.code==="23514"){

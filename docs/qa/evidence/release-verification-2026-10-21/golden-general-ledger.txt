@@ -1,0 +1,168 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/documents
+      - link "Journal register":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals
+      - link "General ledger":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - generic: General ledger
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Accounting · Golden alpha
+  - heading "General ledger" [level=1]
+  - generic "Ledger basis and snapshot · Posted ledger"
+  - text: Account
+  - combobox "Account":
+    - option "Choose an account"
+    - option "1000 · Cash on hand"
+    - option "1010 · Bank" [selected]
+    - option "1020 · Mobile wallet"
+    - option "1030 · Payment clearing"
+    - option "1100 · Trade receivables"
+    - option "1150 · Supplier advances"
+    - option "1200 · Recoverable input tax"
+    - option "1300 · Prepaid expenses"
+    - option "1500 · Equipment"
+    - option "1590 · Accumulated depreciation"
+    - option "2000 · Trade payables"
+    - option "2100 · Output tax payable"
+    - option "2200 · Customer advances"
+    - option "2250 · Deferred revenue"
+    - option "2300 · Loans payable"
+    - option "3000 · Owner/share capital"
+    - option "3100 · Retained earnings"
+    - option "3200 · Distributions/drawings"
+    - option "3900 · Opening suspense"
+    - option "4000 · Service revenue"
+    - option "4090 · Sales returns/allowances"
+    - option "5000 · Direct service costs"
+    - option "6000 · Rent"
+    - option "6100 · Utilities"
+    - option "6200 · Salaries"
+    - option "6300 · Marketing"
+    - option "6400 · Bank charges"
+    - option "6500 · Bad debts"
+    - option "6600 · Rounding difference"
+  - text: From
+  - textbox "From": 0001-01-01
+  - text: To
+  - textbox "To": 2025-01-31
+  - text: Source or memo
+  - searchbox "Source or memo"
+  - text: Cost center
+  - combobox "Cost center":
+    - option "All cost centers" [selected]
+  - button "Show ledger"
+  - heading "1010 · Bank" [level=2]
+  - paragraph: "Opening balance at 0001-01-01: BDT 0.00"
+  - table:
+    - rowgroup:
+      - row "Date Source Account line Debit Credit Movement Running balance":
+        - columnheader "Date"
+        - columnheader "Source"
+        - columnheader "Account line"
+        - columnheader "Debit"
+        - columnheader "Credit"
+        - columnheader "Movement"
+        - columnheader "Running balance"
+    - rowgroup:
+      - row "2025-01-15 JV-FY 2025-000001 · manual journal Synthetic golden owner contribution 100000.00 0.00 100000.00 100000.00":
+        - cell "2025-01-15"
+        - cell "JV-FY 2025-000001 · manual journal":
+          - link "JV-FY 2025-000001 · manual journal":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/2d056750-29b2-4d77-87a5-d7f82bde25a0
+        - cell "Synthetic golden owner contribution"
+        - cell "100000.00"
+        - cell "0.00"
+        - cell "100000.00"
+        - cell "100000.00"
+      - row "2025-01-15 RCPT-FY 2025-000001 · receipt 6000.00 0.00 6000.00 106000.00":
+        - cell "2025-01-15"
+        - cell "RCPT-FY 2025-000001 · receipt":
+          - link "RCPT-FY 2025-000001 · receipt":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/a9a92bbf-7f7d-4b53-b7d2-e79944e424db
+        - cell
+        - cell "6000.00"
+        - cell "0.00"
+        - cell "6000.00"
+        - cell "106000.00"
+      - row "2025-01-15 EXP-FY 2025-000001 · paid expense 0.00 1000.00 -1000.00 105000.00":
+        - cell "2025-01-15"
+        - cell "EXP-FY 2025-000001 · paid expense":
+          - link "EXP-FY 2025-000001 · paid expense":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/622ab834-76ae-4ad5-a4c3-e8c90d58743d
+        - cell
+        - cell "0.00"
+        - cell "1000.00"
+        - cell "-1000.00"
+        - cell "105000.00"
+      - row "2025-01-15 PAY-FY 2025-000001 · vendor payment 0.00 3000.00 -3000.00 102000.00":
+        - cell "2025-01-15"
+        - cell "PAY-FY 2025-000001 · vendor payment":
+          - link "PAY-FY 2025-000001 · vendor payment":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/journals/6b7d093d-7956-49b8-a037-2bb3ebeb472b
+        - cell
+        - cell "0.00"
+        - cell "3000.00"
+        - cell "-3000.00"
+        - cell "102000.00"
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: General ledger

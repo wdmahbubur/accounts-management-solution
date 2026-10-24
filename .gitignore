@@ -11,3 +11,5 @@ coverage/
 .local-private-objects/
 **/.local-private-objects/
 .DS_Store
+# Private local operational evidence, credentials and synthetic backup bytes.
+/output/

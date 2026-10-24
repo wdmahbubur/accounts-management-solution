@@ -25,7 +25,7 @@ const sourceNames: Record<string, string> = {
   invoice: "Invoice", customer_credit: "Customer credit", bill: "Supplier bill", vendor_credit: "Supplier credit",
   paid_expense: "Paid expense", receipt: "Customer receipt", vendor_payment: "Supplier payment",
   customer_refund: "Customer refund", vendor_refund: "Supplier refund", customer_advance: "Customer advance",
-  vendor_advance: "Supplier advance", transfer: "Account transfer", manual_journal: "Manual journal",
+  vendor_advance: "Supplier advance", advance_application: "Advance application", transfer: "Account transfer", manual_journal: "Manual journal",
   controlled_adjustment: "Controlled adjustment", opening_balance: "Opening balance", write_off: "Write-off",
   reversal: "Reversal", year_close: "Year close"
 };
@@ -115,7 +115,7 @@ export function settlementStateLabel(allocation: DetailRecord, asOfDate: unknown
 
 export function settlementHistoryCaption(asOfDate: unknown): string {
   const date = detailDate(asOfDate);
-  return `Linked settlement history · BDT${date === "—" ? "" : ` · status as of ${date}`}`;
+  return `Linked settlement history · company currency${date === "—" ? "" : ` · status as of ${date}`}`;
 }
 
 export function detailTimestamp(value: unknown): string {
@@ -131,7 +131,7 @@ export function detailDecimal(value: unknown, money = false): string {
   if (typeof value !== "string" || !/^-?(?:0|[1-9]\d*)(?:\.\d{1,6})?$/.test(value)) throw new Error("Saved decimal value is invalid.");
   const [whole, fraction = ""] = value.split(".");
   const digits = fraction.replace(/0+$/, "");
-  return `${money ? "৳" : ""}${whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${digits ? `.${money ? digits.padEnd(2, "0") : digits}` : money ? ".00" : ""}`;
+  return `${whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${digits ? `.${money ? digits.padEnd(2, "0") : digits}` : money ? ".00" : ""}`;
 }
 
 export function exactJournalTotals(rows: readonly DetailRecord[]) {
