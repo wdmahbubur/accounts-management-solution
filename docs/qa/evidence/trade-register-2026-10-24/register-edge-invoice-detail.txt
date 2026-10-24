@@ -1,0 +1,163 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales" [expanded]:
+          - generic: Sales
+      - link "Invoices":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices
+      - link "Customer receipts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/receipts
+      - link "Customers":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/customers
+      - link "Service catalogue":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/catalog/items
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Invoices":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices
+    - generic: /
+    - generic: Invoice details
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - link "← Invoices":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices
+  - paragraph: Invoice
+  - heading "INV-FY 2025-000002" [level=1]
+  - generic: Posted
+  - generic: Reversed
+  - paragraph: A linked reversal preserves the original document and its accounting history.
+  - generic: Document total · USD
+  - strong: "100.00"
+  - term: Settlement
+  - definition: Reversed
+  - term: Outstanding · USD
+  - definition: "0.00"
+  - term: Delivery
+  - definition: Not sent
+  - link "Download issued PDF":
+    - /url: /api/v1/organizations/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/invoices/d3ddd1af-dc03-44bd-9bcf-745266937540/pdf
+  - paragraph:
+    - text: "This document has a linked reversal:"
+    - link "REV-FY 2025-000004":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/b14eb3e4-cd7c-4503-944c-37c8fd8f0123
+  - region "Document details":
+    - heading "Document details" [level=2]
+    - region "Issued customer":
+      - heading "Issued customer" [level=3]
+      - paragraph: Synthetic customer
+      - heading "Billing address" [level=4]
+      - paragraph: No billing address was recorded on this document.
+      - paragraph: These are the original issued details. Later contact edits do not change this document.
+    - term: Issue date
+    - definition: 15 Jan 2025
+    - term: Accounting date
+    - definition: 15 Jan 2025
+    - term: Due date
+    - definition: 15 Jan 2025
+    - term: Recognition
+    - definition: Earned or incurred
+    - term: Performance confirmed
+    - definition: "Yes"
+    - heading "Description" [level=3]
+    - paragraph: Synthetic acceptance invoice
+  - region "Items and services":
+    - heading "Items and services" [level=2]
+    - region "Document items":
+      - table "Saved line amounts · USD":
+        - caption: Saved line amounts · USD
+        - rowgroup:
+          - row "Item / description Quantity Unit rate Discount Net Tax Total":
+            - columnheader "Item / description"
+            - columnheader "Quantity"
+            - columnheader "Unit rate"
+            - columnheader "Discount"
+            - columnheader "Net"
+            - columnheader "Tax"
+            - columnheader "Total"
+        - rowgroup:
+          - row "Synthetic service 1 100.00 0.00 100.00 0.00 No tax · 0% 100.00":
+            - rowheader "Synthetic service"
+            - cell "1"
+            - cell "100.00"
+            - cell "0.00"
+            - cell "100.00"
+            - cell "0.00 No tax · 0%":
+              - text: "0.00"
+              - generic: No tax · 0%
+            - cell "100.00":
+              - strong: "100.00"
+    - term: Net
+    - definition: "100.00"
+    - term: Tax
+    - definition: "0.00"
+    - term: Total · USD
+    - definition: "100.00"
+  - region "Payments and credits":
+    - heading "Payments and credits" [level=2]
+    - table "Linked settlement history · company currency · status as of 24 Oct 2026":
+      - caption: Linked settlement history · company currency · status as of 24 Oct 2026
+      - rowgroup:
+        - row "Effective date Source Amount Allocation state":
+          - columnheader "Effective date"
+          - columnheader "Source"
+          - columnheader "Amount"
+          - columnheader "Allocation state"
+      - rowgroup:
+        - row "20 Jan 2025 REV-FY 2025-000004 100.00 Active":
+          - cell "20 Jan 2025"
+          - cell "REV-FY 2025-000004"
+          - cell "100.00"
+          - cell "Active"
+  - generic "Accounting2"
+  - generic "Delivery history0"
+  - generic "Approval history1"
+  - generic "Linked corrections1"
+  - generic "Attachments0"
+  - generic "Activity log3"
+  - generic "Document reference information"
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert

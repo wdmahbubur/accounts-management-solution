@@ -1,0 +1,34 @@
+{
+  "desktop": {
+    "ids": [
+      {
+        "height": 20.625,
+        "lineHeight": "20.64px",
+        "text": "BILL-FY 2025-000001",
+        "whiteSpace": "nowrap"
+      }
+    ],
+    "pageClient": 1440,
+    "pageScroll": 1440,
+    "text": "Bill / supplier reference\tSupplier\tDates\tTotal\tOutstanding\tStatus\tActions\nBILL-FY 2025-000001\nSupplier ref: e92180df-0f9f-4cc5-8eab-fc29710e0d1e\n\tSynthetic vendor\t2025-01-15\nDue 2025-01-15\n\t100.00\t0.00\tReversed\t\nOpen\nDuplicate",
+    "width": 1440
+  },
+  "narrow": {
+    "pageClient": 300,
+    "pageScroll": 300,
+    "regionClient": 235,
+    "regionLeft": 0,
+    "regionScroll": 1088,
+    "rows": [
+      {
+        "datesWhiteSpace": "nowrap",
+        "id": "BILL-FY 2025-000001",
+        "idHeight": 20.625,
+        "idLineHeight": "20.64px",
+        "status": "Reversed",
+        "statusWhiteSpace": "nowrap"
+      }
+    ],
+    "width": 320
+  }
+}

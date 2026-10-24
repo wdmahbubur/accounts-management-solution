@@ -1,0 +1,22 @@
+▶ invoice register and detail distinguish payment, dated reversal and future posting
+  ✔ effective reversal is explicit and never called paid (3735.1613ms)
+  ✔ future reversal does not alter today's status or balance (3742.0014ms)
+  ✔ company-local date controls reversal availability (6196.1406ms)
+  ✔ future source has no current outstanding amount or overdue flag (3706.091ms)
+{"fixture":"invoice-register-status","organizationId":"4269d107-7fad-495d-b8a5-57b6f267b82c","today":"2026-10-24","future":"2026-10-25","immutableJournal":true,"zeroControlBridge":true}
+✔ invoice register and detail distinguish payment, dated reversal and future posting (131080.0016ms)
+▶ bill register and detail distinguish payment, dated reversal and future posting
+  ✔ effective reversal is explicit and never called paid (3718.1512ms)
+  ✔ future reversal does not alter today's status or balance (3733.0504ms)
+  ✔ company-local date controls reversal availability (6088.3798ms)
+  ✔ future source has no current outstanding amount or overdue flag (3709.8716ms)
+{"fixture":"bill-register-status","organizationId":"c3b5404c-9d7b-4f5d-a7d0-20689c377461","today":"2026-10-24","future":"2026-10-25","immutableJournal":true,"zeroControlBridge":true}
+✔ bill register and detail distinguish payment, dated reversal and future posting (130052.1484ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 261870.2277

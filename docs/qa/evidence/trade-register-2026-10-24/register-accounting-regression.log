@@ -1,0 +1,35 @@
+▶ golden books reconcile invoice, collection, purchases, paid expense and statements
+  ✔ T-01 drafts have no ledger effect; capital contributes cash without revenue (12306.8892ms)
+  ✔ T-02..T-05 an invoice posts once under same-key and different-key retries (9918.6031ms)
+  ✔ T-06 a partial collection leaves AR 4000 and does not recognize revenue twice (6843.9369ms)
+  ✔ T-14 a vendor payment reduces AP without a second expense (10540.6041ms)
+  ✔ paid rent recognizes one expense and cash movement (6235.3686ms)
+  ✔ T-26 historical AR/AP aging follows settlement dates and reconciles control accounts (7433.7979ms)
+  ✔ T-47 GL, trial balance, profit/loss, balance sheet and cash flow tie to golden books (19772.1155ms)
+  ✔ statement unapply evidence retains both distinct source documents without another journal (4364.5435ms)
+{"fixture":"golden-books","organizationId":"146ead8a-5121-4e85-9b9c-2c15f522298b","invoice":"e6694fd3-1351-4218-b386-d022d4d6879b"}
+  ✔ S-03 reports deny Billing and foreign identities while Auditor succeeds (20458.2401ms)
+✔ golden books reconcile invoice, collection, purchases, paid expense and statements (126773.3074ms)
+{"fixture":"bank-reversal-dependencies","organizationId":"5a154368-f5ab-44f8-b5dd-0c77f3f06449"}
+✔ resolved bank match history permits a source reversal while active and finalized matches still block (82611.2168ms)
+{"fixture":"customer_credit-reversal-dependency","organizationId":"1e3a4da9-4dbf-4649-921d-d2b0d271727f"}
+✔ customer_credit: only a posted child reversal effective by the requested date resolves its dependency (55580.6624ms)
+{"fixture":"vendor_credit-reversal-dependency","organizationId":"de34432e-685b-4557-95d5-a0fe87dc1ee1"}
+✔ vendor_credit: only a posted child reversal effective by the requested date resolves its dependency (55806.12ms)
+✔ customer_credit: refund history is released only on or after its reversal date (60281.5019ms)
+✔ vendor_credit: refund history is released only on or after its reversal date (61942.1943ms)
+▶ independent bank mutation/source-reversal races cannot leave a live match on a reversed source
+  ✔ finalize/source reversal and finalize/unmatch races preserve active finalized evidence (34334.4464ms)
+  ✔ new match versus source reversal has one winner (20710.0351ms)
+  ✔ unmatch versus source reversal is serialized before reading dependencies (24821.6239ms)
+{"fixture":"reversal-dependency-races","organizationId":"8200f86f-cec5-4875-a445-56f7eebfe8fc","independentConnections":2}
+  ✔ different-key source reversals still produce one opposite journal (21417.7488ms)
+✔ independent bank mutation/source-reversal races cannot leave a live match on a reversed source (129648.5622ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 446719.5591

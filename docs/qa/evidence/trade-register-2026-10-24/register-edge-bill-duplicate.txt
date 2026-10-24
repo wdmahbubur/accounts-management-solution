@@ -1,0 +1,132 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - button "Menu":
+    - text: Menu
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Supplier bills":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/purchases/bills
+    - generic: /
+    - generic: Create supplier bill
+  - button "Sign out"
+- main:
+  - region "Duplicate · supplier bill":
+    - paragraph: Copy as a new draft · USD
+    - heading "Duplicate · supplier bill" [level=1]
+    - paragraph: Save your draft, check the saved preview, then submit it for approval. Saving a draft does not post to your books.
+    - region "Document details":
+      - heading "Document details" [level=2]
+      - text: Supplier
+      - combobox "Supplier":
+        - option "Choose a supplier"
+        - option "Synthetic dual"
+        - option "Synthetic vendor" [selected]
+      - text: Issue date
+      - textbox "Issue date": 2026-10-24
+      - text: Accounting date
+      - textbox "Accounting date": 2026-10-24
+      - generic: Due date Optional
+      - textbox "Due date Optional"
+      - generic: Reference Optional
+      - textbox "Reference Optional":
+        - /placeholder: PO number or your reference
+      - generic: Description Optional
+      - textbox "Description Optional":
+        - /placeholder: What is this document for?
+        - text: Synthetic acceptance bill
+      - paragraph: The issue date appears on the document. The accounting date determines when it is recorded in the books.
+    - heading "Supplier invoice" [level=2]
+    - text: Supplier invoice date
+    - textbox "Supplier invoice date"
+    - text: Supplier invoice reference
+    - textbox "Supplier invoice reference"
+    - region "Items and services":
+      - heading "Items and services" [level=2]
+      - paragraph: Amounts are in USD. Add a discount to the line it applies to.
+      - generic: 1 line
+      - region "Line 1":
+        - heading "Line 1" [level=3]
+        - generic: "100.00"
+        - button "Remove line 1" [disabled]: Remove
+        - generic: Catalogue item Optional
+        - combobox "Catalogue item Optional":
+          - option "Enter a custom item or service" [selected]
+        - text: Description
+        - textbox "Description":
+          - /placeholder: Describe the service or item
+          - text: Synthetic service
+        - generic: Quantity
+        - textbox "Quantity": "1.000000"
+        - text: Unit price (USD)
+        - textbox "Unit price (USD)": "100.000000"
+        - text: Discount (USD)
+        - textbox "Discount (USD)": "0.00"
+        - generic "Account and tax 6000 · Rent · No tax":
+          - text: Account and tax
+          - generic: 6000 · Rent · No tax
+        - option "Choose an account"
+        - option "1000 · Cash on hand"
+        - option "1010 · Bank"
+        - option "1020 · Mobile wallet"
+        - option "1030 · Payment clearing"
+        - option "1200 · Recoverable input tax"
+        - option "1300 · Prepaid expenses"
+        - option "1500 · Equipment"
+        - option "1590 · Accumulated depreciation"
+        - option "5000 · Direct service costs"
+        - option "6000 · Rent" [selected]
+        - option "6100 · Utilities"
+        - option "6200 · Salaries"
+        - option "6300 · Marketing"
+        - option "6400 · Bank charges"
+        - option "6500 · Bad debts"
+        - option "6600 · Rounding difference"
+        - option "No cost center" [selected]
+        - option "No tax" [selected]
+        - option "Before tax · tax added" [selected]
+        - option "Tax inclusive · tax included"
+        - term: Before discount
+        - definition: "100.00"
+        - term: Discount
+        - definition: "0.00"
+        - term: Net
+        - definition: "100.00"
+        - term: Tax
+        - definition: "0.00"
+      - button "+ Add another line"
+    - generic "Rounding adjustment Optional · up to USD 0.05":
+      - text: Rounding adjustment
+      - generic: Optional · up to USD 0.05
+    - option "Choose an account if adjusting" [selected]
+    - option "6600 · Rounding difference"
+    - region "Draft totals":
+      - heading "Draft totals" [level=2]
+      - paragraph: Calculated from your entries. The saved preview confirms tax snapshots and totals before approval.
+      - term: Before discounts
+      - definition: "100.00"
+      - term: Line discounts
+      - definition: − 0.00
+      - term: Net amount
+      - definition: "100.00"
+      - term: Tax
+      - definition: "0.00"
+      - term: Total (USD)
+      - definition:
+        - status "Draft total in company currency": "100.00"
+    - status: Draft only · save to continue
+    - button "Save draft"
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: Accounts Management Solution

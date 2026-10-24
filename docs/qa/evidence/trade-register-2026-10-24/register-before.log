@@ -1,0 +1,134 @@
+▶ invoice register and detail distinguish payment, dated reversal and future posting
+  ✖ effective reversal is explicit and never called paid (3575.4059ms)
+  ✔ future reversal does not alter today's status or balance (3563.8973ms)
+✖ invoice register and detail distinguish payment, dated reversal and future posting (95182.4909ms)
+▶ bill register and detail distinguish payment, dated reversal and future posting
+  ✖ effective reversal is explicit and never called paid (3716.0123ms)
+  ✔ future reversal does not alter today's status or balance (3700.9647ms)
+✖ bill register and detail distinguish payment, dated reversal and future posting (96485.9244ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 2
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192470.3306
+
+✖ failing tests:
+
+test at tests\database\trade-register-status.test.mjs:40:13
+✖ effective reversal is explicit and never called paid (3575.4059ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'paid' !== 'reversed'
+
+      at state (file:///F:/accounts-management-solution/tests/database/trade-register-status.test.mjs:17:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/trade-register-status.test.mjs:40:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'paid',
+    expected: 'reversed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\database\trade-register-status.test.mjs:6:41
+✖ invoice register and detail distinguish payment, dated reversal and future posting (95182.4909ms)
+  error: open-item reference or due date is invalid
+      at parseErrorMessage (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:953:87)
+      at xn.handlePacket (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:927:93)
+      at xn.parse (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:916:49)
+      at A.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:960:16)
+      at A.emit (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:317:79)
+      at WebSocket.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:403:19)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+      at WebSocket.dispatchEvent (node:internal/event_target:778:26)
+      at fireEvent (node:internal/deps/undici/undici:12652:14)
+      at #onMessage (node:internal/deps/undici/undici:13883:9)
+      at Object.onMessage (node:internal/deps/undici/undici:13596:76)
+      at websocketMessageReceived (node:internal/deps/undici/undici:12656:15)
+      at ByteParser.run (node:internal/deps/undici/undici:13299:19)
+      at ByteParser._write (node:internal/deps/undici/undici:13193:14)
+      at writeOrBuffer (node:internal/streams/writable:570:12)
+      at _write (node:internal/streams/writable:499:10) {
+    length: 829,
+    severity: 'ERROR',
+    code: '22023',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: 'PL/pgSQL function finance_private.create_open_item_for_control_line(uuid,uuid,text,date) line 27 at RAISE\nSQL statement "SELECT finance_private.create_open_item_for_control_line(p_organization_id,v_line_id,p_open_item_reference,p_open_item_due_date)"\nPL/pgSQL function finance_private.insert_posting_line(uuid,uuid,integer,uuid,uuid,uuid,finance.amount,finance.amount,text,finance.cash_flow_class,text,date) line 11 at PERFORM\nSQL statement "SELECT finance_private.insert_posting_line(p_organization_id,v_journal_id,v_line_no,v_ar,v_doc.party_id,NULL,v_doc.total_amount,0,v_doc.description,NULL,v_number,v_doc.due_date)"\nPL/pgSQL function public.post_financial_document(uuid,uuid,integer,text,text,text) line 126 at PERFORM',
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'pl_exec.c',
+    line: '3909',
+    routine: 'exec_stmt_raise'
+  }
+
+test at tests\database\trade-register-status.test.mjs:40:13
+✖ effective reversal is explicit and never called paid (3716.0123ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'paid' !== 'reversed'
+
+      at state (file:///F:/accounts-management-solution/tests/database/trade-register-status.test.mjs:17:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/trade-register-status.test.mjs:40:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'paid',
+    expected: 'reversed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\database\trade-register-status.test.mjs:6:41
+✖ bill register and detail distinguish payment, dated reversal and future posting (96485.9244ms)
+  error: open-item reference or due date is invalid
+      at parseErrorMessage (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:953:87)
+      at xn.handlePacket (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:927:93)
+      at xn.parse (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:916:49)
+      at A.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:960:16)
+      at A.emit (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:317:79)
+      at WebSocket.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:403:19)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+      at WebSocket.dispatchEvent (node:internal/event_target:778:26)
+      at fireEvent (node:internal/deps/undici/undici:12652:14)
+      at #onMessage (node:internal/deps/undici/undici:13883:9)
+      at Object.onMessage (node:internal/deps/undici/undici:13596:76)
+      at websocketMessageReceived (node:internal/deps/undici/undici:12656:15)
+      at ByteParser.run (node:internal/deps/undici/undici:13299:19)
+      at ByteParser._write (node:internal/deps/undici/undici:13193:14)
+      at writeOrBuffer (node:internal/streams/writable:570:12)
+      at _write (node:internal/streams/writable:499:10) {
+    length: 829,
+    severity: 'ERROR',
+    code: '22023',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: 'PL/pgSQL function finance_private.create_open_item_for_control_line(uuid,uuid,text,date) line 27 at RAISE\nSQL statement "SELECT finance_private.create_open_item_for_control_line(p_organization_id,v_line_id,p_open_item_reference,p_open_item_due_date)"\nPL/pgSQL function finance_private.insert_posting_line(uuid,uuid,integer,uuid,uuid,uuid,finance.amount,finance.amount,text,finance.cash_flow_class,text,date) line 11 at PERFORM\nSQL statement "SELECT finance_private.insert_posting_line(p_organization_id,v_journal_id,v_line_no,v_ap,v_doc.party_id,NULL,0,v_doc.total_amount,v_doc.description,NULL,v_number,v_doc.due_date)"\nPL/pgSQL function public.post_financial_document(uuid,uuid,integer,text,text,text) line 184 at PERFORM',
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'pl_exec.c',
+    line: '3909',
+    routine: 'exec_stmt_raise'
+  }
