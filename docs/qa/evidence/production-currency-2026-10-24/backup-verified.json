@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "backupBranch": "backup-pr188-20261024",
+  "backupBranchId": "br-rapid-pine-b467gur8",
+  "expires": "Never",
+  "tables": 69,
+  "migrations": 99,
+  "lastMigration": "0100_disambiguate_outbox_claim_conflict.sql",
+  "ledgerGroups": 2,
+  "allDatabaseFingerprintsMatch": true,
+  "independentlyBackedUpFiles": 2,
+  "allFileDigestsAndSizesMatch": true,
+  "encryptedBytesRoundTrip": true,
+  "additionalObjectClasses": {
+    "exports": 0,
+    "bank_imports": 0,
+    "imports": 0,
+    "reports": 0
+  },
+  "sourceSnapshot": "2026-10-24 04:08:19.460043+00"
+}

@@ -4,10 +4,10 @@ Multi-tenant finance and accounting SaaS for companies.
 
 ## Project status
 
-The release candidate uses Auth.js, Neon PostgreSQL and private object storage
+The production application uses Auth.js, Neon PostgreSQL and private object storage
 for separate company accrual books. On 21 October 2026 the owner requested
 country/region and accounting-currency selection during company setup. The
-candidate supports 249 country/region choices and 132 two-decimal currencies,
+application supports 249 country/region choices and 132 two-decimal currencies,
 with one immutable accounting currency per company. Existing BDT books retain
 their currency and history. See [the scope decision](docs/adr/0004-company-country-and-accounting-currency.md).
 
@@ -16,8 +16,11 @@ Country selection does not configure or certify local tax/filing rules, and
 foreign-currency transactions within one company are not implemented. The
 original v1.0 specification in `docs/` is retained as the source baseline;
 current implementation, actual tests and remaining release gates are recorded
-in [the release evidence](docs/qa/company-country-currency-2026-10-21.md).
-Candidate verification is not a production deployment or worldwide launch approval.
+in [the candidate evidence](docs/qa/company-country-currency-2026-10-21.md).
+On 24 October 2026, the owner authorized the production backup and migrations
+0101–0123; PRs #182–#189 were merged and deployed, with live Edge country/currency
+setup checks. See [the production release record](docs/qa/production-country-currency-2026-10-24.md).
+Independent worldwide launch reviews and operational gates remain open.
 
 ## Local setup
 

@@ -1,0 +1,62 @@
+{
+  "tested": "65b1d5bbd667c836a1f5f09e407168c66b4f6b2a",
+  "tree": "ed323a2feaea8116c23c82e016d0cca8d440cbc5",
+  "merges": [
+    {
+      "pr": 188,
+      "base": "feat/us-075-billing-adapter",
+      "head": "65b1d5bbd667c836a1f5f09e407168c66b4f6b2a",
+      "mergeCommit": "98074d7ca805c62b1e8cb3f59bbb71c0e5fc99f0",
+      "mergedAt": "2026-10-24T04:22:05Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 187,
+      "base": "fix/us-085-release-verification",
+      "head": "98074d7ca805c62b1e8cb3f59bbb71c0e5fc99f0",
+      "mergeCommit": "0296686d038782e0d703ae77bbf9c7a5ecf61962",
+      "mergedAt": "2026-10-24T04:22:13Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 186,
+      "base": "feat/us-041-advance-settlement",
+      "head": "0296686d038782e0d703ae77bbf9c7a5ecf61962",
+      "mergeCommit": "d044336d2ef33658fd79475748b91d2bf2883d7c",
+      "mergedAt": "2026-10-24T04:22:23Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 185,
+      "base": "feat/us-085-full-acceptance",
+      "head": "d044336d2ef33658fd79475748b91d2bf2883d7c",
+      "mergeCommit": "b5151a2e2f83a10e8e2689c4ff9cd334666bb90d",
+      "mergedAt": "2026-10-24T04:22:31Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 184,
+      "base": "feat/us-079-recovery-drill",
+      "head": "b5151a2e2f83a10e8e2689c4ff9cd334666bb90d",
+      "mergeCommit": "945cf7d32d98ed2dc5bed578801a6352aebe8cb3",
+      "mergedAt": "2026-10-24T04:22:40Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 183,
+      "base": "fix/us-062-separate-cash-bank",
+      "head": "945cf7d32d98ed2dc5bed578801a6352aebe8cb3",
+      "mergeCommit": "528c6385ad3d1b926c3a0f5a8977d43ba9bd16c6",
+      "mergedAt": "2026-10-24T04:22:49Z",
+      "mergedTreeMatchesTested": true
+    },
+    {
+      "pr": 182,
+      "base": "fix/clean-workspace-ui",
+      "head": "528c6385ad3d1b926c3a0f5a8977d43ba9bd16c6",
+      "mergeCommit": "12e2df2e037724f16b29fdcfa1a835c86dc4d1b6",
+      "mergedAt": "2026-10-24T04:22:57Z",
+      "mergedTreeMatchesTested": true
+    }
+  ]
+}
