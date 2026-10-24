@@ -1,0 +1,69 @@
+▶ historical opening due dates retain aging evidence without moving ledger availability
+  ✖ overdue opening commits with exact references, same cutover date and one idempotent journal (6795.7406ms)
+  ✖ pre-cutover history is empty and current/future/leap aging reconciles at cutover and afterwards (4475.5366ms)
+{"fixture":"historical-opening-dates","organizationId":"26c4b160-4056-4285-9506-88c922b3a1e0","sourceDocumentId":"38325656-607a-4c3c-8a5a-9f210291096a","cutover":"2026-09-30","ar":"175.00","ap":"100.00","nominalLines":0}
+  ✔ foreign actors cannot inspect the opening evidence or aging, and ordinary roles cannot rewrite dates (5878.2097ms)
+✖ historical opening due dates retain aging evidence without moving ledger availability (56740.037ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57147.8563
+
+✖ failing tests:
+
+test at tests\database\opening-overdue.test.mjs:28:11
+✖ overdue opening commits with exact references, same cutover date and one idempotent journal (6795.7406ms)
+  error: open-item reference or due date is invalid
+      at parseErrorMessage (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:953:87)
+      at xn.handlePacket (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:927:93)
+      at xn.parse (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:916:49)
+      at A.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:960:16)
+      at A.emit (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:317:79)
+      at WebSocket.<anonymous> (file:///F:/accounts-management-solution/node_modules/@neondatabase/serverless/index.mjs:403:19)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+      at WebSocket.dispatchEvent (node:internal/event_target:778:26)
+      at fireEvent (node:internal/deps/undici/undici:12652:14)
+      at #onMessage (node:internal/deps/undici/undici:13883:9) {
+    length: 1494,
+    severity: 'ERROR',
+    code: '22023',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: 'PL/pgSQL function finance_private.create_open_item_for_control_line(uuid,uuid,text,date) line 27 at RAISE\nSQL statement "SELECT finance_private.create_open_item_for_control_line(p_organization_id,v_line_id,p_open_item_reference,p_open_item_due_date)"\nPL/pgSQL function finance_private.insert_posting_line(uuid,uuid,integer,uuid,uuid,uuid,finance.amount,finance.amount,text,finance.cash_flow_class,text,date) line 11 at PERFORM\nSQL statement "SELECT finance_private.insert_posting_line(p_organization_id,v_journal_id,v_line_no,v_line.account_id,v_line.party_id,v_line.cost_center_id,\n        v_line.debit,v_line.credit,v_line.description,v_line.cash_flow_class,\n        CASE WHEN EXISTS(SELECT 1 FROM finance.accounts a WHERE a.organization_id=p_organization_id AND a.id=v_line.account_id AND a.control_kind IS NOT NULL)\n          THEN COALESCE(v_line.open_item_reference,v_number) ELSE v_line.open_item_reference END,v_line.open_item_due_date)"\nPL/pgSQL function public.post_financial_document(uuid,uuid,integer,text,text,text) line 287 at PERFORM\nSQL statement "SELECT posted.document_number                       FROM public.post_financial_document(p_organization_id,p_opening_document_id,p_expected_document_version,p_request_id,v_nested_key,p_request_hash) posted"\nPL/pgSQL function public.complete_company_setup(uuid,text,text,text,text,boolean,uuid,integer) line 60 at SQL statement',
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'pl_exec.c',
+    line: '3909',
+    routine: 'exec_stmt_raise'
+  }
+
+test at tests\database\opening-overdue.test.mjs:35:11
+✖ pre-cutover history is empty and current/future/leap aging reconciles at cutover and afterwards (4475.5366ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0n !== 17500n
+
+      at money (file:///F:/accounts-management-solution/tests/database/helpers/accounting-fixture.mjs:14:51)
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/opening-overdue.test.mjs:38:45)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/opening-overdue.test.mjs:35:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0n,
+    expected: 17500n,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

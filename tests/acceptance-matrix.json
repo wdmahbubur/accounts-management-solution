@@ -496,11 +496,13 @@
     "status": "covered",
     "evidence": [
       "tests/database/cutover-classification.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "tests/database/opening-overdue.test.mjs",
+      "docs/qa/historical-opening-dates-2026-10-24.md"
     ],
-    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass.",
+    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass. Historical overdue/current/future/leap AR/AP due dates survive approval, cutover posting, aging and evidence export; source availability stays at cutover.",
     "last_result": "passed",
-    "verified_at": "2026-10-21",
+    "verified_at": "2026-10-24",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
@@ -509,11 +511,13 @@
     "status": "covered",
     "evidence": [
       "tests/database/cutover-classification.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "tests/database/opening-overdue.test.mjs",
+      "docs/qa/historical-opening-dates-2026-10-24.md"
     ],
-    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass.",
+    "note": "AR/AP opening details, balanced prior TB, zero suspense and once-only labeled YTD summary pass. Historical overdue/current/future/leap AR/AP due dates survive approval, cutover posting, aging and evidence export; source availability stays at cutover.",
     "last_result": "passed",
-    "verified_at": "2026-10-21",
+    "verified_at": "2026-10-24",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
@@ -611,9 +615,11 @@
     "status": "covered",
     "evidence": [
       "tests/database/golden-books.test.mjs",
-      "docs/qa/release-verification-2026-10-21.md"
+      "docs/qa/release-verification-2026-10-21.md",
+      "tests/database/opening-overdue.test.mjs",
+      "docs/qa/historical-opening-dates-2026-10-24.md"
     ],
-    "note": "All six golden sources were reviewed/posted in Edge; dashboard, all-source journal register/drilldown, GL, cashbook, AR/AP, statements, trial balance, P&L, BS and cash flow agree. Restricted PostgreSQL golden regression passes 10 tests including allocation/unapply counterpart links.",
+    "note": "All six golden sources were reviewed/posted in Edge; dashboard, all-source journal register/drilldown, GL, cashbook, AR/AP, statements, trial balance, P&L, BS and cash flow agree. Restricted PostgreSQL golden regression passes 10 tests including allocation/unapply counterpart links. Scoped 24 October opening-date regression supplements this earlier full golden verification; it is not a new full-system acceptance run.",
     "last_result": "passed",
     "verified_at": "2026-10-21",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"

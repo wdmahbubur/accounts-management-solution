@@ -1,0 +1,28 @@
+{
+  "data": {
+    "created_at": "2026-10-24T07:13:09.621582+00:00",
+    "ytd_summary": [],
+    "cutover_date": "2026-09-30",
+    "evidence_reference": "Synthetic prior trial balance · Edge overdue import",
+    "prior_trial_balance": [
+      {
+        "debit": "100.00",
+        "credit": "0.00",
+        "account_id": "9da396d3-e92e-466f-add2-914141b1ce8f"
+      },
+      {
+        "debit": "0.00",
+        "credit": "60.00",
+        "account_id": "b6d6c229-135b-437c-8e59-b7fc6bff6972"
+      },
+      {
+        "debit": "0.00",
+        "credit": "40.00",
+        "account_id": "a00d1c34-792a-4c10-a4eb-cfd41b2392c1"
+      }
+    ]
+  },
+  "meta": {
+    "request_id": "req_21a57a4d-015d-4cfa-bff0-810a1e00d8b3"
+  }
+}

@@ -1,0 +1,23 @@
+✔ T10 customer application reclassifies with two settlements; unused refund and reversal preserve dated balances (99536.5732ms)
+✔ linked plans bind genuine checker decisions; historical future consumption and locked periods reject writes (100658.8733ms)
+✔ T11 supplier application uses AP/advance asset and refund settles unused asset without another expense (67380.2342ms)
+✔ T13 linked trade credit refunds use AR/AP and reject excess, wrong party, wrong control, tenant and ordinary-role bypasses (118398.1441ms)
+✔ T36 material edits supersede settlement approvals; S08 application/refund different-key race cannot overspend advance (78633.6627ms)
+▶ opening AR/AP cutover, YTD summary and unclassified cash reporting
+  ✔ T-38 activate a balanced AR/AP opening with detailed parties and zero suspense (20015.6795ms)
+  ✔ T-39 annual P&L includes imported YTD once with visible summary provenance (3663.5126ms)
+{"fixture":"cutover-classification","organizationId":"68f2f21c-b55f-41b8-9202-5a70b4dfb097","classificationOrganizationId":"a529f55c-d391-4571-9dd2-b47e17a1cef1"}
+  ✔ T-42 unclassified cash is provisional and prevents period locking (12692.5106ms)
+✔ opening AR/AP cutover, YTD summary and unclassified cash reporting (64974.4473ms)
+{"fixture":"opening-advance-settlement","organizationId":"352c1e77-7bc8-4b39-9547-9e2fe53d5c70","sourceItems":4,"targetItems":2,"linkedCommands":6}
+✔ cutover advances and individual opening trade credits settle without duplicating cash, revenue or expense (112800.9379ms)
+{"fixture":"refund-safety","organizationId":"d36c1e52-9b56-493c-a8d2-36ecc14531cc"}
+✔ T-13 refund cannot post without explicitly selected eligible credit settlement (50016.6843ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 465023.9637

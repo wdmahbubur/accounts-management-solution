@@ -1,0 +1,173 @@
+Browser tab: 1474154980, Title: "Accounts Management Solution", URL: "http://localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f".
+0 AXWebArea Accounts Management Solution, URL: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f
+	1 container
+		2 pop up button (collapsed) Description: Open Next.js Dev Tools, ID: next-logo, Secondary Actions: Expand
+			3 image
+		91 text Opening balance
+		5 link Description: Skip to workspace content, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f#workspace-content
+		6 container Workspace sidebar
+			7 link Description: Accounts, Value: localhost:3001/companies
+			8 link Description: Change company. Current company: Edge overdue opening 5c44ee54, Value: localhost:3001/companies
+			9 container
+				10 container Workspace navigation
+					11 container Overview
+						12 heading Overview, Value: 2
+							13 button (collapsed) Overview, Secondary Actions: Expand
+					14 container Sales
+						15 heading Sales, Value: 2
+							16 button (collapsed) Sales, Secondary Actions: Expand
+					17 container Purchases
+						18 heading Purchases, Value: 2
+							19 button (collapsed) Purchases, Secondary Actions: Expand
+					20 container Banking
+						21 heading Banking, Value: 2
+							22 button (collapsed) Banking, Secondary Actions: Expand
+					23 container Accounting
+						24 heading Accounting, Value: 2
+							25 button (expanded) Accounting, Secondary Actions: Collapse
+						92 container
+							93 link Description: Financial documents, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents
+							94 link Description: Journal register, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/journals
+							95 link Description: General ledger, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/general-ledger
+							96 link Description: Trial balance, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/reports/trial-balance
+							97 link Description: Chart of accounts, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/accounts
+							98 link Description: Fiscal periods, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/periods
+							99 link Description: Fiscal year close, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/year-close
+					26 container Review and records
+						27 heading Review and records, Value: 2
+							28 button (collapsed) Review and records, Secondary Actions: Expand
+					29 container Settings
+						30 heading Settings, Value: 2
+							31 button (collapsed) Settings, Secondary Actions: Expand
+				41 link Description: Your profile, Value: localhost:3001/settings/profile
+				42 link Description: Session security, Value: localhost:3001/settings/security
+		43 container Breadcrumb
+			44 link Description: Edge overdue opening 5c44ee54, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15
+			100 link Description: Financial documents, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents
+			101 text Document details
+		46 text acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid
+		47 button Sign out
+		102 container
+			103 link Description: ← Journals, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/journals
+			104 text Financial document
+			105 heading Opening balance, Value: 1
+				106 text Opening balance
+			107 text Draft
+			108 text Saved draft. It has no effect on the ledger.
+			109 text Document total  ·  USD
+			110 text 100.00
+			111 link Description: Edit opening balances, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/opening-balances?document=a171ab0b-aa97-458b-8012-53b0ed18228f
+			112 container Document details, ID: document-details
+				113 heading Document details, Value: 2, ID: document-details-title
+					114 text Document details
+				115 definition list
+					116 container Issue date
+						117 text Issue date
+					118 text 30 Sept 2026
+					119 container Accounting date
+						120 text Accounting date
+					121 text 30 Sept 2026
+					122 container Reference
+						123 text Reference
+					124 text Synthetic prior trial balance · Edge overdue import
+				125 heading Description, Value: 3
+					126 text Description
+				127 text Opening balances as at 2026-09-30
+			128 container Opening balances
+				129 heading Opening balances, Value: 2, ID: opening-journal-title
+					130 text Opening balances
+				131 container Opening source lines
+					132 table Opening source lines · All 3 lines · USD
+						133 container
+							134 text Opening source lines  · All  3  lines ·  USD
+						135 row
+							136 cell
+								137 text Account
+							138 cell
+								139 text Line details
+							140 cell
+								141 text Debit
+							142 cell
+								143 text Credit
+						144 row
+							145 cell
+								146 text 3000 · Owner/share capital
+							147 cell
+								148 text Opening balance · Owner/share capital
+							149 cell
+								150 text 0.00
+							151 cell
+								152 text 40.00
+						153 row
+							154 cell
+								155 text 1100 · Trade receivables
+								156 container
+									157 text Party:  Synthetic overdue customer
+							158 cell
+								159 text Opening ar · EDGE-AR-ORIGINAL
+								160 container
+									161 text Original reference:  EDGE-AR-ORIGINAL
+								162 container
+									163 text Due:  31 Aug 2026
+							164 cell
+								165 text 100.00
+							166 cell
+								167 text 0.00
+						168 row
+							169 cell
+								170 text 2000 · Trade payables
+								171 container
+									172 text Party:  Synthetic overdue supplier
+							173 cell
+								174 text Opening ap · EDGE-AP-ORIGINAL
+								175 container
+									176 text Original reference:  EDGE-AP-ORIGINAL
+								177 container
+									178 text Due:  15 Sept 2026
+							179 cell
+								180 text 0.00
+							181 cell
+								182 text 60.00
+						183 row
+							184 cell
+								185 text Total
+							186 cell
+								187 text 100.00
+							188 cell
+								189 text 100.00
+				190 text Debits and credits balance.
+				191 link Description: Return to company setup to activate and post the approved opening, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/setup
+				192 link Description: Configure opening approval, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/approvals
+				193 link Description: Review approval requests, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/approvals
+			194 container Cutover evidence
+				195 heading Cutover evidence, Value: 2, ID: cutover-evidence-title
+					196 text Cutover evidence
+				197 definition list
+					198 container Cutover date
+						199 text Cutover date
+					200 text 30 Sept 2026
+					201 container Source reference
+						202 text Source reference
+					203 text Synthetic prior trial balance · Edge overdue import
+				204 text Pre-cutover balances are retained as imported summaries. Historic transaction drilldown is not available for those summaries.
+				205 link Description: Download cutover evidence, Value: localhost:3001/api/v1/organizations/e56ca50f-446f-453e-becf-9ff3d2c1ee15/documents/a171ab0b-aa97-458b-8012-53b0ed18228f/opening-cutover
+			206 heading Request opening approval, Value: 2
+				207 text Request opening approval
+			208 text Approval covers this exact draft version and its cutover evidence.
+			209 button Submit for approval
+			210 button (collapsed) Accounting, Secondary Actions: Expand
+				211 text Accounting
+			212 container Supporting files
+				213 heading Supporting files, Value: 2
+					214 text Supporting files
+				215 container
+					216 text Choose a supporting file
+					217 button Choose a supporting file PDF, images, CSV or text · Up to 4 MB
+					218 text PDF, images, CSV or text · Up to 4 MB
+					219 button (disabled) Upload file
+					220 link Description: Open evidence library, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/documents
+			221 button (collapsed) Document reference information, Secondary Actions: Expand
+				222 text Document reference information
+		90 text USD  books · No financial changes are queued offline.
+
+The focused UI element is 0 AXWebArea Accounts Management Solution, URL: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f

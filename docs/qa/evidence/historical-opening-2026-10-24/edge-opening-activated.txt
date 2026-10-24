@@ -1,0 +1,13 @@
+Browser tab: 1474154980, Title: "Accounts Management Solution", URL: "http://localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/setup".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 129-153, 171-186
++		171 text Accounts Management Solution
+~			125 heading Your books are active, Value: 1
+~				126 text Your books are active
++			172 heading Setup complete, Value: 2
++				173 text Setup complete
++			174 text The selected opening balances and company activation were committed together.
++			175 link Description: View the posted opening document · OB-2026-000001, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f
++			176 link Description: Open invoices, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/sales/invoices
++			177 link Description: Open dashboard, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/dashboard
+The focused UI element is 0 AXWebArea Accounts Management Solution, URL: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/setup

@@ -1,0 +1,159 @@
+Browser tab: 1474154980, Title: "Accounts Management Solution", URL: "http://localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f".
+0 AXWebArea Accounts Management Solution, URL: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f
+	1 container
+		2 pop up button (collapsed) Description: Open Next.js Dev Tools, ID: next-logo, Secondary Actions: Expand
+			3 image
+		171 text OB-2026-000001
+		5 link Description: Skip to workspace content, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f#workspace-content
+		6 container Workspace sidebar
+			7 link Description: Accounts, Value: localhost:3001/companies
+			8 link Description: Change company. Current company: Edge overdue opening 5c44ee54, Value: localhost:3001/companies
+			9 container
+				10 container Workspace navigation
+					11 container Overview
+						12 heading Overview, Value: 2
+							13 button (collapsed) Overview, Secondary Actions: Expand
+					14 container Sales
+						15 heading Sales, Value: 2
+							16 button (collapsed) Sales, Secondary Actions: Expand
+					17 container Purchases
+						18 heading Purchases, Value: 2
+							19 button (collapsed) Purchases, Secondary Actions: Expand
+					20 container Banking
+						21 heading Banking, Value: 2
+							22 button (collapsed) Banking, Secondary Actions: Expand
+					23 container Accounting
+						24 heading Accounting, Value: 2
+							25 button (expanded) Accounting, Secondary Actions: Collapse
+						172 container
+							173 link Description: Financial documents, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents
+							174 link Description: Journal register, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/journals
+							175 link Description: General ledger, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/general-ledger
+							176 link Description: Trial balance, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/reports/trial-balance
+							177 link Description: Chart of accounts, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/accounts
+							178 link Description: Fiscal periods, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/periods
+							179 link Description: Fiscal year close, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/year-close
+					26 container Review and records
+						27 heading Review and records, Value: 2
+							28 button (collapsed) Review and records, Secondary Actions: Expand
+					29 container Settings
+						30 heading Settings, Value: 2
+							31 button (collapsed) Settings, Secondary Actions: Expand
+				41 link Description: Your profile, Value: localhost:3001/settings/profile
+				42 link Description: Session security, Value: localhost:3001/settings/security
+		43 container Breadcrumb
+			44 link Description: Edge overdue opening 5c44ee54, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15
+			180 link Description: Financial documents, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents
+			181 text Document details
+		46 text acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid
+		47 button Sign out
+		182 container
+			183 link Description: ← Journals, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/journals
+			184 text Opening balance
+			185 heading OB-2026-000001, Value: 1
+				186 text OB-2026-000001
+			187 text Posted
+			188 text Posted to the ledger. Financial details are preserved as issued.
+			189 text Document total  ·  USD
+			190 text 100.00
+			191 container Document details, ID: document-details
+				192 heading Document details, Value: 2, ID: document-details-title
+					193 text Document details
+				194 definition list
+					195 container Issue date
+						196 text Issue date
+					197 text 30 Sept 2026
+					198 container Accounting date
+						199 text Accounting date
+					200 text 30 Sept 2026
+					201 container Reference
+						202 text Reference
+					203 text Synthetic prior trial balance · Edge overdue import
+				204 heading Description, Value: 3
+					205 text Description
+				206 text Opening balances as at 2026-09-30
+			207 container Opening balances
+				208 heading Opening balances, Value: 2, ID: opening-journal-title
+					209 text Opening balances
+				210 container Opening source lines
+					211 table Opening source lines · All 3 lines · USD
+						212 container
+							213 text Opening source lines  · All  3  lines ·  USD
+						214 row
+							215 cell
+								216 text Account
+							217 cell
+								218 text Line details
+							219 cell
+								220 text Debit
+							221 cell
+								222 text Credit
+						223 row
+							224 cell
+								225 text 3000 · Owner/share capital
+							226 cell
+								227 text Opening balance · Owner/share capital
+							228 cell
+								229 text 0.00
+							230 cell
+								231 text 40.00
+						232 row
+							233 cell
+								234 text 1100 · Trade receivables
+								235 container
+									236 text Party:  Synthetic overdue customer
+							237 cell
+								238 text Opening ar · EDGE-AR-ORIGINAL
+								239 container
+									240 text Original reference:  EDGE-AR-ORIGINAL
+								241 container
+									242 text Due:  31 Aug 2026
+							243 cell
+								244 text 100.00
+							245 cell
+								246 text 0.00
+						247 row
+							248 cell
+								249 text 2000 · Trade payables
+								250 container
+									251 text Party:  Synthetic overdue supplier
+							252 cell
+								253 text Opening ap · EDGE-AP-ORIGINAL
+								254 container
+									255 text Original reference:  EDGE-AP-ORIGINAL
+								256 container
+									257 text Due:  15 Sept 2026
+							258 cell
+								259 text 0.00
+							260 cell
+								261 text 60.00
+						262 row
+							263 cell
+								264 text Total
+							265 cell
+								266 text 100.00
+							267 cell
+								268 text 100.00
+				269 text Debits and credits balance.
+				270 link Description: Configure opening approval, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/settings/approvals
+				271 link Description: Review approval requests, Value: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/approvals
+			272 container Cutover evidence
+				273 heading Cutover evidence, Value: 2, ID: cutover-evidence-title
+					274 text Cutover evidence
+				275 definition list
+					276 container Cutover date
+						277 text Cutover date
+					278 text 30 Sept 2026
+					279 container Source reference
+						280 text Source reference
+					281 text Synthetic prior trial balance · Edge overdue import
+				282 text Pre-cutover balances are retained as imported summaries. Historic transaction drilldown is not available for those summaries.
+				283 link Description: Download cutover evidence, Value: localhost:3001/api/v1/organizations/e56ca50f-446f-453e-becf-9ff3d2c1ee15/documents/a171ab0b-aa97-458b-8012-53b0ed18228f/opening-cutover
+			284 button (collapsed) Accounting3, Secondary Actions: Expand
+				285 text Accounting
+				286 text 3
+			287 button (collapsed) Document reference information, Secondary Actions: Expand
+				288 text Document reference information
+		90 text USD  books · No financial changes are queued offline.
+
+The focused UI element is 0 AXWebArea Accounts Management Solution, URL: localhost:3001/o/e56ca50f-446f-453e-becf-9ff3d2c1ee15/accounting/documents/a171ab0b-aa97-458b-8012-53b0ed18228f

@@ -1,0 +1,17 @@
+▶ historical opening due dates retain aging evidence without moving ledger availability
+  ✔ changing a historical due date invalidates approval and failed activation leaves no journal (11100.3989ms)
+  ✔ overdue opening commits with exact references, same cutover date and one idempotent journal (10244.8437ms)
+  ✔ pre-cutover history is empty and current/future/leap aging reconciles at cutover and afterwards (11171.3146ms)
+  ✔ foreign actors cannot inspect the opening evidence or aging, and ordinary roles cannot rewrite dates (5598.9455ms)
+  ✔ ordinary control journals still reject pre-availability due dates (7369.2807ms)
+{"fixture":"historical-opening-dates","organizationId":"5a4f7f58-7d0e-4e90-a28a-3fb064b60beb","sourceDocumentId":"cf48ae98-b280-472a-9b1a-503df1b7758c","cutover":"2026-09-30","ar":"175.00","ap":"100.00","nominalLines":0}
+  ✔ partial collection settles overdue opening capacity only after cutover and preserves dated aging (18515.5791ms)
+✔ historical opening due dates retain aging evidence without moving ledger availability (101460.5974ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101863.5941
