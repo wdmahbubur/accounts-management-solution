@@ -1,0 +1,46 @@
+▶ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined
+  ✔ S-16 content-type spoof and unsafe names fail before object registration (2.0687ms)
+  ✔ S-16 uploaded clean and EICAR test bytes remain unavailable before a real engine decision (26672.6529ms)
+  ✔ actual worker records engine/signature revision; clean downloads and infected objects remain denied (22491.7749ms)
+{"fixture":"real-clamav","organizationId":"7d5b0ea2-dcf4-42fb-89a4-33d16c7be970","engine":"ClamAV-1.5.4-db28162","cleanAttachment":"298d0360-5678-46c9-84c6-41b57ee9a922","rejectedTestAttachment":"74c552c4-c051-4eb6-921a-4824bd19d57e","realPrivateObjectStorage":true,"financialPosting":false}
+  ✔ scanner outage queues a bounded retry and cannot label an unscanned object clean (20046.3647ms)
+✔ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined (100659.5028ms)
+▶ renderer/delivery faults and crashed worker leases never repost financial activity
+  ✔ T-43 injected PDF renderer failure preserves the posted journal and creates no issued version (32373.2736ms)
+  ✔ T-43 missing issued file causes delivery-only retry; restored bytes deliver through loopback SMTP (57642.8329ms)
+{"stage":"worker killed during SMTP; waiting for actual lease expiry","eventId":"1c9edef6-ad11-4bc8-beaf-a5f04b17b232","leaseUntil":"2026-10-24T08:23:44.692Z"}
+{"fixture":"worker-recovery","organizationId":"69c25817-168f-4670-870b-23cce56708ae","localSmtpMessages":4}
+  ✖ S-19 kill a real worker during SMTP delivery; expired lease is reclaimed and old token is fenced (132566.6142ms)
+✖ renderer/delivery faults and crashed worker leases never repost financial activity (260369.3123ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 7
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 278496.9107
+
+✖ failing tests:
+
+test at tests\database\worker-recovery.test.mjs:76:13
+✖ S-19 kill a real worker during SMTP delivery; expired lease is reclaimed and old token is fenced (132566.6142ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '<ams-outbox-1c9edef6-ad11-4bc8-beaf-a5f04b17b232@acceptance.example.invalid>'
+  - '<ams-outbox-1c9edef6-ad11-4bc8-beaf-a5f04b17b232@localhost>'
+  
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/worker-recovery.test.mjs:88:128)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/worker-recovery.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '<ams-outbox-1c9edef6-ad11-4bc8-beaf-a5f04b17b232@acceptance.example.invalid>',
+    expected: '<ams-outbox-1c9edef6-ad11-4bc8-beaf-a5f04b17b232@localhost>',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

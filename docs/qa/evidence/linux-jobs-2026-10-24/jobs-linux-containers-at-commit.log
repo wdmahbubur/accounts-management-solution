@@ -1,0 +1,14 @@
+▶ real Linux job containers deliver, render, scan and schedule with only restricted worker credentials
+  ✔ real SMTP container receives the existing issued PDF once; no public listener or runtime/owner credential (13343.3874ms)
+  ✔ Linux export worker renders the immutable report snapshot into private PDF bytes (22615.2883ms)
+{"fixture":"linux-containers","organizationId":"0cc698ac-2270-4319-a754-d09ad2f45fa8","image":"ams-jobs:launch-candidate","restrictedWorkerOnly":true,"privateNetwork":true,"isolatedSmtpFixture":true,"financialJournalsUnchanged":true}
+  ✔ private Linux ClamAV releases only a real clean upload and the reminder runner uses the same restricted target (33023.3201ms)
+✔ real Linux job containers deliver, render, scan and schedule with only restricted worker credentials (144861.7308ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145540.334
