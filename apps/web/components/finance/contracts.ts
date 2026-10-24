@@ -1,10 +1,10 @@
 import { parseMoneyString } from "@ams/contracts";
 
-/** Presentation only: preserves every digit; never computes a ledger balance. */
+/** Exact digits only; the enclosing view supplies the authorized company currency. */
 export function displayMoney(raw: unknown): string {
   const value = parseMoneyString(raw);
   const [integer, fraction] = value.split(".");
-  return `৳${integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${fraction}`;
+  return `${integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${fraction}`;
 }
 export function moneyInputError(raw: string, allowNegative = false): string | undefined {
   try { parseMoneyString(raw); if ((!allowNegative && raw.startsWith("-")) || raw === "-0.00") throw new Error(); }

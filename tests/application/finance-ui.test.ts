@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { displayMoney, feedback, moneyInputError, pickerData } from "../../apps/web/components/finance/contracts.ts";
 
-test("presentation preserves every cent above Number's safe integer and formats BDT without coercion", () => {
-  assert.equal(displayMoney("9007199254740993.17"), "৳9,007,199,254,740,993.17");
-  assert.equal(displayMoney("-1234567.89"), "৳-1,234,567.89");
-  assert.equal(displayMoney("0.00"), "৳0.00");
+test("presentation preserves every minor unit without inventing a currency or coercing to Number", () => {
+  assert.equal(displayMoney("9007199254740993.17"), "9,007,199,254,740,993.17");
+  assert.equal(displayMoney("-1234567.89"), "-1,234,567.89");
+  assert.equal(displayMoney("0.00"), "0.00");
   for (const raw of [null, undefined, 0, "NaN", "Infinity", "1e3", "1.000", "01.00"]) assert.throws(() => displayMoney(raw));
 });
 test("MoneyInput never turns an empty/invalid value into zero or rounds excess precision", () => {
