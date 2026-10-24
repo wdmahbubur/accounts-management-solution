@@ -1,0 +1,10 @@
+import {createServer} from 'node:net';
+import {scanWithClamAv} from '../../../apps/web/server/artifacts/clamav.ts';
+const server=createServer(socket=>{let buffer=Buffer.alloc(0);socket.on('data',chunk=>{buffer=Buffer.concat([buffer,chunk]);if(buffer.length>=10+4+4&&buffer.subarray(0,10).toString()==='zINSTREAM\0'){
+ const length=buffer.readUInt32BE(10);if(buffer.length===10+4+length+4&&buffer.readUInt32BE(buffer.length-4)===0){setTimeout(()=>{if(socket.writable&&!socket.destroyed)socket.end(Buffer.from('stream: OK\0'));},25);}
+}});});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+process.env.CLAMAV_HOST='127.0.0.1';process.env.CLAMAV_PORT=String(server.address().port);
+try{console.log(JSON.stringify({response:'asynchronous clean verdict',verdict:await scanWithClamAv(new TextEncoder().encode('Synthetic delayed scan'))}));}
+catch(error){console.log(JSON.stringify({response:'asynchronous clean verdict',code:error.code,message:error.message}));}
+finally{await new Promise(resolve=>server.close(resolve));}

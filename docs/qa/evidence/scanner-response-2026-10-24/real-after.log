@@ -1,0 +1,15 @@
+▶ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined
+  ✔ S-16 content-type spoof and unsafe names fail before object registration (1.8426ms)
+  ✔ S-16 uploaded clean and EICAR test bytes remain unavailable before a real engine decision (19521.9621ms)
+  ✔ actual worker records engine/signature revision; clean downloads and infected objects remain denied (19049.9762ms)
+{"fixture":"real-clamav","organizationId":"6733c784-fd08-4d4b-8d02-6be3cf85bf10","engine":"ClamAV-1.5.4-db28162","cleanAttachment":"0a279a97-fe57-47e1-b152-a72cfbca064d","rejectedTestAttachment":"bbfe77ed-0120-4c8b-92b1-fc562c9b6969","realPrivateObjectStorage":true,"financialPosting":false}
+  ✔ scanner outage queues a bounded retry and cannot label an unscanned object clean (15446.4497ms)
+✔ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined (82204.4193ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88982.8026
