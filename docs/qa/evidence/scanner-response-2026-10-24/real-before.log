@@ -1,0 +1,37 @@
+▶ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined
+  ✔ S-16 content-type spoof and unsafe names fail before object registration (1.8507ms)
+  ✔ S-16 uploaded clean and EICAR test bytes remain unavailable before a real engine decision (19975.5501ms)
+  ✖ actual worker records engine/signature revision; clean downloads and infected objects remain denied (5974.6209ms)
+{"fixture":"real-clamav","organizationId":"18e58948-50f1-4e38-8087-71e69b9b6505","engine":"ClamAV-1.5.4-db28162","cleanAttachment":"ed7a7823-583f-45c9-8632-f38e3388a6e6","rejectedTestAttachment":"d187ff40-9fa3-4149-b286-db25f3626c32","realPrivateObjectStorage":true,"financialPosting":false}
+  ✔ scanner outage queues a bounded retry and cannot label an unscanned object clean (12086.692ms)
+✖ maintained ClamAV scans real private uploads and keeps infected/unscanned objects quarantined (66155.9235ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 75472.4112
+
+✖ failing tests:
+
+test at tests\database\attachment-scanner.test.mjs:25:11
+✖ actual worker records engine/signature revision; clean downloads and infected objects remain denied (5974.6209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'pending' !== 'clean'
+
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/attachment-scanner.test.mjs:28:11)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/attachment-scanner.test.mjs:25:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'clean',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

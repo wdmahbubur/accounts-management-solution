@@ -24,9 +24,11 @@ export async function readClamAvVersion(): Promise<string> {
     const socket = createConnection({ host, port });
     let response = Buffer.alloc(0);
     let settled = false;
+    const deadline = setTimeout(() => finish(new ClamAvError("SCAN_TIMEOUT", "Scanner timed out")), timeoutMs);
     const finish = (error?: ClamAvError, version?: string) => {
       if (settled) return;
       settled = true;
+      clearTimeout(deadline);
       socket.destroy();
       if (error) reject(error);
       else if (version) resolve(version);
@@ -37,15 +39,18 @@ export async function readClamAvVersion(): Promise<string> {
     socket.on("data", (chunk: Buffer) => {
       response = Buffer.concat([response, chunk]);
       if (response.byteLength > responseLimit) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Scanner response too large"));
+    });
+    socket.once("end", () => {
+      if (settled) return;
       const end = response.indexOf("\0");
-      if (end < 0) return;
+      if (end !== response.length - 1 || end < 0 || response.some(byte => byte > 127)) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete or invalid scanner response"));
       const message = response.subarray(0, end).toString("ascii");
       const match = /^ClamAV ([^/\s]{1,32})\/(\d{1,10})\//.exec(message);
       if (!match || response.subarray(end + 1).length) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Invalid scanner version response"));
       finish(undefined, `ClamAV-${match[1]}-db${match[2]}`);
     });
-    socket.once("connect", () => socket.end(Buffer.from("zVERSION\0", "ascii")));
-    socket.once("end", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });
+    socket.once("connect", () => socket.write(Buffer.from("zVERSION\0", "ascii")));
+    socket.once("close", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });
   });
 }
 
@@ -62,9 +67,11 @@ export async function scanWithClamAv(bytes: Uint8Array): Promise<"clean" | "infe
     const socket = createConnection({ host, port });
     let response = Buffer.alloc(0);
     let settled = false;
+    const deadline = setTimeout(() => finish(new ClamAvError("SCAN_TIMEOUT", "Scanner timed out")), timeoutMs);
     const finish = (error?: Error, verdict?: "clean" | "infected") => {
       if (settled) return;
       settled = true;
+      clearTimeout(deadline);
       socket.destroy();
       if (error) reject(error);
       else if (verdict) resolve(verdict);
@@ -75,8 +82,11 @@ export async function scanWithClamAv(bytes: Uint8Array): Promise<"clean" | "infe
     socket.on("data", (chunk: Buffer) => {
       response = Buffer.concat([response, chunk]);
       if (response.byteLength > responseLimit) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Scanner response too large"));
+    });
+    socket.once("end", () => {
+      if (settled) return;
       const end = response.indexOf("\0");
-      if (end < 0) return;
+      if (end !== response.length - 1 || end < 0 || response.some(byte => byte > 127)) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete or invalid scanner response"));
       const message = response.subarray(0, end).toString("ascii");
       if (response.subarray(end + 1).length !== 0) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Unexpected scanner response data"));
       if (/^stream: OK$/.test(message)) return finish(undefined, "clean");
@@ -93,8 +103,10 @@ export async function scanWithClamAv(bytes: Uint8Array): Promise<"clean" | "infe
         socket.write(chunk);
       }
       const terminator = Buffer.alloc(4);
-      socket.end(terminator);
+      // INSTREAM ends with the zero-length chunk, not a TCP half-close.
+      // Keep the connection open while clamd performs its asynchronous scan.
+      socket.write(terminator);
     });
-    socket.once("end", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });
+    socket.once("close", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });
   });
 }
