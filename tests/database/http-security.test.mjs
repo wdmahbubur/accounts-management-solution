@@ -13,12 +13,12 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
   const f = await createAccountingFixture();
   const password = randomBytes(24).toString("base64url"), encoded = await argon2.hash(password);
   await f.admin.query("UPDATE identity.users SET password_hash=$1 WHERE id=ANY($2::uuid[])", [encoded, Object.values(f.ids)]);
-  function session() {
+  function session(organizationId=f.org) {
     const cookies = new Map();
     // Seed only the UI context cookies; actual identity and authority still
     // come from the password-authenticated session and live membership.
     const nonce = randomBytes(16).toString("base64url");
-    cookies.set("ams_current_organization", f.org); cookies.set("ams_company_context", nonce);
+    cookies.set("ams_current_organization", organizationId); cookies.set("ams_company_context", nonce);
     return async (path, options = {}) => {
       const headers = new Headers(options.headers); if (cookies.size) headers.set("cookie", [...cookies].map(([k, v]) => `${k}=${v}`).join("; "));
       if (!headers.has("x-company-context")) headers.set("x-company-context", nonce);
@@ -27,8 +27,8 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       return response;
     };
   }
-  async function login(user) {
-    const send = session(); const csrf = await (await send("/api/auth/csrf")).json();
+  async function login(user,organizationId=f.org) {
+    const send = session(organizationId); const csrf = await (await send("/api/auth/csrf")).json();
     const response = await send("/api/auth/callback/credentials", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", origin: base }, body: new URLSearchParams({ csrfToken: csrf.csrfToken, email: `acceptance-${user}@example.invalid`, password, callbackUrl: base }) });
     assert.ok([200, 302, 303].includes(response.status));
     const identity = await (await send("/api/auth/session")).json(); assert.equal(identity.user?.id, user, "Actual password authentication must establish the expected identity.");
@@ -159,6 +159,30 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       assert.equal((await owner(path,{...options,headers:{...options.headers,'x-company-context':randomUUID()}})).status,409);
       assert.equal((await billing(path,options)).status,403);assert.equal((await foreign(path,options)).status,404);assert.equal((await session()(path,options)).status,401);
       assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM finance_private.opening_cutover_summaries WHERE organization_id=$1',[f.org])).rows[0].n,before);
+    });
+    await t.test('year close and reopen reject cross-origin, stale-context and unauthorized requests, then replay a genuine zero-nominal close',async()=>{
+      const fiscalYear=(await f.rpc('SELECT id FROM finance.fiscal_years WHERE organization_id=$1 ORDER BY starts_on',[f.org])).rows[0].id;
+      const before=(await f.admin.query('SELECT count(*)::int AS n FROM finance.year_close_runs WHERE organization_id=$1',[f.org])).rows[0].n;
+      for(const action of['close','reopen']){
+        const path=api(f.org,`fiscal-years/${fiscalYear}/${action}`),options={method:'POST',headers:{origin:base,'content-type':'application/json','idempotency-key':randomUUID()},body:JSON.stringify({reason:'Synthetic HTTP annual accounting control test'})};
+        assert.equal((await owner(path,{...options,headers:{...options.headers,origin:'https://untrusted.example.invalid','sec-fetch-site':'cross-site'}})).status,403);
+        assert.equal((await owner(path,{...options,headers:{...options.headers,'x-company-context':randomUUID()}})).status,409);
+        assert.equal((await billing(path,options)).status,403);assert.equal((await foreign(path,options)).status,404);assert.equal((await session()(path,options)).status,401);
+      }
+      assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM finance.year_close_runs WHERE organization_id=$1',[f.org])).rows[0].n,before);
+      const z=await createAccountingFixture();
+      try{
+        await z.admin.query('UPDATE identity.users SET password_hash=$1 WHERE id=$2',[encoded,z.ids.owner]);
+        const send=await login(z.ids.owner,z.org),year=(await z.rpc('SELECT id FROM finance.fiscal_years WHERE organization_id=$1 ORDER BY starts_on',[z.org])).rows[0].id;
+        for(const p of(await z.rpc('SELECT * FROM finance.accounting_periods WHERE organization_id=$1 AND fiscal_year_id=$2 ORDER BY starts_on,id',[z.org,year])).rows)await z.rpc('SELECT public.lock_accounting_period($1,$2,$3,$4,$5)',[z.org,p.id,p.row_version,randomUUID(),'Synthetic HTTP zero-nominal close prerequisites']);
+        for(const action of['close','reopen']){
+          const path=api(z.org,`fiscal-years/${year}/${action}`),options={method:'POST',headers:{origin:base,'content-type':'application/json','idempotency-key':randomUUID()},body:JSON.stringify({reason:'Synthetic HTTP zero-nominal annual close rehearsal'})};
+          const response=await send(path,options);assert.equal(response.status,200,JSON.stringify(await response.clone().json()));assert.match(response.headers.get('cache-control'),/private.*no-store/);
+          const receipt=await response.json();assert.equal(receipt.data.close_kind,'zero_nominal');assert.equal(receipt.data.journal_entry_id,null);assert.equal(receipt.data[action==='close'?'document_id':'reopen_document_id'],null);assert.equal(receipt.meta.replayed,undefined);
+          const replay=await send(path,options);assert.equal(replay.status,200);assert.deepEqual((await replay.json()).data,receipt.data);
+        }
+        const counts=(await z.admin.query('SELECT (SELECT count(*) FROM finance.business_documents WHERE organization_id=$1)::int AS documents,(SELECT count(*) FROM finance.journal_entries WHERE organization_id=$1)::int AS journals,(SELECT count(*) FROM finance.year_close_runs WHERE organization_id=$1 AND reopened_at IS NOT NULL)::int AS reopened',[z.org])).rows[0];assert.deepEqual(counts,{documents:0,journals:0,reopened:1});
+      }finally{await z.close();}
     });
     await t.test("S-07 a still-valid authentication session loses company access immediately after deactivation", async () => {
       const member = (await f.admin.query("SELECT id FROM finance.organization_members WHERE organization_id=$1 AND user_id=$2", [f.org, f.ids.owner])).rows[0].id;

@@ -1,0 +1,13 @@
+# ADR 0007 — Closing years without nominal account balances
+
+Date: 24 October 2026. Scope: #176 / #86 / US-061. Status: implemented candidate; AI accounting/code review for the internal gate under #115. This is not independent accountant certification.
+
+A dormant company, a year with only balance-sheet postings, or a year whose income/expense balances have been fully reversed still needs a closed fiscal year and immutable close evidence. The source contract requires complete balanced journals and forbids manufactured money events. With no nominal account balance to transfer, an empty journal cannot satisfy those rules.
+
+Record a `zero_nominal` close run containing the same preview, reason, actor and timestamp, and close the fiscal year under the existing capability, recent-authentication, prerequisite and concurrency checks. Allocate no document number and create no source document, journal, open item, allocation or outbox money event. Reopening appends one actor/reason/time event to that run and reopens its periods. It preserves the original snapshot and creates no reversal journal because there is no closing journal to reverse.
+
+A year with offsetting nonzero income and expense balances still needs its normal closing journal even when annual net profit is zero. Profit, loss and retained earnings continue to use the existing exact PostgreSQL calculations. Existing journal close/reopen runs and snapshots retain their original documents and linked reversals; missing receipt kind on a legacy journal replay is accepted only with a valid document/journal receipt. A snapshot-only result must explicitly identify itself and contain null document/journal/number fields.
+
+The one-active-close constraint recognizes both journal reversals and snapshot reopening events. The append-only trigger permits one reopen event while protecting original evidence. Close/reopen continue to lock fiscal years and periods in the established order, enforce chronological reopening, and store idempotent receipts. No posted history is rewritten by migration 0130. Rollback must use a forward-compatible application or forward migration, never a restore over newer books or removal of valid close history.
+
+The screen distinguishes snapshot and journal closes, validates the actual response before showing success, and retains an uncertain attempt's key and payload for an identical in-page retry. HTTP mutations also require a trusted origin and current company nonce. Verification is recorded separately; this decision does not assert a public next-year calendar creation flow, production migration, provider recovery, measured global capacity, or worldwide tax compliance.
