@@ -1,0 +1,3 @@
+# Linux jobs receipts
+
+See the [QA report](../../linux-jobs-2026-10-24.md) for exact commands and boundaries. Implementation ffb3bd63361ce9cb710327aaa860b9897538f182; generated fixture follow-up f79bf6b. Final container receipt has four passes; process recovery has four; the combined earlier receipt preserves the passing scanner cases and the initial canonical-origin fixture failure. `linux-clamav.log` records the verified update-before-start sequence. Production activation is explicitly deferred by the user. All SMTP/storage/database records are isolated synthetic fixtures; private environment files are excluded.

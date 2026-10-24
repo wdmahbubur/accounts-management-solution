@@ -5,6 +5,17 @@ import { createConnection } from "node:net";
 const responseLimit = 4096;
 const timeoutMs = 20_000;
 
+/** Refuse new clean decisions when signatures are stale or the clock disagrees. */
+export function validateClamAvVersion(message: string, now = Date.now()): string {
+  const match = /^ClamAV ([^/\s]{1,32})\/(\d{1,10})\/([^\r\n\0]{1,100})$/.exec(message);
+  if (!match) throw new ClamAvError("SCAN_PROTOCOL_ERROR", "Invalid scanner version response");
+  const updated = Date.parse(match[3]!);
+  if (!Number.isFinite(updated) || !Number.isFinite(now) || now - updated > 72 * 60 * 60 * 1000 || updated - now > 30 * 60 * 1000) {
+    throw new ClamAvError("CLAMAV_UNAVAILABLE", "Scanner signatures unavailable or outdated");
+  }
+  return `ClamAV-${match[1]}-db${match[2]}`;
+}
+
 export class ClamAvError extends Error {
   readonly code: "CLAMAV_UNAVAILABLE" | "SCAN_TIMEOUT" | "SCAN_PROTOCOL_ERROR";
   constructor(code: "CLAMAV_UNAVAILABLE" | "SCAN_TIMEOUT" | "SCAN_PROTOCOL_ERROR", message: string) {
@@ -45,9 +56,8 @@ export async function readClamAvVersion(): Promise<string> {
       const end = response.indexOf("\0");
       if (end !== response.length - 1 || end < 0 || response.some(byte => byte > 127)) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete or invalid scanner response"));
       const message = response.subarray(0, end).toString("ascii");
-      const match = /^ClamAV ([^/\s]{1,32})\/(\d{1,10})\//.exec(message);
-      if (!match || response.subarray(end + 1).length) return finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Invalid scanner version response"));
-      finish(undefined, `ClamAV-${match[1]}-db${match[2]}`);
+      try { finish(undefined, validateClamAvVersion(message)); }
+      catch (error) { finish(error instanceof ClamAvError ? error : new ClamAvError("SCAN_PROTOCOL_ERROR", "Invalid scanner version response")); }
     });
     socket.once("connect", () => socket.write(Buffer.from("zVERSION\0", "ascii")));
     socket.once("close", () => { if (!settled) finish(new ClamAvError("SCAN_PROTOCOL_ERROR", "Incomplete scanner response")); });

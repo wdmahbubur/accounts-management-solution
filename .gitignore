@@ -13,3 +13,4 @@ coverage/
 .DS_Store
 # Private local operational evidence, credentials and synthetic backup bytes.
 /output/
+/infra/jobs/secrets/
