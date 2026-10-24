@@ -3,9 +3,29 @@ import { createServer } from "node:net";
 import test from "node:test";
 import { ClamAvError, readClamAvVersion, scanWithClamAv } from "../../apps/web/server/artifacts/clamav.ts";
 
-async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, verdictFor: (bytes: Uint8Array) => string) {
+async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, verdictFor: (bytes: Uint8Array) => string,
+  options: { delayed?: boolean; split?: boolean; trailing?: boolean; drip?: boolean } = {}) {
   const payloads: Uint8Array[] = [];
   const server = createServer((socket) => {
+    const reply = (message: string) => {
+      if (options.drip) {
+        const timer = setInterval(() => { if (socket.writable && !socket.destroyed) socket.write("x"); }, 2_000);
+        socket.once("close", () => clearInterval(timer));
+        return;
+      }
+      const send = () => {
+        if (socket.destroyed || !socket.writable) return;
+        const bytes = Buffer.from(`${message}\0`, "ascii");
+        if (options.trailing) {
+          socket.write(bytes);
+          setTimeout(() => { if (!socket.destroyed && socket.writable) socket.end(Buffer.from("unexpected second record\0", "ascii")); }, 25);
+        } else if (options.split) {
+          socket.write(bytes.subarray(0, 3));
+          setTimeout(() => { if (!socket.destroyed && socket.writable) socket.end(bytes.subarray(3)); }, 25);
+        } else socket.end(bytes);
+      };
+      if (options.delayed) setTimeout(send, 25); else send();
+    };
     let buffered = Buffer.alloc(0);
     let mode: "command" | "stream" = "command";
     const pieces: Buffer[] = [];
@@ -17,7 +37,7 @@ async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, ve
         if (buffered.length < version.length && version.subarray(0, buffered.length).equals(buffered)) return;
         if (buffered.length < command.length && command.subarray(0, buffered.length).equals(buffered)) return;
         if (buffered.subarray(0, version.length).equals(version)) {
-          socket.end(Buffer.from("ClamAV 1.4.2/27839/Sat Oct 04 10:33:00 2026\0", "ascii"));
+          reply("ClamAV 1.4.2/27839/Sat Oct 04 10:33:00 2026");
           return;
         }
         if (!buffered.subarray(0, command.length).equals(command)) return socket.destroy();
@@ -29,7 +49,7 @@ async function withClamAvMock(run: (payloads: Uint8Array[]) => Promise<void>, ve
         if (length === 0) {
           const bytes = Buffer.concat(pieces);
           payloads.push(bytes);
-          socket.end(Buffer.from(`${verdictFor(bytes)}\0`, "ascii"));
+          reply(verdictFor(bytes));
           return;
         }
         if (buffered.length < length + 4) return;
@@ -71,4 +91,34 @@ test("ClamAV adapter treats FOUND as rejected and unknown scanner results as err
     await assert.rejects(scanWithClamAv(new Uint8Array([1])), (error: unknown) =>
       error instanceof ClamAvError && error.code === "SCAN_PROTOCOL_ERROR");
   }, () => "stream: ERROR");
+});
+
+test("ClamAV adapter waits for asynchronous, fragmented replies without half-closing the request", async () => {
+  await withClamAvMock(async payloads => {
+    assert.equal(await readClamAvVersion(), "ClamAV-1.4.2-db27839");
+    assert.equal(await scanWithClamAv(new TextEncoder().encode("Synthetic delayed evidence")), "clean");
+    assert.equal(payloads.length, 1);
+  }, () => "stream: OK", { delayed: true, split: true });
+});
+
+test("ClamAV adapter rejects trailing records even when they arrive after a clean verdict", async () => {
+  await withClamAvMock(async () => {
+    for (const operation of [readClamAvVersion, () => scanWithClamAv(new Uint8Array([1]))]) {
+      await assert.rejects(operation, error => error instanceof ClamAvError && error.code === "SCAN_PROTOCOL_ERROR");
+    }
+  }, () => "stream: OK", { trailing: true });
+});
+
+test("ClamAV adapter cannot interpret non-ASCII bytes as the ASCII clean verdict", async () => {
+  await withClamAvMock(async () => {
+    await assert.rejects(() => scanWithClamAv(new Uint8Array([1])), error => error instanceof ClamAvError && error.code === "SCAN_PROTOCOL_ERROR");
+  }, () => "stream: \u00cf\u00cb");
+});
+
+test("scanner's overall deadline cannot be extended by trickling response bytes", { timeout: 30_000 }, async () => {
+  await withClamAvMock(async () => {
+    const started = Date.now();
+    await assert.rejects(readClamAvVersion, error => error instanceof ClamAvError && error.code === "SCAN_TIMEOUT");
+    assert.ok(Date.now() - started < 25_000);
+  }, () => "stream: OK", { drip: true });
 });
