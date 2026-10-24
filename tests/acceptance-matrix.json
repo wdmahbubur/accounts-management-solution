@@ -295,11 +295,13 @@
     "status": "covered",
     "evidence": [
       "tests/database/reversal-tenant-controls.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "tests/database/reversal-dependencies.test.mjs",
+      "docs/qa/reversal-dependencies-2026-10-24.md"
     ],
-    "note": "Exact opposite dated reversal, immutable original, replay and second-reversal denial.",
+    "note": "Exact opposite source reversals retain originals; resolved match/credit/refund history releases only eligible dates. Active/finalized dependencies, replay and real two-connection races remain guarded.",
     "last_result": "passed",
-    "verified_at": "2026-10-21",
+    "verified_at": "2026-10-24",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
@@ -308,11 +310,13 @@
     "status": "covered",
     "evidence": [
       "tests/database/reversal-tenant-controls.test.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "tests/database/reversal-dependencies.test.mjs",
+      "docs/qa/reversal-dependencies-2026-10-24.md"
     ],
-    "note": "Exact opposite dated reversal, immutable original, replay and second-reversal denial.",
+    "note": "Exact opposite source reversals retain originals; resolved match/credit/refund history releases only eligible dates. Active/finalized dependencies, replay and real two-connection races remain guarded.",
     "last_result": "passed",
-    "verified_at": "2026-10-21",
+    "verified_at": "2026-10-24",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {
@@ -321,11 +325,13 @@
     "status": "covered",
     "evidence": [
       "tests/database/banking-reconciliation-workflow.mjs",
-      "docs/qa/full-acceptance-2026-10-21.md"
+      "docs/qa/full-acceptance-2026-10-21.md",
+      "tests/database/reversal-dependencies.test.mjs",
+      "docs/qa/reversal-dependencies-2026-10-24.md"
     ],
-    "note": "Finalized reconciliation blocks source reversal until privileged reopen.",
+    "note": "Exact opposite source reversals retain originals; resolved match/credit/refund history releases only eligible dates. Active/finalized dependencies, replay and real two-connection races remain guarded.",
     "last_result": "passed",
-    "verified_at": "2026-10-21",
+    "verified_at": "2026-10-24",
     "environment": "isolated Neon PostgreSQL 18 / restricted application login; loopback HTTP/SMTP where specified"
   },
   {

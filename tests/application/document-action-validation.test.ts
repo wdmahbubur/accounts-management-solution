@@ -70,6 +70,7 @@ test("confirmed validation rejection releases fields while keeping the safe retr
 test("only a structured application rejection releases an uncertain operation", () => {
   assert.equal(isConfirmedFormRejection(422, { error: { code: "VALIDATION_FAILED" } }), true);
   assert.equal(isConfirmedFormRejection(409, { error: { code: "STALE_VERSION" } }), true);
+  assert.equal(isConfirmedFormRejection(409, { error: { code: "REVERSAL_DEPENDENCY" } }), true);
   assert.equal(isConfirmedFormRejection(409, { error: { code: "IDEMPOTENCY_CONFLICT" } }), false);
   assert.equal(isConfirmedFormRejection(503, { error: { code: "INTERNAL_ERROR" } }), false);
   assert.equal(isConfirmedFormRejection(408, { error: { code: "VALIDATION_FAILED" } }), false);

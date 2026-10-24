@@ -1,0 +1,173 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Launch corrections 24 Oct"':
+    - /url: /companies
+    - strong: Launch corrections 24 Oct
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview":
+          - generic: Overview
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting" [expanded]:
+          - generic: Accounting
+      - link "Financial documents":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+      - link "Journal register":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/journals
+      - link "General ledger":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/general-ledger
+      - link "Trial balance":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/reports/trial-balance
+      - link "Chart of accounts":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/accounts
+      - link "Fiscal periods":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/periods
+      - link "Fiscal year close":
+        - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/year-close
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Launch corrections 24 Oct":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa
+    - generic: /
+    - link "Financial documents":
+      - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents
+    - generic: /
+    - generic: Document details
+  - generic "acceptance-6fe534ef-e76f-44ec-ab68-baea41d55bf0@example.invalid"
+  - button "Sign out"
+- main:
+  - link "← Invoices":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/sales/invoices
+  - paragraph: Invoice
+  - heading "INV-FY 2025-000002" [level=1]
+  - generic: Posted
+  - paragraph: Posted to the ledger. Financial details are preserved as issued.
+  - generic: Document total · USD
+  - strong: "100.00"
+  - term: Settlement
+  - definition:
+    - text: Unpaid
+    - generic: Overdue
+  - term: Outstanding · USD
+  - definition: "100.00"
+  - term: Delivery
+  - definition: Not sent
+  - link "Download issued PDF":
+    - /url: /api/v1/organizations/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/invoices/d3ddd1af-dc03-44bd-9bcf-745266937540/pdf
+  - button "Send / resend invoice email"
+  - link "Record customer receipt":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/new?type=receipt&party_id=ef7974a7-b6b9-4668-9f66-da70c6a1780d
+  - link "Issue customer credit":
+    - /url: /o/b5437d1a-a0fa-417a-9c65-d3f09da5e2fa/accounting/documents/new?type=customer_credit&party_id=ef7974a7-b6b9-4668-9f66-da70c6a1780d&original_document_id=d3ddd1af-dc03-44bd-9bcf-745266937540
+  - region "Document details":
+    - heading "Document details" [level=2]
+    - region "Issued customer":
+      - heading "Issued customer" [level=3]
+      - paragraph: Synthetic customer
+      - heading "Billing address" [level=4]
+      - paragraph: No billing address was recorded on this document.
+      - paragraph: These are the original issued details. Later contact edits do not change this document.
+    - term: Issue date
+    - definition: 15 Jan 2025
+    - term: Accounting date
+    - definition: 15 Jan 2025
+    - term: Due date
+    - definition: 15 Jan 2025
+    - term: Recognition
+    - definition: Earned or incurred
+    - term: Performance confirmed
+    - definition: "Yes"
+    - heading "Description" [level=3]
+    - paragraph: Synthetic acceptance invoice
+  - region "Items and services":
+    - heading "Items and services" [level=2]
+    - region "Document items":
+      - table "Saved line amounts · USD":
+        - caption: Saved line amounts · USD
+        - rowgroup:
+          - row "Item / description Quantity Unit rate Discount Net Tax Total":
+            - columnheader "Item / description"
+            - columnheader "Quantity"
+            - columnheader "Unit rate"
+            - columnheader "Discount"
+            - columnheader "Net"
+            - columnheader "Tax"
+            - columnheader "Total"
+        - rowgroup:
+          - row "Synthetic service 1 100.00 0.00 100.00 0.00 No tax · 0% 100.00":
+            - rowheader "Synthetic service"
+            - cell "1"
+            - cell "100.00"
+            - cell "0.00"
+            - cell "100.00"
+            - cell "0.00 No tax · 0%":
+              - text: "0.00"
+              - generic: No tax · 0%
+            - cell "100.00":
+              - strong: "100.00"
+    - term: Net
+    - definition: "100.00"
+    - term: Tax
+    - definition: "0.00"
+    - term: Total · USD
+    - definition: "100.00"
+  - region "Payments and credits":
+    - heading "Payments and credits" [level=2]
+    - paragraph: No settlement allocation is linked to this document.
+  - generic "Accounting2"
+  - generic "Delivery history0"
+  - generic "Approval history1"
+  - generic "Attachments0"
+  - generic "Activity log3"
+  - generic "Correct or reverse this document"
+  - region "Reverse this document":
+    - heading "Reverse this document" [level=2]
+    - paragraph: Use a reversal to cancel the accounting effect of this posted document. The original stays in the history, with a linked reversal and dated settlement corrections.
+    - paragraph: The reversal date must be in an open period. If a related bank reconciliation is finalized, reopen it first.
+    - alert [active]:
+      - strong: Resolve the linked credits before reversing this document.
+      - list:
+        - listitem: Reverse every linked credit first. Choose a date on or after their reversal dates.
+    - text: Reversal date
+    - textbox "Reversal date Choose 2025-01-15 or a later date. The default follows your company timezone.": 2025-01-19
+    - generic: Choose 2025-01-15 or a later date. The default follows your company timezone.
+    - text: Why are you reversing it?
+    - textbox "Why are you reversing it? Explain the correction in 10–800 characters. This reason stays in the document history.": Synthetic Edge original invoice correction after child credit reversal
+    - text: Explain the correction in 10–800 characters. This reason stays in the document history.
+    - button "Post reversal"
+  - generic "Document reference information"
+- contentinfo: USD books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert: INV-FY 2025-000002

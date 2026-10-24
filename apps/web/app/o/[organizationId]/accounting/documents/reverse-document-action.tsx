@@ -77,7 +77,7 @@ export function ReverseDocumentAction({ organizationId, documentId, sourceDate, 
           <input id={`${id}-date`} name="reversal_date" type="date" min={sourceDate} required value={date}
             aria-invalid={Boolean(fields.reversal_date)} aria-describedby={`${id}-date-hint`}
             onChange={event => { setDate(event.target.value); setFields({}); }} />
-          <small id={`${id}-date-hint`}>Choose {sourceDate} or a later date. The default follows Bangladesh time.</small>
+          <small id={`${id}-date-hint`}>Choose {sourceDate} or a later date. The default follows your company timezone.</small>
         </label>
         <label htmlFor={`${id}-reason`}>Why are you reversing it?
           <textarea id={`${id}-reason`} name="reason" minLength={10} maxLength={800} rows={3} required value={reason}

@@ -22,6 +22,7 @@ const STATUS_BY_CODE: Readonly<Record<StableErrorCode, number>> = {
   PARTY_MISMATCH: 422,
   RECONCILIATION_LOCKED: 409,
   REVERSAL_EXISTS: 409,
+  REVERSAL_DEPENDENCY: 409,
   IDEMPOTENCY_CONFLICT: 409,
   DUPLICATE_IMPORT: 409,
   PLAN_READ_ONLY: 409,
@@ -46,6 +47,7 @@ const DEFAULT_MESSAGE: Readonly<Record<PublicErrorCode, string>> = {
   PARTY_MISMATCH: "The selected parties are not compatible.",
   RECONCILIATION_LOCKED: "The reconciliation is locked.",
   REVERSAL_EXISTS: "A reversal already exists.",
+  REVERSAL_DEPENDENCY: "Resolve the linked documents before reversing this document.",
   IDEMPOTENCY_CONFLICT: "The idempotency key was already used with a different request.",
   DUPLICATE_IMPORT: "The same import has already been processed.",
   PLAN_READ_ONLY: "The current plan is read-only.",
@@ -109,6 +111,7 @@ export class CommandError extends Error {
       | "ALLOCATION_EXCEEDED"
       | "RECONCILIATION_LOCKED"
       | "REVERSAL_EXISTS"
+      | "REVERSAL_DEPENDENCY"
       | "DUPLICATE_IMPORT"
       | "PLAN_READ_ONLY",
     fields?: Readonly<Record<string, string>>

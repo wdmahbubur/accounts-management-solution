@@ -1,0 +1,75 @@
+TAP version 13
+# {"fixture":"bank-reversal-dependencies","organizationId":"e99a3009-21e0-4747-af20-a0c33260cbcf"}
+# Subtest: resolved bank match history permits a source reversal while active and finalized matches still block
+ok 1 - resolved bank match history permits a source reversal while active and finalized matches still block
+  ---
+  duration_ms: 77954.5034
+  type: 'test'
+  ...
+# {"fixture":"customer_credit-reversal-dependency","organizationId":"0f4b5288-2125-4910-8ebb-b12e3dd913ba"}
+# Subtest: customer_credit: only a posted child reversal effective by the requested date resolves its dependency
+ok 2 - customer_credit: only a posted child reversal effective by the requested date resolves its dependency
+  ---
+  duration_ms: 52885.5687
+  type: 'test'
+  ...
+# {"fixture":"vendor_credit-reversal-dependency","organizationId":"e97a0d3a-a4eb-401f-8ad7-755626a279a3"}
+# Subtest: vendor_credit: only a posted child reversal effective by the requested date resolves its dependency
+ok 3 - vendor_credit: only a posted child reversal effective by the requested date resolves its dependency
+  ---
+  duration_ms: 54048.1924
+  type: 'test'
+  ...
+# Subtest: customer_credit: refund history is released only on or after its reversal date
+ok 4 - customer_credit: refund history is released only on or after its reversal date
+  ---
+  duration_ms: 62021.8765
+  type: 'test'
+  ...
+# Subtest: vendor_credit: refund history is released only on or after its reversal date
+ok 5 - vendor_credit: refund history is released only on or after its reversal date
+  ---
+  duration_ms: 60014.9805
+  type: 'test'
+  ...
+# Subtest: independent bank mutation/source-reversal races cannot leave a live match on a reversed source
+    # Subtest: finalize/source reversal and finalize/unmatch races preserve active finalized evidence
+    ok 1 - finalize/source reversal and finalize/unmatch races preserve active finalized evidence
+      ---
+      duration_ms: 33167.58
+      type: 'test'
+      ...
+    # Subtest: new match versus source reversal has one winner
+    ok 2 - new match versus source reversal has one winner
+      ---
+      duration_ms: 20042.6994
+      type: 'test'
+      ...
+    # Subtest: unmatch versus source reversal is serialized before reading dependencies
+    ok 3 - unmatch versus source reversal is serialized before reading dependencies
+      ---
+      duration_ms: 22239.769
+      type: 'test'
+      ...
+# {"fixture":"reversal-dependency-races","organizationId":"737aca23-61da-4540-bb04-c595def53b8f","independentConnections":2}
+    # Subtest: different-key source reversals still produce one opposite journal
+    ok 4 - different-key source reversals still produce one opposite journal
+      ---
+      duration_ms: 21016.4261
+      type: 'test'
+      ...
+    1..4
+ok 6 - independent bank mutation/source-reversal races cannot leave a live match on a reversed source
+  ---
+  duration_ms: 124482.6704
+  type: 'test'
+  ...
+1..6
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 438990.7105

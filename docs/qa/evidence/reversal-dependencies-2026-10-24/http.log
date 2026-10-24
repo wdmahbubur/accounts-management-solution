@@ -1,0 +1,90 @@
+TAP version 13
+# Subtest: real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries
+    # Subtest: S-01/S-03/S-05 direct report and source APIs enforce live ordinary-user permissions
+    ok 1 - S-01/S-03/S-05 direct report and source APIs enforce live ordinary-user permissions
+      ---
+      duration_ms: 16138.3652
+      type: 'test'
+      ...
+    # Subtest: concurrent authenticated reads keep ordinary-role authorization isolated
+    ok 2 - concurrent authenticated reads keep ordinary-role authorization isolated
+      ---
+      duration_ms: 15159.9036
+      type: 'test'
+      ...
+    # Subtest: S-04 forged Owner metadata cannot change an authenticated Billing user's authority
+    ok 3 - S-04 forged Owner metadata cannot change an authenticated Billing user's authority
+      ---
+      duration_ms: 6308.182
+      type: 'test'
+      ...
+    # Subtest: company currency cannot be overridden through an authenticated document API
+    ok 4 - company currency cannot be overridden through an authenticated document API
+      ---
+      duration_ms: 7714.5007
+      type: 'test'
+      ...
+    # Subtest: cookie-authenticated financial commands reject an untrusted Origin
+    ok 5 - cookie-authenticated financial commands reject an untrusted Origin
+      ---
+      duration_ms: 4484.1662
+      type: 'test'
+      ...
+    # Subtest: T-44 real authenticated HTTP queues the displayed PDF snapshot and replays the same job
+    ok 6 - T-44 real authenticated HTTP queues the displayed PDF snapshot and replays the same job
+      ---
+      duration_ms: 18337.0546
+      type: 'test'
+      ...
+    # Subtest: T-42 real HTTP finalizes cash flow and exports the selected immutable review
+    ok 7 - T-42 real HTTP finalizes cash flow and exports the selected immutable review
+      ---
+      duration_ms: 27130.5986
+      type: 'test'
+      ...
+    # Subtest: deferred SaaS billing remains authenticated, permission checked and unable to create paid state
+    ok 8 - deferred SaaS billing remains authenticated, permission checked and unable to create paid state
+      ---
+      duration_ms: 26542.0375
+      type: 'test'
+      ...
+    # Subtest: disabled billing webhooks never acknowledge activation or change company books
+    ok 9 - disabled billing webhooks never acknowledge activation or change company books
+      ---
+      duration_ms: 2553.0874
+      type: 'test'
+      ...
+    # Subtest: real authenticated reversal API permits resolved bank history and preserves replay and authorization
+    ok 10 - real authenticated reversal API permits resolved bank history and preserves replay and authorization
+      ---
+      duration_ms: 41680.3674
+      type: 'test'
+      ...
+    # Subtest: real authenticated reversal API respects the linked credit reversal's effective date
+    ok 11 - real authenticated reversal API respects the linked credit reversal's effective date
+      ---
+      duration_ms: 28756.1945
+      type: 'test'
+      ...
+# {"fixture":"http-security","organizationId":"63bc013d-8db1-45cd-891d-174e5f49b7ab"}
+    # Subtest: S-07 a still-valid authentication session loses company access immediately after deactivation
+    ok 12 - S-07 a still-valid authentication session loses company access immediately after deactivation
+      ---
+      duration_ms: 21822.042
+      type: 'test'
+      ...
+    1..12
+ok 1 - real Auth.js sessions enforce tenant, capability, metadata and request-origin boundaries
+  ---
+  duration_ms: 262991.4986
+  type: 'test'
+  ...
+1..1
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 263379.4539
