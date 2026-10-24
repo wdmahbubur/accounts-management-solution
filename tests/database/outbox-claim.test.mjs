@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import test from 'node:test';
 import {Pool} from '@neondatabase/serverless';
 import '../../scripts/load-local-env.mjs';
+import {createAccountingFixture} from './helpers/accounting-fixture.mjs';
+import {fixtureRpcClient} from './helpers/rpc-client.mjs';
+import {getIssuedInvoicePdf} from '../../apps/web/server/documents/invoice-pdf-storage.ts';
 
-test('restricted worker claims issued invoice delivery without output-column ambiguity', {timeout:90000}, async t=>{
+test('restricted worker claims issued invoice delivery without output-column ambiguity', {timeout:180000}, async t=>{
   assert.equal(process.env.AMS_DATABASE_TESTS,'isolated');
   const target=new URL(process.env.MIGRATION_DATABASE_URL??process.env.DATABASE_URL);
   assert.equal(target.hostname,process.env.AMS_TEST_DATABASE_HOST);
@@ -12,22 +15,21 @@ test('restricted worker claims issued invoice delivery without output-column amb
   assert.equal(new URL(process.env.DATABASE_RUNTIME_URL).hostname,target.hostname);
   const workerUrl=new URL(process.env.DATABASE_WORKER_URL);
   assert.equal(decodeURIComponent(workerUrl.username),'ams_job_worker_login');
-  workerUrl.hostname=target.hostname;workerUrl.pathname=target.pathname;
-  const owner=new Pool({connectionString:target.toString(),max:1});
-  const runtime=new Pool({connectionString:process.env.DATABASE_RUNTIME_URL,max:1});
+  assert.equal(workerUrl.hostname,target.hostname);assert.equal(workerUrl.pathname,target.pathname);
+  assert.equal(process.env.OBJECT_STORE_BUCKET,'ams-recovery-drill');
+  assert.equal(new URL(process.env.OBJECT_STORE_ENDPOINT).hostname,process.env.AMS_RECOVERY_STORAGE_HOST);
+  const f=await createAccountingFixture();const owner=f.admin,runtime=f.runtime;
   const worker=new Pool({connectionString:workerUrl.toString(),max:1});
   let c;
   const tables=['business_documents','journal_entries','journal_lines','open_items','settlement_allocations','invoice_pdf_versions'];
-  async function facts(){const result={};for(const table of tables)result[table]=(await owner.query(`SELECT count(*)::int AS rows,md5(COALESCE(string_agg(md5(to_jsonb(t)::text),'' ORDER BY md5(to_jsonb(t)::text)),'')) AS fingerprint FROM finance.${table} t`)).rows[0];return result;}
+  async function facts(){const result={};for(const table of tables)result[table]=(await owner.query(`SELECT count(*)::int AS rows,md5(COALESCE(string_agg(md5(to_jsonb(t)::text),'' ORDER BY md5(to_jsonb(t)::text)),'')) AS fingerprint FROM finance.${table} t WHERE organization_id=$1`,[f.org])).rows[0];return result;}
   try{
-    const fixture=(await owner.query(`SELECT d.id AS document_id,d.organization_id,u.id AS user_id,f.id AS pdf_id,f.sha256
-      FROM finance.business_documents d JOIN finance.invoice_pdf_versions f ON f.organization_id=d.organization_id AND f.document_id=d.id AND f.source_document_version=d.version
-      JOIN finance.organizations o ON o.id=d.organization_id AND o.name LIKE 'E2E%'
-      JOIN finance.organization_members m ON m.organization_id=d.organization_id AND m.status='active'
-      JOIN identity.users u ON u.id=m.user_id AND u.email_normalized=$1
-      WHERE d.state='posted' AND d.document_type='invoice' AND d.party_snapshot->>'email' LIKE '%@example.invalid'
-      ORDER BY f.created_at DESC LIMIT 1`,['e2e-20261020-1550@example.invalid'])).rows[0];
-    assert.ok(fixture,'Requires an existing synthetic issued invoice and PDF in the disposable database.');
+    // Unique evidence through actual posting/PDF services, without a required
+    // historical browser account or a manufactured issued-PDF database row.
+    await owner.query("UPDATE finance.contacts SET email='outbox-claim@example.invalid' WHERE organization_id=$1 AND id=$2",[f.org,f.contacts.customer]);
+    const doc=await f.posted(f.body('invoice','10.00'));
+    const pdf=await getIssuedInvoicePdf(fixtureRpcClient(f),{organizationId:f.org,capabilities:['sales.read']},doc.document_id);
+    const fixture={document_id:doc.document_id,organization_id:f.org,user_id:f.ids.owner,pdf_id:pdf.pdfId,sha256:createHash('sha256').update(pdf.bytes).digest('hex')};
     const before=await facts();
     const runtimeClient=await runtime.connect();let event;
     try{
@@ -62,5 +64,5 @@ test('restricted worker claims issued invoice delivery without output-column amb
     });
     await c.query('ROLLBACK');
     assert.deepEqual(await facts(),before);
-  }finally{if(c){await c.query('ROLLBACK').catch(()=>{});c.release();}await Promise.all([owner.end(),runtime.end(),worker.end()]);}
+  }finally{if(c){await c.query('ROLLBACK').catch(()=>{});c.release();}await Promise.all([f.close(),worker.end()]);}
 });
