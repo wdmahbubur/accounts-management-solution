@@ -11,6 +11,7 @@ const context = { actor: { organizationId: parseOrganizationId("aaaaaaaa-aaaa-4a
 test("reversal conflicts explain a child credit's effective date and never expose raw database diagnostics", async () => {
   for (const [message, expected] of [
     ["reverse or resolve posted credit documents before reversing their original source", "REVERSAL_DEPENDENCY"],
+    ["reverse dependent linked settlements before their source", "REVERSAL_DEPENDENCY"],
     ["remove draft reconciliation matches before reversing this cash source", "RECONCILIATION_LOCKED"],
     ["private financial diagnostics must stay private", "RECONCILIATION_LOCKED"]
   ]) {

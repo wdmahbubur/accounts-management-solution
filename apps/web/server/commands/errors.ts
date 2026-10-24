@@ -47,7 +47,7 @@ const DEFAULT_MESSAGE: Readonly<Record<PublicErrorCode, string>> = {
   PARTY_MISMATCH: "The selected parties are not compatible.",
   RECONCILIATION_LOCKED: "The reconciliation is locked.",
   REVERSAL_EXISTS: "A reversal already exists.",
-  REVERSAL_DEPENDENCY: "Resolve the linked credits before reversing this document.",
+  REVERSAL_DEPENDENCY: "Resolve the linked documents before reversing this document.",
   IDEMPOTENCY_CONFLICT: "The idempotency key was already used with a different request.",
   DUPLICATE_IMPORT: "The same import has already been processed.",
   PLAN_READ_ONLY: "The current plan is read-only.",

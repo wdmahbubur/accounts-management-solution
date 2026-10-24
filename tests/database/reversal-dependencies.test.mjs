@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAccountingFixture, money } from "./helpers/accounting-fixture.mjs";
+import { createAccountingFixture, money, request } from "./helpers/accounting-fixture.mjs";
 import { bankScenario, creditScenario, reverseArgs, reverseSql } from "./helpers/reversal-dependencies.mjs";
 
 test("resolved bank match history permits a source reversal while active and finalized matches still block", { timeout: 240_000 }, async () => {
@@ -42,6 +42,25 @@ for (const type of ["customer_credit", "vendor_credit"]) test(`${type}: only a p
     const aging = (await f.rpc("SELECT public.read_aging_snapshot($1,$2,'2025-01-20') AS value", [f.org, type === "customer_credit" ? "ar" : "ap"], f.ids.owner, { readOnly: true })).rows[0].value.data;
     money(aging.net_trade_control_items, "0.00"); money(aging.trade_control_ledger, "0.00"); money(aging.net_bridge_difference, "0.00");
     console.log(JSON.stringify({ fixture: type + "-reversal-dependency", organizationId: f.org }));
+  } finally { await f.close(); }
+});
+
+for (const type of ["customer_credit", "vendor_credit"]) test(`${type}: refund history is released only on or after its reversal date`, { timeout: 240_000 }, async () => {
+  const f = await createAccountingFixture();
+  try {
+    const { original, credit } = await creditScenario(f, type), refundType = type === "customer_credit" ? "customer_refund" : "vendor_refund", policy = request(refundType);
+    await f.rpc("SELECT * FROM public.save_approval_policy($1,$2,$3,$4,NULL,0,$5,$6,'999999999.00',$7,1,false,true,'Synthetic dated refund dependency policy')", [f.org, policy.id, policy.key, policy.hash, `Acceptance ${refundType}`, refundType, f.ownerRole]);
+    const source = (await f.openItems(credit))[0].id;
+    const payload = { document_type: refundType, source_open_item_id: source, target_open_item_id: null, amount: "40.00", accounting_date: "2025-01-16", description: "Synthetic external linked refund", cash_account_id: f.cash, reference: "Synthetic refund evidence", cash_flow_class: "operating", method: "bank_transfer" }, meta = request(payload);
+    const refund = (await f.rpc("SELECT * FROM public.save_linked_settlement_draft($1,NULL,NULL,$2,$3,$4,$5::jsonb)", [f.org, meta.id, meta.key, meta.hash, JSON.stringify(payload)])).rows[0];
+    assert.equal((await f.submit(refund)).state, "approved"); await f.post(refund);
+    await assert.rejects(() => f.rpc(reverseSql, reverseArgs(f, credit)), e => e.code === "55000");
+    await f.rpc(reverseSql, reverseArgs(f, refund, "2025-01-20"));
+    await assert.rejects(() => f.rpc(reverseSql, reverseArgs(f, credit, "2025-01-19")), e => e.code === "55000");
+    await f.rpc(reverseSql, reverseArgs(f, credit, "2025-01-20"));
+    await f.rpc(reverseSql, reverseArgs(f, original, "2025-01-20"));
+    const report = (await f.rpc("SELECT public.read_aging_snapshot($1,$2,'2025-01-20') AS value", [f.org, type === "customer_credit" ? "ar" : "ap"], f.ids.owner, { readOnly: true })).rows[0].value.data;
+    money(report.net_trade_control_items, "0.00"); money(report.net_bridge_difference, "0.00");
   } finally { await f.close(); }
 });
 
