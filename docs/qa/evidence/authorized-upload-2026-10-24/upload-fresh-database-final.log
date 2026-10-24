@@ -1,0 +1,16 @@
+▶ upload authorization precedes real private storage and completion replay remains scoped
+  ✔ anonymous, nonmember, another owner, guessed intent and changed metadata cause zero object I/O (18245.9292ms)
+  ✔ expired or no-longer-draft upload targets remain unwritable (17055.8807ms)
+  ✔ authorized upload stays quarantined, real scanning releases it, and replay retains one link/audit (31372.9802ms)
+  ✔ draft library accepts genuine bigint metadata and filters upload days in the company timezone (7088.1659ms)
+{"fixture":"authorized-private-upload","organizationId":"cc4b6186-0020-4f98-ba56-20e4bed29517","engine":"ClamAV-1.5.4-db28162","deniedStorageWrites":0,"immutableContentDigestVerified":true,"externalDelivery":false}
+  ✔ membership revocation denies completion/replay before storage even with the old actor identity (6425.1562ms)
+✔ upload authorization precedes real private storage and completion replay remains scoped (114238.9085ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114790.1063
