@@ -31,6 +31,15 @@ test('serial scheduler never overlaps batches and drains the in-flight batch on 
  const running=runSerialJobs({signal:stop.signal,intervalMs:1,run:async()=>{claimed++;entered();await gate;finished++;}});
  await started;await Promise.resolve();assert.equal(claimed,1);assert.equal(finished,0);stop.abort();release();await running;assert.equal(claimed,1);assert.equal(finished,1);
 });
+
+test('cloud scanner selects Bouncer explicitly without a ClamAV daemon or paid fallback',()=>{
+ const storage={...env,OBJECT_STORE_BUCKET:'synthetic-private',OBJECT_STORE_ENDPOINT:'https://storage.example.invalid',AWS_ACCESS_KEY_ID:'synthetic',AWS_SECRET_ACCESS_KEY:'synthetic'};
+ const cloud={...storage,ATTACHMENT_SCAN_PROVIDER:'bouncer',BOUNCER_API_KEY:`bnc_live_${randomBytes(24).toString('hex')}`,BOUNCER_UPLOAD_HOST:'bouncer-dev-uploads-000000000000.s3.ap-south-1.amazonaws.com'};
+ assert.equal(workerConfiguration(cloud,['scanner','--once']).kind,'scanner');
+ for(const changed of[{BOUNCER_API_KEY:''},{BOUNCER_UPLOAD_HOST:'127.0.0.1'},{BOUNCER_UPLOAD_HOST:'bouncer.example.invalid'},{ATTACHMENT_SCAN_PROVIDER:'other'}])assert.throws(()=>workerConfiguration({...cloud,...changed},['scanner']));
+ assert.equal(workerConfiguration({...storage,CLAMAV_HOST:'clamav',CLAMAV_PORT:'3310'},['scanner']).kind,'scanner');
+ assert.throws(()=>workerConfiguration(storage,['scanner']),/scanner host/);
+});
 test('scheduler interruption ends its idle wait and once mode never claims a second batch',async()=>{
  const stop=new AbortController();let calls=0;await runSerialJobs({signal:stop.signal,intervalMs:60000,run:async()=>{calls++;},wait:async()=>{stop.abort();throw new Error('interrupted');}});assert.equal(calls,1);
  const another=new AbortController();await runSerialJobs({signal:another.signal,intervalMs:60000,once:true,run:async()=>{calls++;}});assert.equal(calls,2);

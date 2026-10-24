@@ -1,0 +1,31 @@
+name: ams-cloud-scanner
+services:
+  scanner:
+    image: ${AMS_JOBS_IMAGE:?Set an immutable tested image reference}
+    command: [scanner]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    mem_limit: 192m
+    cpus: 0.25
+    pids_limit: 64
+    stop_grace_period: 110s
+    tmpfs: [/tmp:rw,nosuid,noexec,size=16m,mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment: {NODE_OPTIONS: --max-old-space-size=80, TZ: UTC}
+    secrets: [{source: scanner_env, target: worker_env}]
+    networks: [scanner]
+    healthcheck:
+      test: [CMD, node, scripts/check-background-health.mjs, scanner]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+networks:
+  scanner: {driver: bridge}
+secrets:
+  scanner_env: {file: ./secrets/scanner.env}
