@@ -1,0 +1,17 @@
+▶ cloud scan checkpoints and deferrals remain organization-, digest- and lease-fenced
+  ✔ ordinary runtime and worker direct DML cannot read/write the private checkpoint table (5984.3643ms)
+  ✔ correct claim can reserve once and persist one immutable provider id (3383.1824ms)
+  ✔ wrong tenant, digest, lease or provider cannot reserve or alter a reference (6430.8087ms)
+  ✔ pending result keeps quarantine, preserves retry budget and resumes the same remote id (9017.5529ms)
+  ✔ quota deferral waits for the next UTC month without exhausting retries or releasing bytes (2490.7066ms)
+{"fixture":"scan-provider-fences","organizationId":"1d8f9159-10f9-496c-a32e-7f3a07275cf4","restrictedWorker":true,"quarantinePreserved":true}
+  ✔ only a definitely unsubmitted reservation can be released for a later attempt (17077.1848ms)
+✔ cloud scan checkpoints and deferrals remain organization-, digest- and lease-fenced (89193.0162ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92985.4996

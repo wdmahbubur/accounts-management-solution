@@ -1,0 +1,23 @@
+▶ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker
+  ✔ clean: private upload, quarantine, durable scan and authorized result (159345.8641ms)
+  ✔ eicar: private upload, quarantine, durable scan and authorized result (51041.3237ms)
+  ✖ 10-mib: private upload, quarantine, durable scan and authorized result (356491.9753ms)
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (600009.1603ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 2
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 633766.859
+
+✖ failing tests:
+
+test at tests\database\bouncer-scanner.test.mjs:52:12
+✖ 10-mib: private upload, quarantine, durable scan and authorized result (356491.9753ms)
+  'test did not finish before its parent and was cancelled'
+
+test at tests\database\bouncer-scanner.test.mjs:15:1
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (600009.1603ms)
+  'test timed out after 600000ms'

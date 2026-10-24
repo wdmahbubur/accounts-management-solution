@@ -1,0 +1,27 @@
+✔ private download uses ordinary identity, exact metadata key and a second live check, returning non-cacheable bytes (1.8633ms)
+✔ private downloads deny wrong organization key, removed identity, storage denial, size mismatch and mid-fetch revocation (0.7636ms)
+✔ untrusted filename cannot inject a header or render executable content inline (0.1752ms)
+✔ private downloads accept PostgreSQL bigint byte counts for every artifact kind (0.6161ms)
+✔ private downloads reject malformed, oversized or mismatched bigint metadata (0.6945ms)
+✔ Bouncer uses server-authenticated v2 uploads, anonymized names and exact digest-matched clean verdicts (24.7348ms)
+✔ a resumed scan only polls its saved reference and consumes no new upload (0.6283ms)
+✔ pending scan preserves its reference across retries instead of creating another scan (1.8493ms)
+✔ malicious, suspicious and contradictory clean reports never release a file (1.6118ms)
+✔ wrong scan id, size or digest and incomplete/unknown results fail closed (1.9877ms)
+✔ free-tier quota and paid/invalid plans cannot start an upload (0.617ms)
+✔ explicit create rejection can retry later; ambiguous create outcome never resubmits blindly (0.9269ms)
+✔ unapproved upload destinations and forged fields are rejected without sending file bytes (1.2915ms)
+✔ oversized responses, mismatched local bytes, unknown providers and missing configuration fail closed (1.3599ms)
+✔ lost checkpoint fence stops the upload, and an expired pending scan never becomes clean (0.781ms)
+✔ private object reads require the exact declared bytes across stream chunks (8.7331ms)
+✔ an oversized storage body is cancelled before it can grow past the descriptor (0.5593ms)
+✔ a stalled private body is cancelled by the same request deadline (0.2925ms)
+✔ a broken storage stream never returns partial evidence (0.4192ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 288.8087

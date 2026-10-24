@@ -1,0 +1,65 @@
+{"stage":"upload-start","label":"clean","byteSize":52}
+{"stage":"quarantined","label":"clean"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":66162688}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":64630784}
+{"stage":"decision","label":"clean","status":"clean"}
+{"stage":"download-verified","label":"clean"}
+{"stage":"upload-start","label":"eicar","byteSize":68}
+▶ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker
+  ✔ clean: private upload, quarantine, durable scan and authorized result (45409.0343ms)
+{"stage":"quarantined","label":"eicar"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":65994752}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":64450560}
+{"stage":"decision","label":"eicar","status":"rejected"}
+{"stage":"upload-start","label":"10-mib","byteSize":10485760}
+  ✔ eicar: private upload, quarantine, durable scan and authorized result (43606.2049ms)
+{"stage":"quarantined","label":"10-mib"}
+{"stage":"container-batch","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0},"peakBytes":140746752}
+{"stage":"container-batch","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0},"peakBytes":65363968}
+{"stage":"decision","label":"10-mib","status":"clean"}
+  ✖ 10-mib: private upload, quarantine, durable scan and authorized result (77608.7011ms)
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (205003.3047ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 205526.9244
+
+✖ failing tests:
+
+test at tests\database\bouncer-scanner.test.mjs:53:12
+✖ 10-mib: private upload, quarantine, durable scan and authorized result (77608.7011ms)
+  Error [CommandError]: The requested resource was not found.
+      at CommandError.notFound (file:///F:/accounts-management-solution/apps/web/server/commands/errors.ts:88:12)
+      at readPrivateArtifact (file:///F:/accounts-management-solution/apps/web/server/artifacts/download.ts:39:105)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/bouncer-scanner.test.mjs:72:43)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/bouncer-scanner.test.mjs:53:4)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    code: 'NOT_FOUND',
+    status: 404,
+    fields: undefined
+  }
+
+test at tests\database\bouncer-scanner.test.mjs:15:1
+✖ real free-tier Bouncer scans synthetic private evidence in a restricted 192 MiB Linux worker (205003.3047ms)
+  AssertionError [ERR_ASSERTION]: Every synthetic case must pass before emitting acceptance.
+
+  2 !== 3
+
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/bouncer-scanner.test.mjs:78:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

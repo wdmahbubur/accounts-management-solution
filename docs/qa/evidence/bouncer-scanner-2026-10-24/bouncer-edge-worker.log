@@ -1,0 +1,5 @@
+{"at":"2026-10-24T17:19:46.433Z","event":"worker.batch_complete","kind":"scanner","result":{"claimed":1,"resolved":0,"retry_queued":1,"lease_lost":0}}
+{"event":"test.memory_peak","bytes":67072000}
+{"at":"2026-10-24T17:19:56.004Z","event":"worker.batch_complete","kind":"scanner","result":{"claimed":1,"resolved":1,"retry_queued":0,"lease_lost":0}}
+{"event":"test.memory_peak","bytes":64749568}
+{"edgeUploadScanned":true,"organizationId":"170dec96-3b49-45c9-ba4f-8bd2a44226dc","attachmentId":"97b83104-2e9d-4870-99b8-3d2687a31ecc","oneProviderCreation":true,"financialFingerprintUnchanged":true}
