@@ -1,0 +1,38 @@
+▶ verification tokens enforce cooldown, single use, expiry and independent issuance races
+  ✔ cooldown preserves the first link; consumption and replay are atomic (5911.2266ms)
+  ✔ expired tokens fail and different purposes have independent limits (3098.8955ms)
+  ✔ four independent app processes issue one live verification link (20695.9957ms)
+✔ verification tokens enforce cooldown, single use, expiry and independent issuance races (33502.7911ms)
+✖ restricted worker claims issued invoice delivery without output-column ambiguity (1884.7071ms)
+▶ renderer/delivery faults and crashed worker leases never repost financial activity
+  ✔ T-43 injected PDF renderer failure preserves the posted journal and creates no issued version (29817.4475ms)
+  ✔ T-43 missing issued file causes delivery-only retry; restored bytes deliver through loopback SMTP (56815.765ms)
+{"stage":"worker killed during SMTP; waiting for actual lease expiry","eventId":"183dc88f-e34a-48a3-b2c6-681886ab572d","leaseUntil":"2026-10-24T06:58:55.703Z"}
+{"fixture":"worker-recovery","organizationId":"655bd974-1533-4612-bde3-42f10aab7b91","localSmtpMessages":3}
+  ✔ S-19 kill a real worker during SMTP delivery; expired lease is reclaimed and old token is fenced (133154.1861ms)
+✔ renderer/delivery faults and crashed worker leases never repost financial activity (256413.8818ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 265582.7303
+
+✖ failing tests:
+
+test at tests\database\outbox-claim.test.mjs:7:1
+✖ restricted worker claims issued invoice delivery without output-column ambiguity (1884.7071ms)
+  AssertionError [ERR_ASSERTION]: Requires an existing synthetic issued invoice and PDF in the disposable database.
+      at TestContext.<anonymous> (file:///F:/accounts-management-solution/tests/database/outbox-claim.test.mjs:30:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
