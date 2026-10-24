@@ -1,0 +1,11 @@
+Restricted test role: ams_runtime
+PASS zero opening is explicit, replay-safe, creates no journal, and blocks later opening (actual restricted runtime connection)
+PASS opening save is atomic and retriable; activation posts approved AR detail exactly once (actual restricted runtime connection)
+PASS cross-tenant owner and missing actor cannot read or complete another company (actual restricted runtime connection)
+PASS missing mapping blocks activation without creating completion evidence (privileged fault-injection fixture; function actor checks retained)
+PASS late opening-posting failure rolls back status, completion, journal and receipt (privileged fault-injection fixture; function actor checks retained)
+PASS completion evidence is immutable and a non-owner Admin cannot activate (privileged fault-injection fixture; function actor checks retained)
+PASS same-key concurrent zero setup returns the same receipt without a journal (two actual restricted connections; retained synthetic organization d3397aa3-d7e3-4f04-a01d-d05f7eeed722)
+PASS different-key concurrent zero setup completes once and rejects the competitor (two actual restricted connections; retained synthetic organization 08e929ce-8aa8-4dce-8e05-907d898c24b3)
+PASS competing approved opening documents activate once and post one journal (two actual restricted connections; retained synthetic organization 71468330-191b-4fd6-bc06-233c0af8c56b)
+PASS 9 company-setup integration scenarios; 6 rollback fixtures and 3 retained synthetic race companies.

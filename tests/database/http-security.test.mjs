@@ -151,6 +151,15 @@ test("real Auth.js sessions enforce tenant, capability, metadata and request-ori
       assert.equal((await replay.json()).data.attachment_id, intent.intent_id);
       assert.equal((await f.admin.query("SELECT count(*)::int AS n FROM finance.attachment_links WHERE organization_id=$1 AND attachment_id=$2", [f.org, intent.intent_id])).rows[0].n, 1);
     });
+    await t.test("legacy cutover evidence writes reject foreign origin, stale company context and missing capability", async () => {
+      const path=api(f.org,`documents/${doc.document_id}/opening-cutover`);
+      const before=(await f.admin.query('SELECT count(*)::int AS n FROM finance_private.opening_cutover_summaries WHERE organization_id=$1',[f.org])).rows[0].n;
+      const options={method:'POST',headers:{'content-type':'application/json',origin:base},body:'{}'};
+      assert.equal((await owner(path,{...options,headers:{...options.headers,origin:'https://untrusted.example.invalid','sec-fetch-site':'cross-site'}})).status,403);
+      assert.equal((await owner(path,{...options,headers:{...options.headers,'x-company-context':randomUUID()}})).status,409);
+      assert.equal((await billing(path,options)).status,403);assert.equal((await foreign(path,options)).status,404);assert.equal((await session()(path,options)).status,401);
+      assert.equal((await f.admin.query('SELECT count(*)::int AS n FROM finance_private.opening_cutover_summaries WHERE organization_id=$1',[f.org])).rows[0].n,before);
+    });
     await t.test("S-07 a still-valid authentication session loses company access immediately after deactivation", async () => {
       const member = (await f.admin.query("SELECT id FROM finance.organization_members WHERE organization_id=$1 AND user_id=$2", [f.org, f.ids.owner])).rows[0].id;
       await f.rpc("SELECT public.deactivate_member($1,$2,$3)", [f.org, member, `revoke-http-${randomUUID()}`], f.ids.checker);

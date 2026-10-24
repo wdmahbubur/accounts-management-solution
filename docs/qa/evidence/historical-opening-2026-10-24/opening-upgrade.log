@@ -1,0 +1,1 @@
+{"isolated":true,"database":"/ams_clean_launch_20261021","previousReceipts":126,"applied":[{"name":"0128_historical_opening_trade_due_dates.sql","sha256":"bb4a187eb6787272c32b6c96d563b233621d8e90662461faab00e72cde6faefd"}],"unchangedFinancialFacts":true}

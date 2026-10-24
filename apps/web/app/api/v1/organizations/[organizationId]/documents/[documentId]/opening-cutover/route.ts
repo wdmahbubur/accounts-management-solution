@@ -3,6 +3,8 @@ import { resolveActorContext } from "../../../../../../../../server/auth/resolve
 import { CommandError, commandErrorBody, normalizeCommandError } from "../../../../../../../../server/commands/errors.ts";
 import { generateRequestId } from "../../../../../../../../server/commands/request-context.ts";
 import { roleRuntime } from "../../../../../../../../server/roles/runtime.ts";
+import { assertMutationOrigin } from "../../../../../../../../server/auth/mutation-origin.ts";
+import { assertFreshCompanySubmission } from "../../../../../../../../server/company-context.ts";
 
 const headers={"Cache-Control":"private, no-store"};
 function validDate(value:unknown):value is string{if(typeof value!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const date=new Date(`${value}T00:00:00Z`);return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value;}
@@ -17,8 +19,10 @@ export async function GET(_request:Request,context:{params:Promise<{organization
 export async function POST(request:Request,context:{params:Promise<{organizationId:string;documentId:string}>}){
  const requestId=generateRequestId();
  try{
+  assertMutationOrigin(request.headers);
   const params=await context.params;const organizationId=parseOrganizationId(params.organizationId);const documentId=parseUuid(params.documentId);const runtime=await roleRuntime();
-  const actor=await resolveActorContext(organizationId,runtime.dependencies);if(!actor.capabilities.includes("journal.write"))throw CommandError.forbidden();
+  const actor=await resolveActorContext(organizationId,runtime.dependencies);if(!["journal.write","documents.read","accounting.read"].every(permission=>actor.capabilities.includes(permission)))throw CommandError.forbidden();
+  try{assertFreshCompanySubmission({expectedOrganizationId:organizationId,expectedNonce:request.headers.get("x-company-context"),current:runtime.current});}catch{throw CommandError.conflict("STALE_VERSION",{company:"Your active company changed. Open it again before changing cutover evidence."});}
   let body:unknown;try{body=await request.json();}catch{throw CommandError.validation({body:"Send a valid JSON object."});}
   if(!body||typeof body!=="object"||Array.isArray(body))throw CommandError.validation({body:"Send a valid JSON object."});
   const input=body as Record<string,unknown>;if(Object.keys(input).some(key=>!['cutover_date','prior_trial_balance','ytd_summary','evidence_reference'].includes(key)))throw CommandError.validation({body:"Unexpected request field."});

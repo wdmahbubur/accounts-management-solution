@@ -1,0 +1,60 @@
+{
+  "data": {
+    "created_at": "2026-10-24T07:13:09.621582+00:00",
+    "ytd_summary": [],
+    "cutover_date": "2026-09-30",
+    "control_items": [
+      {
+        "debit": "100.00",
+        "credit": "0.00",
+        "line_no": 2,
+        "party_id": "63f49456-97b3-4878-a1ba-9422ab07af21",
+        "account_id": "9da396d3-e92e-466f-add2-914141b1ce8f",
+        "control_kind": "ar",
+        "availability_date": "2026-09-30",
+        "original_due_date": "2026-08-31",
+        "original_reference": "EDGE-AR-ORIGINAL"
+      },
+      {
+        "debit": "0.00",
+        "credit": "60.00",
+        "line_no": 3,
+        "party_id": "5de6f626-1e54-4cfc-b627-fc314c21af5c",
+        "account_id": "b6d6c229-135b-437c-8e59-b7fc6bff6972",
+        "control_kind": "ap",
+        "availability_date": "2026-09-30",
+        "original_due_date": "2026-09-15",
+        "original_reference": "EDGE-AP-ORIGINAL"
+      }
+    ],
+    "source_document": {
+      "id": "a171ab0b-aa97-458b-8012-53b0ed18228f",
+      "state": "posted",
+      "number": "OB-2026-000001",
+      "version": 2,
+      "currency": "USD",
+      "accounting_date": "2026-09-30"
+    },
+    "evidence_reference": "Synthetic prior trial balance · Edge overdue import",
+    "prior_trial_balance": [
+      {
+        "debit": "100.00",
+        "credit": "0.00",
+        "account_id": "9da396d3-e92e-466f-add2-914141b1ce8f"
+      },
+      {
+        "debit": "0.00",
+        "credit": "60.00",
+        "account_id": "b6d6c229-135b-437c-8e59-b7fc6bff6972"
+      },
+      {
+        "debit": "0.00",
+        "credit": "40.00",
+        "account_id": "a00d1c34-792a-4c10-a4eb-cfd41b2392c1"
+      }
+    ]
+  },
+  "meta": {
+    "request_id": "req_2ac74d88-2d69-4cdd-bf23-3dc1f424d5bf"
+  }
+}
