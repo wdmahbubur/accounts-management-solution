@@ -81,6 +81,16 @@ test("atomic opening request preserves party detail, original references, due da
   assert.equal(parsed.evidenceReference, "Prior ledger export");
 });
 
+test("opening contract preserves pre-cutover/leap due dates and rejects impossible calendar dates", () => {
+  for (const due of ["2024-02-29", "2026-01-01", "2026-03-31", "2026-04-30"]) {
+    const raw=opening();raw.draft.journal_rows[0].open_item_due_date=due;
+    const parsed=validateOpeningDraft(raw);
+    assert.equal(parsed.draft.journalRows[0].open_item_due_date,due);
+    assert.equal((openingDraftPayload(parsed.draft).journal_rows as {open_item_due_date:string}[])[0].open_item_due_date,due);
+  }
+  for(const due of ["2025-02-29","2026-02-30","infinity","0000-01-01"]){const raw=opening();raw.draft.journal_rows[0].open_item_due_date=due;assert.throws(()=>validateOpeningDraft(raw));}
+});
+
 test("opening edit requires a current version and canonical money without coercion", () => {
   const raw = opening();
   assert.throws(() => validateOpeningDraft({ ...raw, document_id: document }));
