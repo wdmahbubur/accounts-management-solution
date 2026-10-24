@@ -1,4 +1,3 @@
-import { bangladeshDate } from "../../../../../lib/date.ts";
 import { parseUuid } from "@ams/contracts";
 
 export function confirmedDraftReceipt(raw: unknown, expectedDocumentId?: string): { documentId: string; documentVersion: number } {
@@ -18,7 +17,7 @@ export function validDocumentDate(value: string): boolean {
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-export function reversalDefaultDate(sourceDate: string, today = bangladeshDate()): string {
+export function reversalDefaultDate(sourceDate: string, today: string): string {
   if (!validDocumentDate(sourceDate) || !validDocumentDate(today)) throw new Error("A valid source and company date are required.");
   return sourceDate > today ? sourceDate : today;
 }

@@ -15,7 +15,10 @@ function openPool(): Pool {
   if (runtimePool) return runtimePool;
   const connectionString = process.env.DATABASE_RUNTIME_URL;
   if (!connectionString) throw new Error("DATABASE_RUNTIME_URL is required for server-side database access.");
-  runtimePool = new Pool({ connectionString, max: 1, connectionTimeoutMillis: 10_000 });
+  // Allow simultaneous layout/command/auth reads without a single busy
+  // connection starving other requests. Keep the per-instance pool bounded;
+  // actor identity remains transaction-local on every checked-out connection.
+  runtimePool = new Pool({ connectionString, max: 2, connectionTimeoutMillis: 10_000 });
   return runtimePool;
 }
 

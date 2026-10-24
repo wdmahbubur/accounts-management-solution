@@ -1,0 +1,209 @@
+--- before/calculate_document_preview(jsonb)
++++ after/calculate_document_preview(jsonb)
+@@ -14,7 +14,7 @@
+     RAISE EXCEPTION 'expected preview object' USING ERRCODE='22023';
+   END IF;
+   IF EXISTS(SELECT 1 FROM jsonb_object_keys(p_input) k WHERE k NOT IN ('currency','lines','rounding'))
+-    OR p_input->>'currency' IS DISTINCT FROM 'BDT'
++    OR NOT COALESCE(finance_private.valid_company_currency(p_input->>'currency'),false)
+     OR jsonb_typeof(p_input->'lines') IS DISTINCT FROM 'array' THEN
+     RAISE EXCEPTION 'invalid preview contract or currency' USING ERRCODE='22023';
+   END IF;
+@@ -69,12 +69,12 @@
+       RAISE EXCEPTION 'rounding requires explicit account and reason' USING ERRCODE='22023';
+     END IF;
+     adjustment:=finance_private.calculation_decimal(r->'amount',true);
+-    IF abs(adjustment)>0.05 THEN RAISE EXCEPTION 'rounding exceeds 0.05 BDT' USING ERRCODE='22023'; END IF;
++    IF abs(adjustment)>0.05 THEN RAISE EXCEPTION 'rounding exceeds 0.05 in company currency' USING ERRCODE='22023'; END IF;
+   END IF;
+   IF sum_gross+adjustment<0 OR greatest(sum_base,sum_discount,sum_net,sum_tax,sum_gross,sum_gross+adjustment)>=1000000000000000000 THEN
+     RAISE EXCEPTION 'invalid document total or overflow' USING ERRCODE='22003';
+   END IF;
+-  RETURN jsonb_build_object('currency','BDT','lines',result_lines,
++  RETURN jsonb_build_object('currency',p_input->>'currency','lines',result_lines,
+     'base',sum_base::numeric(20,2)::text,'discount',sum_discount::numeric(20,2)::text,
+     'net',sum_net::numeric(20,2)::text,'tax',sum_tax::numeric(20,2)::text,'gross',sum_gross::numeric(20,2)::text,
+     'rounding_adjustment',adjustment::numeric(20,2)::text,'total',(sum_gross+adjustment)::numeric(20,2)::text);
+--- before/create_company_atomic(text,text,text,text,text,smallint,date,text)
++++ after/create_company_atomic(text,text,text,text,text,smallint,date,text)
+@@ -32,12 +32,12 @@
+     RAISE EXCEPTION 'invalid legal name' USING ERRCODE = '22023';
+   END IF;
+
+-  IF upper(coalesce(p_country_code, '')) !~ '^[A-Z]{2}$' THEN
++  IF NOT EXISTS(SELECT 1 FROM finance_private.company_countries WHERE code=upper(coalesce(p_country_code,''))) THEN
+     RAISE EXCEPTION 'invalid country code' USING ERRCODE = '22023';
+   END IF;
+
+-  IF upper(coalesce(p_base_currency, '')) <> 'BDT' THEN
+-    RAISE EXCEPTION 'V1 supports BDT only' USING ERRCODE = '22023';
++  IF NOT finance_private.valid_company_currency(upper(coalesce(p_base_currency,''))) THEN
++    RAISE EXCEPTION 'Unsupported company accounting currency' USING ERRCODE = '22023';
+   END IF;
+
+   IF p_timezone IS NULL OR NOT EXISTS (
+@@ -65,7 +65,7 @@
+     'name', btrim(p_name),
+     'legal_name', btrim(p_legal_name),
+     'country_code', upper(p_country_code),
+-    'base_currency', 'BDT',
++    'base_currency', upper(p_base_currency),
+     'timezone', p_timezone,
+     'fiscal_year_start_month', p_fiscal_year_start_month,
+     'books_start_date', p_books_start_date
+@@ -134,7 +134,7 @@
+   )
+   VALUES (
+     v_org_id, btrim(p_name), v_slug, btrim(p_legal_name), upper(p_country_code),
+-    'BDT', p_timezone, p_books_start_date, p_fiscal_year_start_month, 'onboarding'
++    upper(p_base_currency), p_timezone, p_books_start_date, p_fiscal_year_start_month, 'onboarding'
+   );
+
+   INSERT INTO finance.organization_members (
+--- before/finance_private.cash_document_posting_plan(uuid,uuid)
++++ after/finance_private.cash_document_posting_plan(uuid,uuid)
+@@ -20,8 +20,8 @@
+   IF v_doc.document_type IN ('customer_refund','vendor_refund') THEN
+     PERFORM finance_private.validate_linked_settlement(p_organization_id,p_document_id);
+   END IF;
+-  IF v_doc.currency <> 'BDT' OR v_doc.total_amount <= 0 THEN
+-    RAISE EXCEPTION 'cash source must have a positive BDT total' USING ERRCODE = '23514';
++  IF v_doc.currency::text IS DISTINCT FROM finance_private.company_currency(p_organization_id) OR v_doc.total_amount <= 0 THEN
++    RAISE EXCEPTION 'cash source must have a positive company-currency total' USING ERRCODE = '23514';
+   END IF;
+
+   IF v_doc.document_type='advance_application' THEN
+--- before/finance_private.cash_document_preview(uuid,uuid)
++++ after/finance_private.cash_document_preview(uuid,uuid)
+@@ -62,7 +62,7 @@
+   END IF;
+   RETURN jsonb_build_object(
+     'document_id', v_doc.id, 'document_version', v_doc.version, 'document_type', v_doc.document_type,
+-    'currency', 'BDT', 'debit', v_debit::text, 'credit', v_credit::text, 'balanced', true, 'lines', v_lines,
++    'currency', finance_private.company_currency(p_organization_id), 'debit', v_debit::text, 'credit', v_credit::text, 'balanced', true, 'lines', v_lines,
+     'allocations', v_allocations, 'allocated_amount', v_allocated::text,
+     'unallocated_amount', CASE WHEN v_doc.document_type IN ('receipt','vendor_payment')
+       THEN (v_doc.total_amount - v_allocated)::finance.amount::text ELSE NULL END
+--- before/finance_private.company_setup_readiness(uuid)
++++ after/finance_private.company_setup_readiness(uuid)
+@@ -22,9 +22,9 @@
+   SELECT EXISTS(SELECT 1 FROM finance.accounting_periods p WHERE p.organization_id=p_organization_id AND p.kind='opening'
+     AND p.starts_on=v_org.books_start_date-1 AND p.ends_on=p.starts_on AND p.status='open') INTO v_opening;
+   v_checks:=jsonb_build_array(
+-    jsonb_build_object('code','company_profile','required',true,'ready',v_org.base_currency='BDT' AND btrim(v_org.name)<>'' AND btrim(v_org.legal_name)<>''
++    jsonb_build_object('code','company_profile','required',true,'ready',finance_private.valid_company_currency(v_org.base_currency::text) AND btrim(v_org.name)<>'' AND btrim(v_org.legal_name)<>''
+       AND isfinite(v_org.books_start_date) AND EXISTS(SELECT 1 FROM pg_catalog.pg_timezone_names t WHERE t.name=v_org.timezone),
+-      'message','Company identity, BDT currency, timezone and books-start date are valid.'),
++      'message','Company identity, accounting currency, timezone and books-start date are valid.'),
+     jsonb_build_object('code','account_mappings','required',true,'ready',v_missing IS NULL,
+       'message',CASE WHEN v_missing IS NULL THEN 'All required accounts and system mappings are ready.' ELSE 'Repair these account mappings: '||array_to_string(v_missing,', ')||'.' END),
+     jsonb_build_object('code','fiscal_calendar','required',true,'ready',v_calendar,'message','The first fiscal year and its operating periods must be open and cover books start through year end.'),
+--- before/finance_private.period_close_checklist(uuid,uuid)
++++ after/finance_private.period_close_checklist(uuid,uuid)
+@@ -74,7 +74,7 @@
+     UNION ALL SELECT 'cash_classification',(SELECT n FROM cash),'Cash-equivalent activity needs a valid cash-flow classification.',true
+     UNION ALL SELECT 'trial_balance',CASE WHEN (SELECT difference FROM tb)=0 THEN 0 ELSE 1 END,'Posted trial balance is not balanced.',true
+     UNION ALL SELECT 'tax_control_review',CASE WHEN (SELECT net FROM tax)=0 THEN 0 ELSE 1 END,
+-      'Mapped input/output tax controls net to BDT '||(SELECT net::text FROM tax)||'; review the approved filing scope.',false
++      'Mapped input/output tax controls net to '||finance_private.company_currency(p_organization_id)||' '||(SELECT net::text FROM tax)||'; review the approved filing scope.',false
+   )
+   SELECT jsonb_build_object('period_id',p_period_id,'starts_on',v_period.starts_on,'ends_on',v_period.ends_on,
+     'passed',COALESCE(bool_and(issue_count=0 OR NOT blocking),true),'blocking_count',count(*) FILTER(WHERE issue_count>0 AND blocking),
+--- before/finance_private.validate_linked_settlement(uuid,uuid)
++++ after/finance_private.validate_linked_settlement(uuid,uuid)
+@@ -9,7 +9,7 @@
+ BEGIN
+   SELECT x.* INTO d FROM finance.business_documents x WHERE x.organization_id=p_organization_id AND x.id=p_document_id;
+   SELECT x.* INTO s FROM finance.linked_settlement_details x WHERE x.organization_id=p_organization_id AND x.document_id=p_document_id;
+-  IF s.document_id IS NULL OR s.document_version<>d.version OR s.amount<>d.total_amount OR d.currency<>'BDT' THEN
++  IF s.document_id IS NULL OR s.document_version<>d.version OR s.amount<>d.total_amount OR d.currency::text IS DISTINCT FROM finance_private.company_currency(p_organization_id) THEN
+     RAISE EXCEPTION 'current linked eligible balance is required' USING ERRCODE='23514'; END IF;
+   SELECT x.* INTO a FROM finance.open_items x WHERE x.organization_id=p_organization_id AND x.id=s.source_open_item_id;
+   SELECT j.document_type INTO v_type FROM finance.business_documents j JOIN finance.journal_entries e
+--- before/finance_private.validate_posted_journal_complete()
++++ after/finance_private.validate_posted_journal_complete()
+@@ -17,8 +17,8 @@
+     RAISE EXCEPTION 'a building or incomplete journal cannot commit' USING ERRCODE='23514';
+   END IF;
+   SELECT * INTO v_document FROM finance.business_documents d WHERE d.organization_id=v_org AND d.id=v_header.source_document_id;
+-  IF NOT FOUND OR v_document.state<>'posted' OR v_document.accounting_date<>v_header.accounting_date OR v_document.currency<>'BDT' THEN
+-    RAISE EXCEPTION 'posted journal must agree with a posted BDT source' USING ERRCODE='23514';
++  IF NOT FOUND OR v_document.state<>'posted' OR v_document.accounting_date<>v_header.accounting_date OR v_document.currency::text IS DISTINCT FROM finance_private.company_currency(v_header.organization_id) THEN
++    RAISE EXCEPTION 'posted journal must agree with a posted company-currency source' USING ERRCODE='23514';
+   END IF;
+   SELECT * INTO v_period FROM finance.accounting_periods p WHERE p.organization_id=v_org AND p.id=v_header.period_id;
+   IF NOT FOUND OR v_header.accounting_date NOT BETWEEN v_period.starts_on AND v_period.ends_on OR
+--- before/post_financial_document(uuid,uuid,integer,text,text,text)
++++ after/post_financial_document(uuid,uuid,integer,text,text,text)
+@@ -45,7 +45,7 @@
+   IF (v_period.kind='regular' AND v_doc.fiscal_year_id IS DISTINCT FROM v_period.fiscal_year_id) OR
+      (v_period.kind='opening' AND v_type<>'opening_balance') THEN RAISE EXCEPTION 'source fiscal year does not match its accounting period' USING ERRCODE='23514'; END IF;
+   IF v_doc.state='posted' THEN RAISE EXCEPTION 'source is already posted' USING ERRCODE='23505'; END IF;
+-  IF v_doc.state<>'approved' OR v_doc.currency<>'BDT' THEN RAISE EXCEPTION 'source must be approved in BDT before posting' USING ERRCODE='P0001'; END IF;
++  IF v_doc.state<>'approved' OR v_doc.currency::text IS DISTINCT FROM finance_private.company_currency(p_organization_id) THEN RAISE EXCEPTION 'source must be approved in company currency before posting' USING ERRCODE='P0001'; END IF;
+   IF v_doc.total_amount<=0 THEN RAISE EXCEPTION 'zero-value financial sources cannot post' USING ERRCODE='23514'; END IF;
+   SELECT * INTO v_request FROM finance.approval_requests r WHERE r.organization_id=p_organization_id AND r.document_id=p_document_id
+     AND r.document_version=v_doc.version ORDER BY r.created_at DESC,r.id DESC LIMIT 1 FOR UPDATE;
+--- before/post_write_off_document(uuid,uuid,integer,text,text,text)
++++ after/post_write_off_document(uuid,uuid,integer,text,text,text)
+@@ -27,7 +27,7 @@
+  SELECT * INTO v_doc FROM finance.business_documents d WHERE d.organization_id=p_organization_id AND d.id=p_document_id FOR UPDATE;
+  IF v_doc.document_type<>'write_off' OR v_doc.version<>p_expected_version THEN RAISE EXCEPTION 'source version is stale' USING ERRCODE='40001'; END IF;
+  IF v_period_row.kind<>'regular' OR v_doc.fiscal_year_id IS DISTINCT FROM v_period_row.fiscal_year_id THEN RAISE EXCEPTION 'source fiscal year does not match its accounting period' USING ERRCODE='23514'; END IF;
+- IF v_doc.state<>'approved' OR v_doc.currency<>'BDT' OR v_doc.total_amount<=0 THEN RAISE EXCEPTION 'write-off must be approved and positive in BDT' USING ERRCODE='P0001'; END IF;
++ IF v_doc.state<>'approved' OR v_doc.currency::text IS DISTINCT FROM finance_private.company_currency(p_organization_id) OR v_doc.total_amount<=0 THEN RAISE EXCEPTION 'write-off must be approved and positive in company currency' USING ERRCODE='P0001'; END IF;
+  SELECT * INTO v_request FROM finance.approval_requests r WHERE r.organization_id=p_organization_id AND r.document_id=p_document_id
+   AND r.document_version=v_doc.version ORDER BY r.created_at DESC,r.id DESC LIMIT 1 FOR UPDATE;
+  IF NOT FOUND OR v_request.state<>'approved' OR v_request.document_digest<>v_doc.material_digest OR v_request.policy_snapshot->>'approval_required' NOT IN ('true','false') THEN
+--- before/read_party_statement_snapshot(uuid,text,uuid,date,date)
++++ after/read_party_statement_snapshot(uuid,text,uuid,date,date)
+@@ -46,7 +46,7 @@
+     SELECT a.id AS event_id,a.effective_date AS event_date,'allocation'::text AS event_type,ditem.control_kind,
+       'allocation'::text AS document_type,COALESCE(a.source_document_id,credit_doc.id) AS source_document_id,COALESCE(source.document_number,credit_doc.document_number) AS document_number,
+       COALESCE(source.document_number,ditem.reference) AS reference,other_doc.id AS related_document_id,other_doc.document_number AS related_document,
+-      'Applied BDT '||a.amount::text AS detail,0::numeric AS balance_effect
++      'Applied '||finance_private.company_currency(p_organization_id)||' '||a.amount::text AS detail,0::numeric AS balance_effect
+     FROM finance.settlement_allocations a
+     JOIN finance.open_items ditem ON ditem.organization_id=a.organization_id AND ditem.id=a.debit_open_item_id AND ditem.organization_id=p_organization_id AND ditem.party_id=p_party_id
+     JOIN finance.open_items citem ON citem.organization_id=a.organization_id AND citem.id=a.credit_open_item_id
+@@ -101,6 +101,6 @@
+     'events',(SELECT rows FROM event_json),'cutoff_at',v_now,'timezone',v_org.timezone)
+   INTO v_data;
+   RETURN jsonb_build_object('snapshot_id',gen_random_uuid(),'report_type',CASE p_scope WHEN 'customer' THEN 'customer_statement' ELSE 'vendor_statement' END,
+-    'company',jsonb_build_object('id',v_org.id,'name',v_org.name,'timezone',v_org.timezone),'filters',jsonb_build_object('scope',p_scope,'party_id',p_party_id,'from',p_from,'to',p_to),
++    'company',jsonb_build_object('id',v_org.id,'name',v_org.name,'timezone',v_org.timezone,'base_currency',v_org.base_currency),'filters',jsonb_build_object('scope',p_scope,'party_id',p_party_id,'from',p_from,'to',p_to),
+     'generated_at',v_now,'ledger_cutoff_at',v_now,'template_version','v1.0','status','posted','provisional',false,'data',v_data);
+ END; $function$
+--- before/save_financial_document(uuid,uuid,integer,text,text,text,jsonb)
++++ after/save_financial_document(uuid,uuid,integer,text,text,text,jsonb)
+@@ -46,7 +46,7 @@
+      'customer_advance','vendor_advance','transfer','manual_journal','controlled_adjustment','opening_balance') THEN
+     RAISE EXCEPTION 'this source type is created by its dedicated workflow' USING ERRCODE='23514';
+   END IF;
+-  v_currency:=COALESCE(p_payload->>'currency','BDT'); IF v_currency<>'BDT' THEN RAISE EXCEPTION 'V1 supports BDT only' USING ERRCODE='23514'; END IF;
++  v_currency:=p_payload->>'currency'; IF v_currency IS DISTINCT FROM finance_private.company_currency(p_organization_id) THEN RAISE EXCEPTION 'Document currency must equal company accounting currency' USING ERRCODE='23514'; END IF;
+   IF length(COALESCE(p_payload->>'description',''))>2000 OR length(COALESCE(p_payload->>'external_reference',''))>160 THEN
+     RAISE EXCEPTION 'document text exceeds its allowed length' USING ERRCODE='22023';
+   END IF;
+--- before/save_linked_settlement_draft(uuid,uuid,integer,text,text,text,jsonb)
++++ after/save_linked_settlement_draft(uuid,uuid,integer,text,text,text,jsonb)
+@@ -56,7 +56,7 @@
+   IF p_document_id IS NULL THEN
+     INSERT INTO finance.business_documents(id,organization_id,document_type,fiscal_year_id,party_id,issue_date,accounting_date,description,currency,
+       net_amount,tax_amount,total_amount,version,created_by_member_id,party_snapshot,material_digest,external_reference)
+-      SELECT v_id,p_organization_id,v_type,p.fiscal_year_id,v_source.party_id,v_date,v_date,btrim(p_payload->>'description'),'BDT',v_amount,0,v_amount,1,v_actor,
++      SELECT v_id,p_organization_id,v_type,p.fiscal_year_id,v_source.party_id,v_date,v_date,btrim(p_payload->>'description'),finance_private.company_currency(p_organization_id),v_amount,0,v_amount,1,v_actor,
+         jsonb_build_object('display_name',c.display_name,'legal_name',c.legal_name,
+     'email',c.email,'phone',c.phone,'billing_address',c.billing_address,'tax_identifiers',c.tax_identifiers),p_request_hash,NULLIF(p_payload->>'reference','')
+       FROM finance.accounting_periods p JOIN finance.contacts c ON c.organization_id=p_organization_id AND c.id=v_source.party_id
+--- before/save_write_off_draft(uuid,uuid,integer,text,text,text,date,uuid,uuid,text,text)
++++ after/save_write_off_draft(uuid,uuid,integer,text,text,text,date,uuid,uuid,text,text)
+@@ -34,7 +34,7 @@
+  IF p_document_id IS NULL THEN
+   INSERT INTO finance.business_documents(id,organization_id,document_type,fiscal_year_id,party_id,issue_date,accounting_date,description,currency,
+    net_amount,tax_amount,total_amount,version,created_by_member_id,party_snapshot,material_digest)
+-  SELECT v_id,p_organization_id,'write_off',p.fiscal_year_id,v_target.party_id,p_accounting_date,p_accounting_date,btrim(p_reason),'BDT',v_amount,0,v_amount,1,v_actor,
++  SELECT v_id,p_organization_id,'write_off',p.fiscal_year_id,v_target.party_id,p_accounting_date,p_accounting_date,btrim(p_reason),finance_private.company_currency(p_organization_id),v_amount,0,v_amount,1,v_actor,
+    jsonb_build_object('display_name',c.display_name,'legal_name',c.legal_name),p_request_hash
+   FROM finance.accounting_periods p JOIN finance.contacts c ON c.organization_id=p_organization_id AND c.id=v_target.party_id
+   WHERE p.organization_id=p_organization_id AND p.id=v_period;

@@ -50,7 +50,7 @@ export function duplicateTradeDraft(
     due_date: null,
     external_reference: null,
     description: source.description ?? "",
-    currency: "BDT",
+    currency: source.currency,
     rounding_adjustment: source.rounding_adjustment ?? "0.00",
     rounding_reason: source.rounding_reason ?? null,
     rounding_account_id: source.rounding_account_id ?? null,

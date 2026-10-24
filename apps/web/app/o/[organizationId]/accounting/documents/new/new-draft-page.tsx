@@ -1,5 +1,6 @@
+import {companyDate} from '../../../../../../server/companies/today.ts';
 import { parseOrganizationId, parseUuid } from "@ams/contracts";
-import { bangladeshDate } from "../../../../../../lib/date.ts";
+
 import { redirect } from "next/navigation";
 import { resolveActorContext } from "../../../../../../server/auth/resolve-actor.ts";
 import { CommandError } from "../../../../../../server/commands/errors.ts";
@@ -25,7 +26,7 @@ export default async function NewDraftPage({ params, searchParams }: {
   const query = await searchParams;
   if (!query.type || !(sourceTypes as readonly string[]).includes(query.type)) redirect(`/o/${organizationId}/accounting/documents`);
   const documentType = query.type as SourceType;
-  const today = bangladeshDate();
+  const today = (await companyDate());
   const runtime = await roleRuntime();
   if (!runtime.current || runtime.current.organizationId !== organizationId) redirect("/companies?error=context_mismatch");
 

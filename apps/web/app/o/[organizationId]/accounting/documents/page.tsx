@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -90,7 +91,7 @@ export default async function DocumentDirectoryPage({ params }: { params: Promis
         {rows?.length ? (
           <div className={styles.grid}>
             <table>
-              <thead><tr><th>Number</th><th>Type</th><th>Accounting date</th><th>State</th><th>Total (BDT)</th></tr></thead>
+              <thead><tr><th>Number</th><th>Type</th><th>Accounting date</th><th>State</th><th>Total (<CompanyCurrency />)</th></tr></thead>
               <tbody>{rows.map((row) => (
                 <tr key={row.id}>
                   <td><Link href={`/o/${organizationId}/accounting/documents/${row.id}`}>{row.documentNumber ?? "Draft"}</Link></td>

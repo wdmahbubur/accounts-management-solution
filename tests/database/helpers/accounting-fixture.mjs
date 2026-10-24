@@ -13,7 +13,7 @@ export function units(value) {
 }
 export const money = (actual, expected) => assert.equal(units(actual), units(expected));
 
-export async function createAccountingFixture({ booksStart = "2025-01-01", date = "2025-01-15" } = {}) {
+export async function createAccountingFixture({ booksStart = "2025-01-01", date = "2025-01-15",currency='BDT',country='BD' } = {}) {
   const ownerUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
   const runtimeUrl = process.env.TEST_DATABASE_RUNTIME_URL ?? process.env.DATABASE_RUNTIME_URL;
   assertIsolatedTargets(ownerUrl, runtimeUrl);
@@ -43,7 +43,7 @@ export async function createAccountingFixture({ booksStart = "2025-01-01", date 
       await admin.query("INSERT INTO finance.profiles(user_id,display_name,locale,timezone) VALUES($1,$2,'en-BD','Asia/Dhaka')", [id, `Synthetic ${name}`]);
       await admin.query("INSERT INTO identity.auth_sessions(id,user_id,session_version,recent_auth_at,expires_at) VALUES($1,$2,0,now(),now()+interval '1 hour')", [randomUUID(), id]);
     }
-    const org = (await rpc("SELECT * FROM public.create_company_atomic($1,$1,'BD','BDT','Asia/Dhaka',1::smallint,$2::date,$3)", [`Acceptance ${randomUUID()}`, booksStart, randomUUID()])).rows[0].organization_id;
+    const org = (await rpc("SELECT * FROM public.create_company_atomic($1,$1,$4,$5,'Asia/Dhaka',1::smallint,$2::date,$3)", [`Acceptance ${randomUUID()}`, booksStart, randomUUID(),country,currency])).rows[0].organization_id;
     const setup = request("zero setup");
     await rpc("SELECT public.complete_company_setup($1,$2,$3,$4,'zero_opening',true,NULL,NULL)", [org, setup.id, setup.key, setup.hash]);
     const accounts = Object.fromEntries((await admin.query("SELECT code,id FROM finance.accounts WHERE organization_id=$1", [org])).rows.map(row => [row.code, row.id]));
@@ -82,12 +82,12 @@ export async function createAccountingFixture({ booksStart = "2025-01-01", date 
     function body(type, amount, overrides = {}) {
       const trade = ["invoice", "bill"].includes(type), incoming = type === "receipt";
       return { document_type: type, party_id: type === "manual_journal" ? null : type === "invoice" || incoming ? contacts.customer : contacts.vendor,
-        issue_date: date, accounting_date: date, due_date: trade ? date : null, description: `Synthetic acceptance ${type}`, external_reference: null, currency: "BDT",
+        issue_date: date, accounting_date: date, due_date: trade ? date : null, description: `Synthetic acceptance ${type}`, external_reference: null, currency,
         rounding_adjustment: "0.00", rounding_reason: null, rounding_account_id: null,
         trade: trade ? { recognition_mode: "earned_or_incurred", performance_confirmed: true, supplier_invoice_date: type === "bill" ? date : null, supplier_invoice_key: type === "bill" ? randomUUID() : null } : null,
         movement: ["receipt", "vendor_payment", "paid_expense"].includes(type) ? { cash_account_id: cash, direction: incoming ? "in" : "out", amount, method: "bank_transfer", reference: "Synthetic acceptance", cash_flow_class: "operating" } : null,
         transfer: null, lines: trade || type === "paid_expense" ? [line(amount, accounts[type === "invoice" ? "4000" : "6000"])] : [], journal_rows: [], allocation_plan: [], ...overrides };
     }
-    return { admin, runtime, ids, org, accounts, ownerRole, policies, contacts, cash, date, rpc, asActor, save, submit, post, posted, openItems, journal, line, body, close };
+    return { admin, runtime, ids, org, accounts, ownerRole, policies, contacts, cash, date, currency, rpc, asActor, save, submit, post, posted, openItems, journal, line, body, close };
   } catch (error) { await close(); throw error; }
 }

@@ -30,7 +30,7 @@ export async function POST(request: Request, context: { params: Promise<{ organi
     const body = await request.json() as Record<string, unknown>;
     const statementLineId = parseUuid(body.statement_line_id, "statement_line_id");
     const journalLineId = parseUuid(body.journal_line_id, "journal_line_id");
-    if (typeof body.amount !== "string" || !/^\d{1,12}\.\d{2}$/.test(body.amount)) throw CommandError.validation({ amount: "Enter a positive exact BDT amount with two decimals." });
+    if (typeof body.amount !== "string" || !/^\d{1,12}\.\d{2}$/.test(body.amount)) throw CommandError.validation({ amount: "Enter a positive exact amount in company currency with two decimals." });
     const result = await runtime.client.rpc("add_reconciliation_match", { p_organization_id: organizationId, p_reconciliation_id: reconciliationId, p_statement_line_id: statementLineId, p_journal_line_id: journalLineId, p_amount: body.amount, p_request_id: requestId });
     if (result.error) dbError(result.error.code);
     return Response.json({ data: { id: parseUuid(result.data) }, meta: { request_id: requestId } }, { status: 201, headers: { "Cache-Control": "private, no-store" } });

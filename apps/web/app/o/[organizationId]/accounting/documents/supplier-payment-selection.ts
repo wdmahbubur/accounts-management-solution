@@ -66,7 +66,7 @@ export function supplierAllocationDisplay(amount: string, plan: readonly Settlem
       const units = moneyUnits(canonicalAmountInput(row.amount));
       applied += units;
       if (units <= 0n) issues.push({ field: `${prefix}.amount`, message: "Enter an amount greater than zero, or remove this bill." });
-      else if (cap !== undefined && units > moneyUnits(cap)) issues.push({ field: `${prefix}.amount`, message: `This bill has ${cap} BDT available to apply. Reduce the amount or refresh the bill list.` });
+      else if (cap !== undefined && units > moneyUnits(cap)) issues.push({ field: `${prefix}.amount`, message: `This bill has ${cap} available to apply. Reduce the amount or refresh the bill list.` });
     } catch { complete = false; issues.push({ field: `${prefix}.amount`, message: "Enter an amount with up to two decimal places." }); }
   });
   if (payment && complete && applied > moneyUnits(payment)) issues.push({ field: "allocation_plan", message: "The amount applied to bills exceeds this payment. Reduce the bill amounts or increase the payment." });

@@ -1,10 +1,14 @@
 "use client";
+import {useCompanyToday} from '../../../../../components/finance/company-currency.tsx';
+
+import {CompanyCurrency,useCompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
+
 import { useEffect, useId, useRef, useState } from "react";
 import { ContractValidationError } from "@ams/contracts";
 import { displayMoney } from "../../../../../components/finance/contracts.ts";
 import { useRouter } from "next/navigation";
 import type { SourceType } from "../../../../../server/documents/contracts.ts";
-import { bangladeshDate } from "../../../../../lib/date.ts";
+
 import { PostingPreview } from "../../../../../components/finance/posting-preview.tsx";
 import { parsePostingPreviewResult, type PostingPreviewResult } from "../../../../../lib/posting-preview.ts";
 import { DraftEditGuard } from "./draft-interactions.ts";
@@ -32,6 +36,9 @@ const movementTypes:SourceType[]=["receipt","vendor_payment","customer_refund","
 const journalTypes:SourceType[]=["manual_journal","controlled_adjustment","opening_balance"];
 const blankLine=(accountId="",uiKey=""):Line=>({uiKey,id:null,item_id:null,item_snapshot:null,original_line_id:null,description:"",quantity:"1",unit_price:"0.00",discount_amount:"0.00",account_id:accountId,cost_center_id:null,cost_center_snapshot:null,tax_code_id:null,tax_mode:"exclusive"});
 export function DraftEditor({organizationId,nonce,documentType,options,initial,expectedVersion,duplicate=false,createNew=false,receiptInvoices=[],receiptInvoiceError="",supplierBills=[],supplierBillError="",creditSources,creditSourceError="",defaultDate}:{organizationId:string;nonce:string;documentType:SourceType;options:DraftOptions;initial?:Record<string,unknown>;expectedVersion?:number;duplicate?:boolean;createNew?:boolean;receiptInvoices?:ReceiptTarget[];receiptInvoiceError?:string;supplierBills?:SupplierBillTarget[];supplierBillError?:string;creditSources?:CreditNoteOptions;creditSourceError?:string;defaultDate?:string}){
+ const companyToday=useCompanyToday();
+
+ const currency=useCompanyCurrency();
  const router=useRouter();
  const editorId=useId();
  const formRef=useRef<HTMLFormElement>(null);
@@ -50,7 +57,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  const requestPending=useRef(false);
  const [dirty,setDirty]=useState(false);
  const [savedVersion,setSavedVersion]=useState<number>();
- const [today]=useState(()=>defaultDate??bangladeshDate());
+ const [today]=useState(()=>defaultDate??companyToday);
  const dirtyMessageId=`${editorId}-dirty`;
  const version=savedVersion??expectedVersion;
  useEffect(()=>{
@@ -76,7 +83,8 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  }
  function finishRequest(){requestPending.current=false;setAction(null);}
  const d=initial??{};const initialLines=Array.isArray(d.lines)?d.lines as Record<string,unknown>[]:[];
- const [lines,setLines]=useState<Line[]>(initialLines.length?initialLines.map((l,i)=>({uiKey:`${editorId}-saved-${i}`,id:l.id?String(l.id):null,item_id:l.item_id?String(l.item_id):null,item_snapshot:l.item_snapshot&&typeof l.item_snapshot==="object"?l.item_snapshot as Record<string,unknown>:null,original_line_id:l.original_line_id?String(l.original_line_id):null,description:String(l.description),quantity:String(l.quantity),unit_price:String(l.unit_price),discount_amount:String(l.discount_amount),account_id:String(l.account_id),cost_center_id:l.cost_center_id?String(l.cost_center_id):null,cost_center_snapshot:l.cost_center_snapshot&&typeof l.cost_center_snapshot==="object"?l.cost_center_snapshot as Record<string,unknown>:null,tax_code_id:l.tax_code_id?String(l.tax_code_id):null,tax_mode:l.tax_mode==="inclusive"?"inclusive":"exclusive"})): [blankLine(options.accounts[0]?.id,`${editorId}-first`)]);
+ const newLineAccount=["bill","paid_expense"].includes(documentType)?"":options.accounts[0]?.id??"";
+ const [lines,setLines]=useState<Line[]>(initialLines.length?initialLines.map((l,i)=>({uiKey:`${editorId}-saved-${i}`,id:l.id?String(l.id):null,item_id:l.item_id?String(l.item_id):null,item_snapshot:l.item_snapshot&&typeof l.item_snapshot==="object"?l.item_snapshot as Record<string,unknown>:null,original_line_id:l.original_line_id?String(l.original_line_id):null,description:String(l.description),quantity:String(l.quantity),unit_price:String(l.unit_price),discount_amount:String(l.discount_amount),account_id:String(l.account_id),cost_center_id:l.cost_center_id?String(l.cost_center_id):null,cost_center_snapshot:l.cost_center_snapshot&&typeof l.cost_center_snapshot==="object"?l.cost_center_snapshot as Record<string,unknown>:null,tax_code_id:l.tax_code_id?String(l.tax_code_id):null,tax_mode:l.tax_mode==="inclusive"?"inclusive":"exclusive"})): [blankLine(newLineAccount,`${editorId}-first`)]);
  const [journals,setJournals]=useState<Journal[]>(Array.isArray(d.journal_rows)?(d.journal_rows as Record<string,unknown>[]).map((r)=>({account_id:String(r.account_id),cost_center_id:r.cost_center_id?String(r.cost_center_id):null,debit:String(r.debit),credit:String(r.credit),description:String(r.description),cash_flow_class:String(r.cash_flow_class??"unclassified")})): [{account_id:options.accounts[0]?.id??"",cost_center_id:null,debit:"0.00",credit:"0.00",description:"",cash_flow_class:"unclassified"}]);
  const [movement,setMovement]=useState<Movement>(()=>{const m=(d.movement&&typeof d.movement==="object"?d.movement:{}) as Record<string,unknown>;return{cash_account_id:String(m.cash_account_id??options.cash_accounts[0]?.id??""),direction:String(m.direction??(["receipt","customer_advance","vendor_refund"].includes(documentType)?"in":"out")) as "in"|"out",amount:String(m.amount??"0.00"),method:String(m.method??"bank_transfer"),reference:String(m.reference??""),cash_flow_class:String(m.cash_flow_class??"unclassified")};});
  const [allocationPlan,setAllocationPlan]=useState<Plan[]>(Array.isArray(d.allocation_plan)?(d.allocation_plan as Record<string,unknown>[]).map((p)=>({target_open_item_id:String(p.target_open_item_id),amount:String(p.amount)})):[]);
@@ -99,7 +107,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
   id:line.id?String(line.id):null,original_line_id:line.original_line_id?String(line.original_line_id):null,
   tax_code_id:line.tax_code_id?String(line.tax_code_id):null,tax_rate_snapshot:String(line.tax_rate_snapshot),tax_mode:line.tax_mode==="inclusive"?"inclusive":"exclusive"
  }));
- const liveTotals=isTrade?calculateTradeDraft({lines,taxCodes:options.tax_codes,savedLines:savedTaxes,originalLines:originalCreditTaxes(selectedCreditSource),credit:isCredit,rounding}):null;
+ const liveTotals=isTrade?calculateTradeDraft({currency,lines,taxCodes:options.tax_codes,savedLines:savedTaxes,originalLines:originalCreditTaxes(selectedCreditSource),credit:isCredit,rounding}):null;
  const issueMessage=(name:string)=>fieldErrors[name]??liveTotals?.issues.find(issue=>issue.field===name)?.message;
  const fieldAttributes=(name:string)=>({name,"aria-invalid":Boolean(issueMessage(name)),"aria-describedby":issueMessage(name)?`${editorId}-${name}-error`:undefined});
  const fieldError=(name:string)=>issueMessage(name)?<small className={styles.fieldError} id={`${editorId}-${name}-error`}>{issueMessage(name)}</small>:null;
@@ -203,7 +211,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
      document_type:documentType,party_id:String(form.get("party_id")??"")||null,
      issue_date:String(form.get("issue_date")??""),accounting_date:String(form.get("accounting_date")??""),
      due_date:String(form.get("due_date")??"")||null,external_reference:String(form.get("external_reference")??"")||null,
-     description:String(form.get("description")??""),currency:"BDT",rounding_adjustment:roundingAdjustment,
+     description:String(form.get("description")??""),currency,rounding_adjustment:roundingAdjustment,
      rounding_reason:roundingAdjustment==="0.00"?null:rounding.reason,
      rounding_account_id:roundingAdjustment==="0.00"?null:rounding.accountId||null,
      trade:isTrade?{...trade,original_document_id:String(form.get("original_document_id")??"")||null,
@@ -285,7 +293,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
  }
  return <section className={`${styles.main} ${styles.editor}`} data-company-context={nonce} aria-labelledby={`${editorId}-heading`}>
   <header className={styles.editorHeader}>
-   {(!initial||createNew)&&<p className="eyebrow">{duplicate?"Copy as a new draft":"Draft"} · BDT</p>}
+   {(!initial||createNew)&&<p className="eyebrow">{duplicate?"Copy as a new draft":"Draft"} · <CompanyCurrency /></p>}
    <Heading id={`${editorId}-heading`}>{initial&&!createNew?`Edit ${labels[documentType].toLowerCase()}`:`${duplicate?"Duplicate · ":"New "}${labels[documentType].toLowerCase()}`}</Heading>
    <p className={styles.hint}>Save your draft, check the saved preview, then submit it for approval. Saving a draft does not post to your books.</p>
   </header>
@@ -356,7 +364,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
       </div>
      </section>}
      <section className={`${styles.wide} ${styles.editorSection}`} aria-labelledby={`${editorId}-lines`}>
-      <div className={styles.sectionHeading}><div><h2 id={`${editorId}-lines`}>Items and services</h2><p className={styles.hint}>Amounts are in BDT. Add a discount to the line it applies to.</p></div><span className={styles.lineCount}>{lines.length} {lines.length===1?"line":"lines"}</span></div>
+      <div className={styles.sectionHeading}><div><h2 id={`${editorId}-lines`}>Items and services</h2><p className={styles.hint}>Amounts are in <CompanyCurrency />. Add a discount to the line it applies to.</p></div><span className={styles.lineCount}>{lines.length} {lines.length===1?"line":"lines"}</span></div>
       <div className={styles.lineCards}>{lines.map((line,i)=>{
        const lineDisplay=liveTotals?.lines[i];
        const prefix=`lines.${i+1}`;
@@ -403,8 +411,8 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
         <div className={styles.lineNumbers}>
          <label><span>Quantity{typeof line.item_snapshot?.unit==="string"&&<span className={styles.optional}> · {line.item_snapshot.unit}</span>}</span>
           <input {...fieldAttributes(`${prefix}.quantity`)} required inputMode="decimal" pattern={decimalPattern} title="Use a quantity greater than zero with up to six decimal places" maxLength={21} value={line.quantity} onChange={event=>updateLine(i,{quantity:event.target.value})}/>{fieldError(`${prefix}.quantity`)}</label>
-         <label>Unit price (BDT)<input {...fieldAttributes(`${prefix}.unit_price`)} required inputMode="decimal" pattern={decimalPattern} title="Use up to six decimal places, for example 1250.00" maxLength={21} value={line.unit_price} onChange={event=>updateLine(i,{unit_price:event.target.value})}/>{fieldError(`${prefix}.unit_price`)}</label>
-         <label>Discount (BDT)<input {...fieldAttributes(`${prefix}.discount_amount`)} required inputMode="decimal" pattern={moneyPattern} title="Use up to two decimal places, for example 50.00" maxLength={21} value={line.discount_amount} onChange={event=>updateLine(i,{discount_amount:event.target.value})}/>{fieldError(`${prefix}.discount_amount`)}</label>
+         <label>Unit price (<CompanyCurrency />)<input {...fieldAttributes(`${prefix}.unit_price`)} required inputMode="decimal" pattern={decimalPattern} title="Use up to six decimal places, for example 1250.00" maxLength={21} value={line.unit_price} onChange={event=>updateLine(i,{unit_price:event.target.value})}/>{fieldError(`${prefix}.unit_price`)}</label>
+         <label>Discount (<CompanyCurrency />)<input {...fieldAttributes(`${prefix}.discount_amount`)} required inputMode="decimal" pattern={moneyPattern} title="Use up to two decimal places, for example 50.00" maxLength={21} value={line.discount_amount} onChange={event=>updateLine(i,{discount_amount:event.target.value})}/>{fieldError(`${prefix}.discount_amount`)}</label>
         </div>
         <details className={styles.lineDetails} open={!line.account_id||Boolean(fieldErrors[`${prefix}.account_id`])||undefined}>
          <summary>Account and tax <span>{account?`${account.code} · ${account.name}`:line.account_id?"Saved account":"Choose an account"} · {isCredit?"Original line’s tax":tax?.label??(line.tax_code_id?"Saved tax code":"No tax")}{line.cost_center_id?" · Cost center selected":""}</span></summary>
@@ -440,7 +448,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
       })}</div>
       <button type="button" className="secondary" data-draft-edit="true" disabled={lines.length>=500} onClick={()=>{
        lineSequence.current+=1;const uiKey=`${editorId}-added-${lineSequence.current}`;
-       setLines(current=>[...current,blankLine(options.accounts[0]?.id,uiKey)]);
+       setLines(current=>[...current,blankLine(newLineAccount,uiKey)]);
        requestAnimationFrame(()=>focusField(`lines.${lines.length+1}.${isCredit?"original_line_id":"description"}`));
       }}>+ Add another line</button>
      </section>
@@ -457,7 +465,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
      {movement.cash_account_id&&!options.cash_accounts.some(account=>account.id===movement.cash_account_id)&&<option value={movement.cash_account_id}>Saved account · not in the active list</option>}
      {options.cash_accounts.map(account=><option key={account.id} value={account.id}>{account.name} · {account.kind}</option>)}
     </select>{fieldError("cash_account_id")}</label>
-    <label>{documentType==="vendor_payment"?"Payment amount":"Amount"} (BDT)<input {...fieldAttributes("amount")} required inputMode="decimal" pattern={moneyPattern} value={movement.amount}
+    <label>{documentType==="vendor_payment"?"Payment amount":"Amount"} (<CompanyCurrency />)<input {...fieldAttributes("amount")} required inputMode="decimal" pattern={moneyPattern} value={movement.amount}
      onChange={event=>setMovement({...movement,amount:event.target.value})}/>{fieldError("amount")}</label>
     <label>Method<select name="method" value={movement.method} onChange={event=>setMovement({...movement,method:event.target.value})}>
      {[["cash","Cash"],["bank_transfer","Bank transfer"],["mobile_wallet","Mobile wallet"],["card","Card"],["other","Other"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}
@@ -472,11 +480,11 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
    <h2>Invoice allocation</h2><p>Balances are calculated for this accounting date; posting checks the selected invoices and receipt capacity again.</p>
    <button type="button" className="secondary" disabled={receiptLoading||!receiptParty||!receiptDate} onClick={()=>void refreshReceiptTargets(receiptParty,receiptDate)}>Refresh invoice list</button>
    {receiptLoading&&<p role="status">Loading eligible invoices…</p>}{receiptError&&<p role="alert" className={styles.error}>{receiptError}</p>}
-   {!receiptParty?<p>Choose a customer to see their open invoices.</p>:!receiptLoading&&!receiptError&&receiptTargets.length===0?<p>No eligible open invoices for this customer and date. Any unallocated receipt remains visible as customer trade credit.</p>:receiptTargets.length>0&&<div className={`table-scroll ${styles.receiptTable}`}><table><thead><tr><th>Select invoice</th><th>Issue date</th><th>Due date</th><th>Invoice total</th><th>Available (BDT)</th><th>Apply (BDT)</th></tr></thead><tbody>
+   {!receiptParty?<p>Choose a customer to see their open invoices.</p>:!receiptLoading&&!receiptError&&receiptTargets.length===0?<p>No eligible open invoices for this customer and date. Any unallocated receipt remains visible as customer trade credit.</p>:receiptTargets.length>0&&<div className={`table-scroll ${styles.receiptTable}`}><table><thead><tr><th>Select invoice</th><th>Issue date</th><th>Due date</th><th>Invoice total</th><th>Available (<CompanyCurrency />)</th><th>Apply (<CompanyCurrency />)</th></tr></thead><tbody>
     {receiptTargets.map(target=>{const plan=allocationPlan.find(p=>p.target_open_item_id===target.openItemId);return <tr key={target.openItemId}><td><label><input type="checkbox" checked={!!plan} onChange={e=>setAllocationPlan(e.target.checked?[...allocationPlan,{target_open_item_id:target.openItemId,amount:"0.00"}]:allocationPlan.filter(p=>p.target_open_item_id!==target.openItemId))}/>{target.documentNumber??target.documentId}</label></td><td>{target.issueDate}</td><td>{target.dueDate??"—"}</td><td>{target.totalAmount}</td><td>{target.residualAmount}</td><td>{plan&&<input aria-label={`Amount to apply to invoice ${target.documentNumber??target.documentId}`} inputMode="decimal" value={plan.amount} onChange={e=>setAllocationPlan(allocationPlan.map(p=>p.target_open_item_id===target.openItemId?{...p,amount:e.target.value}:p))}/>}</td></tr>;})}
    </tbody></table></div>}
    {!receiptLoading&&allocationPlan.filter(plan=>!receiptTargets.some(target=>target.openItemId===plan.target_open_item_id)).map(plan=><div key={plan.target_open_item_id} className={styles.line}>
-    <p>Saved target {plan.target_open_item_id} · BDT {plan.amount}. This target is not in the current eligible invoice list. Refresh the list or remove the target before resubmitting.</p>
+    <p>Saved target {plan.target_open_item_id} · <CompanyCurrency /> {plan.amount}. This target is not in the current eligible invoice list. Refresh the list or remove the target before resubmitting.</p>
     <button type="button" className="secondary" data-draft-edit="true" onClick={()=>setAllocationPlan(allocationPlan.filter(row=>row.target_open_item_id!==plan.target_open_item_id))}>Remove saved target</button>
    </div>)}
   </section>}
@@ -489,7 +497,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
      <summary>Rounding adjustment <span className={styles.optional}>Optional · up to ৳0.05</span></summary>
      <p className={styles.hint}>Use this only for a documented difference of a few paisa. Add a reason and the configured rounding account.</p>
      <div className={styles.editorGrid}>
-      <label>Adjustment (BDT)<input {...fieldAttributes("rounding_adjustment")} required inputMode="decimal" value={rounding.amount} onChange={event=>setRounding({...rounding,amount:event.target.value})}/>{fieldError("rounding_adjustment")}</label>
+      <label>Adjustment (<CompanyCurrency />)<input {...fieldAttributes("rounding_adjustment")} required inputMode="decimal" value={rounding.amount} onChange={event=>setRounding({...rounding,amount:event.target.value})}/>{fieldError("rounding_adjustment")}</label>
       <label>Rounding reason<input {...fieldAttributes("rounding_reason")} maxLength={500} value={rounding.reason} onChange={event=>setRounding({...rounding,reason:event.target.value})}/>{fieldError("rounding_reason")}</label>
       <label>Rounding account<select {...fieldAttributes("rounding_account_id")} value={rounding.accountId} onChange={event=>setRounding({...rounding,accountId:event.target.value})}>
        <option value="">Choose an account if adjusting</option>{options.rounding_accounts.map(account=><option key={account.id} value={account.id}>{account.code} · {account.name}</option>)}
@@ -504,7 +512,7 @@ export function DraftEditor({organizationId,nonce,documentType,options,initial,e
       <div><dt>Net amount</dt><dd>{displayMoney(liveTotals.totals.net)}</dd></div>
       <div><dt>Tax</dt><dd>{displayMoney(liveTotals.totals.tax)}</dd></div>
       {liveTotals.totals.rounding_adjustment!=="0.00"&&<div><dt>Rounding</dt><dd>{displayMoney(liveTotals.totals.rounding_adjustment)}</dd></div>}
-      <div className={styles.grandTotal}><dt>Total (BDT)</dt><dd><output aria-label="Draft total in BDT">{displayMoney(liveTotals.totals.total)}</output></dd></div>
+      <div className={styles.grandTotal}><dt>Total (<CompanyCurrency />)</dt><dd><output aria-label="Draft total in company currency">{displayMoney(liveTotals.totals.total)}</output></dd></div>
      </dl>:<p className={styles.totalPending}>{liveTotals?.issues.length?"Check the highlighted amounts to see the complete total.":"Save and check the saved preview to confirm the total with the document’s tax snapshots."}</p>}
     </section>}
    </fieldset>

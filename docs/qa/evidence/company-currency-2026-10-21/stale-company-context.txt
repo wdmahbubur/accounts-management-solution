@@ -1,0 +1,41 @@
+- main:
+  - link "Accounts":
+    - /url: /
+    - generic: A
+    - text: Accounts
+  - link "Back to home":
+    - /url: /
+  - heading "Your companies" [level=1]
+  - paragraph: Choose the company whose books you want to work on.
+  - alert: Your active company changed. Open the company again before continuing.
+  - region "Active company memberships":
+    - article:
+      - heading "Global USD acceptance" [level=2]
+      - paragraph: Synthetic Global USD Acceptance Company
+      - term: Status
+      - definition: Active
+      - term: Roles
+      - definition: Owner
+      - button "Open Global USD acceptance"
+    - article:
+      - heading "Golden alpha" [level=2]
+      - paragraph: Acceptance 99b86f85-ecca-4a98-9ac3-aa657fbfb57a
+      - strong: Current
+      - term: Status
+      - definition: Active
+      - term: Roles
+      - definition: Owner
+      - button "Open current company"
+    - article:
+      - heading "Golden beta" [level=2]
+      - paragraph: Golden beta
+      - term: Status
+      - definition: Active
+      - term: Roles
+      - definition: Owner
+      - button "Open Golden beta"
+  - paragraph: Each company has its own accounts, transactions and reports.
+  - link "Create another company":
+    - /url: /onboarding/company
+- button "Open Next.js Dev Tools":
+- alert

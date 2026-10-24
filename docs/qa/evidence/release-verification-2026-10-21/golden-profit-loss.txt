@@ -1,0 +1,138 @@
+- link "Skip to workspace content":
+  - /url: "#workspace-content"
+- complementary "Workspace sidebar":
+  - link "Accounts":
+    - /url: /companies
+    - generic: A
+    - generic: Accounts
+  - 'link "Change company. Current company: Golden alpha"':
+    - /url: /companies
+    - strong: Golden alpha
+    - generic: Change company
+  - navigation "Workspace navigation":
+    - region "Overview":
+      - heading "Overview" [level=2]:
+        - button "Overview" [expanded]:
+          - generic: Overview
+      - link "Dashboard":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+      - link "Reports":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+      - link "Notifications":
+        - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/notifications
+    - region "Sales":
+      - heading "Sales" [level=2]:
+        - button "Sales":
+          - generic: Sales
+    - region "Purchases":
+      - heading "Purchases" [level=2]:
+        - button "Purchases":
+          - generic: Purchases
+    - region "Banking":
+      - heading "Banking" [level=2]:
+        - button "Banking":
+          - generic: Banking
+    - region "Accounting":
+      - heading "Accounting" [level=2]:
+        - button "Accounting":
+          - generic: Accounting
+    - region "Review and records":
+      - heading "Review and records" [level=2]:
+        - button "Review and records":
+          - generic: Review and records
+    - region "Settings":
+      - heading "Settings" [level=2]:
+        - button "Settings":
+          - generic: Settings
+  - link "Your profile":
+    - /url: /settings/profile
+  - link "Session security":
+    - /url: /settings/security
+- banner:
+  - navigation "Breadcrumb":
+    - link "Golden alpha":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0
+    - generic: /
+    - link "Reports":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/reports
+    - generic: /
+    - generic: Profit and Loss
+  - generic "acceptance-8919410e-c550-4223-8f7a-a80f4a642258@example.invalid"
+  - button "Sign out"
+- main:
+  - paragraph: Reports · Golden alpha
+  - heading "Profit and Loss" [level=1]
+  - generic "Report basis and snapshot details"
+  - text: From
+  - textbox "From": 2025-01-01
+  - text: To
+  - textbox "To": 2025-01-31
+  - text: Cost center
+  - combobox "Cost center":
+    - option "All cost centers" [selected]
+  - text: Compare from
+  - textbox "Compare from"
+  - text: Compare to
+  - textbox "Compare to"
+  - button "Run report"
+  - link "Download JSON snapshot":
+    - /url: /api/v1/organizations/ff2673c0-021f-43fe-b84a-96028da68ad0/reports/profit_loss?from=2025-01-01&to=2025-01-31&format=json
+  - text: File format
+  - combobox "File format":
+    - option "CSV"
+    - option "PDF" [selected]
+    - option "XLSX"
+  - button "Queue export"
+  - status:
+    - text: PDF export queued.
+    - link "Export jobs":
+      - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/exports
+  - heading "Summary · 2025-01-01 to 2025-01-31" [level=2]
+  - term: Revenue
+  - definition: BDT 10000.00
+  - term: Direct costs
+  - definition: BDT 4000.00
+  - term: Gross profit
+  - definition: BDT 6000.00
+  - term: Operating costs
+  - definition: BDT 1000.00
+  - term: Other income
+  - definition: BDT 0.00
+  - term: Other expenses
+  - definition: BDT 0.00
+  - term: Net profit
+  - definition:
+    - strong: BDT 5000.00
+  - heading "Account detail" [level=2]
+  - table:
+    - rowgroup:
+      - row "Group Account Current period (BDT) Detail source":
+        - columnheader "Group"
+        - columnheader "Account"
+        - columnheader "Current period (BDT)"
+        - columnheader "Detail source"
+    - rowgroup:
+      - row "cost of sales 5000 · Direct service costs 4000.00 Posted ledger":
+        - cell "cost of sales"
+        - cell "5000 · Direct service costs":
+          - link "5000 · Direct service costs":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=9419974c-e22f-40bf-8288-364cd1cacf4d&from=2025-01-01&to=2025-01-31
+        - cell "4000.00"
+        - cell "Posted ledger"
+      - row "operating expense 6000 · Rent 1000.00 Posted ledger":
+        - cell "operating expense"
+        - cell "6000 · Rent":
+          - link "6000 · Rent":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=78157bbe-6506-44b1-9dc8-c5d81e713ca5&from=2025-01-01&to=2025-01-31
+        - cell "1000.00"
+        - cell "Posted ledger"
+      - row "revenue 4000 · Service revenue 10000.00 Posted ledger":
+        - cell "revenue"
+        - cell "4000 · Service revenue":
+          - link "4000 · Service revenue":
+            - /url: /o/ff2673c0-021f-43fe-b84a-96028da68ad0/accounting/general-ledger?account=924e037f-c2c3-447f-962e-802eb2dbc2be&from=2025-01-01&to=2025-01-31
+        - cell "10000.00"
+        - cell "Posted ledger"
+- contentinfo: BDT books · No financial changes are queued offline.
+- button "Open Next.js Dev Tools":
+- alert

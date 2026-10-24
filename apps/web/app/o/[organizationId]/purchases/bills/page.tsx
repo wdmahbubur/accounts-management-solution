@@ -1,3 +1,4 @@
+import {CompanyCurrency} from '../../../../../components/finance/company-currency.tsx';
 import { parseOrganizationId } from "@ams/contracts";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -24,7 +25,7 @@ export default async function BillRegisterPage({params,searchParams}:{params:Pro
   <header className={styles.pageHeader}><div><p className="eyebrow">Purchases</p><h1>Supplier bills</h1><p>Track supplier invoices, amounts due and payments.</p></div><div className={styles.actions}><Link className="primary" href={`/o/${organizationId}/purchases/bills/new`}>Create bill</Link></div></header>
   <nav className={styles.tabs} aria-label="Bill status">{tabs.map(([value,label])=><Link key={value} aria-current={tab===value?"page":undefined} href={href(value)}>{label}</Link>)}</nav>
   <form key={JSON.stringify([tab,search])} className="panel toolbar" action={base} method="get"><input type="hidden" name="tab" value={tab}/><label>Search bills<input type="search" name="search" maxLength={100} defaultValue={search} placeholder="Number, supplier or invoice reference"/></label><button type="submit">Search</button>{search&&<Link className="secondary" href={registerHref(base,{tab})}>Clear</Link>}</form>
-  <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value])=>value===tab)?.[1]} bills</h2><p>Amounts in BDT</p></div>
+  <section className={`panel ${styles.register}`}><div className={styles.listHeading}><h2>{tabs.find(([value])=>value===tab)?.[1]} bills</h2><p>Amounts in <CompanyCurrency /></p></div>
     {page.items.length===0?<p className={styles.empty}>No bills match these filters.</p>:<div className={`table-scroll ${styles.scroll}`} tabIndex={0} role="region" aria-label="Supplier bill register"><table>
       <thead><tr><th scope="col">Bill / supplier reference</th><th scope="col">Supplier</th><th scope="col">Dates</th><th scope="col" className={styles.amount}>Total</th><th scope="col" className={styles.amount}>Outstanding</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
       <tbody>{page.items.map(bill=><tr key={bill.id}>
